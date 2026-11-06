@@ -1223,61 +1223,115 @@ body[data-case-layout=flowstate] .flow-project-list article>i span{background:#7
 .brand-sub{display:block;color:#93909b;font:9px var(--mono);letter-spacing:.13em;margin-top:2px}
 @media(max-width:760px){.brand-sub{display:none}}
 
-/* THE WORKS — a cinematic threshold, hand-drawn and CSS animated */
-.door-reveal[hidden]{display:none}
-.door-reveal{position:fixed;inset:0;z-index:1200;overflow:hidden;background:#111116;color:#f4f0e8;isolation:isolate;display:grid;grid-template-rows:auto 1fr auto;padding:clamp(18px,3vw,42px);opacity:1;visibility:visible}
-.door-reveal-grain{position:absolute;inset:0;z-index:-1;opacity:.13;pointer-events:none;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.28'/%3E%3C/svg%3E")}
-.door-reveal-top,.door-reveal-bottom{display:flex;align-items:center;justify-content:space-between;gap:20px;font:10px var(--mono);letter-spacing:.15em;color:#aaa5b4}
+
+/* THE WORKS — a quiet threshold opening into a curated project gallery */
+.door-reveal[hidden]{display:none!important}
+.door-reveal{position:fixed;inset:0;z-index:1200;display:grid;grid-template-rows:auto 1fr auto;overflow:hidden;padding:clamp(18px,3vw,42px);background:#0b0b10;color:#f4f0e8;isolation:isolate}
+.door-reveal-atmosphere{position:absolute;inset:0;z-index:-2;background:radial-gradient(ellipse at 50% 45%,#3d3456 0%,#191720 36%,#0b0b10 76%)}
+.door-reveal-atmosphere:after{content:"";position:absolute;inset:0;opacity:.12;background-image:linear-gradient(#fff1 1px,transparent 1px),linear-gradient(90deg,#fff1 1px,transparent 1px);background-size:80px 80px;mask-image:radial-gradient(ellipse at center,#000 10%,transparent 78%)}
+.door-reveal-top,.door-reveal-bottom{position:relative;z-index:8;display:flex;align-items:center;justify-content:space-between;gap:18px;font:9px var(--mono);letter-spacing:.15em;color:#aaa5b4}
 .door-reveal-top i{color:var(--acid);font-style:normal;padding:0 8px}
-.door-reveal-bottom{position:relative;z-index:6}
-.door-reveal-bottom button{border:0;background:none;color:#e8e2f4;font:10px var(--mono);letter-spacing:.13em;cursor:pointer;padding:12px 0}
-.door-reveal-bottom button span{color:var(--acid);padding-left:10px}
-.door-reveal-stage{position:absolute;inset:11% 5% 10%;display:grid;grid-template-columns:minmax(210px,.7fr) 1.3fr;align-items:center;gap:4vw;opacity:0;transform:translateY(24px) scale(.985);transition:opacity .75s ease 2.85s,transform .9s cubic-bezier(.2,.72,.18,1) 2.85s}
-.door-reveal-copy{align-self:center;padding-left:2vw}
-.door-reveal-index{font:10px var(--mono);letter-spacing:.2em;color:var(--acid)}
-.door-reveal-copy h2{font:500 clamp(44px,6vw,94px)/.96 'Space Grotesk',sans-serif;letter-spacing:-.075em;margin:24px 0}
-.door-reveal-copy h2 em{font-weight:400;color:#b7a7ed}
-.door-reveal-copy p{font-size:14px;color:#b6b1bd;max-width:240px}
-.door-reveal-projects{display:grid;grid-template-columns:1fr 1fr;gap:16px;align-items:center}
-.door-project{position:relative;display:flex;flex-direction:column;gap:9px;color:#f6f2eb;min-width:0;text-decoration:none;opacity:0;transform:translateY(35px);transition:transform .7s cubic-bezier(.2,.72,.18,1),opacity .7s ease}
-.door-project:first-child{grid-row:span 2}
-.door-project img{width:100%;aspect-ratio:1.35;object-fit:cover;display:block;border:1px solid #ffffff24;transition:transform .7s ease,border-color .4s}
-.door-project:first-child img{aspect-ratio:.92}
-.door-project span{font:9px var(--mono);letter-spacing:.13em;color:#aaa4b5}
-.door-project strong{font:500 clamp(15px,1.6vw,22px) 'Space Grotesk',sans-serif;letter-spacing:.04em}
-.door-project:hover img{transform:translateY(-5px);border-color:#c9c0ff88}
-.door-portal{position:absolute;z-index:4;left:50%;top:50%;width:min(44vw,590px);height:min(72vh,720px);min-width:330px;min-height:420px;transform:translate(-50%,-48%);perspective:1800px}
-.door-portal-frame{position:absolute;inset:0;border:1px solid #c9c0ff88;border-radius:48% 48% 2px 2px / 19% 19% 2px 2px;box-shadow:0 0 0 9px #9383f50b,0 0 100px #9383f522,inset 0 0 70px #9383f51a}
-.door-panel{position:absolute;inset:10px 10px 0 10px;transform-origin:left center;transform-style:preserve-3d;background:linear-gradient(115deg,#292633 0%,#191820 50%,#302a3d 100%);border:1px solid #d9d0ff77;border-radius:46% 46% 1px 1px / 18% 18% 1px 1px;box-shadow:inset 0 0 0 10px #ffffff06,inset -28px 0 60px #0008,18px 25px 60px #0008;transition:transform 1.5s cubic-bezier(.72,0,.22,1) 1.35s;backface-visibility:hidden}
-.door-panel:before{content:"";position:absolute;inset:24px;border:1px solid #c9c0ff35;border-radius:46% 46% 1px 1px / 18% 18% 1px 1px}
-.door-panel:after{content:"";position:absolute;left:50%;top:20%;bottom:8%;width:1px;background:linear-gradient(transparent,#c9c0ff40,transparent)}
-.door-panel-inset{position:absolute;inset:12% 12% 9%;display:flex;flex-direction:column;align-items:center;justify-content:center}
-.door-panel-monogram{font:500 clamp(65px,10vw,140px)/1 'Space Grotesk',sans-serif;letter-spacing:-.12em;color:#f4f0e8;text-shadow:0 0 50px #9383f555}
-.door-panel-monogram span{color:#a99af7;font-size:.58em;vertical-align:top}
-.door-panel-caption,.door-panel-bottom{font:9px var(--mono);letter-spacing:.25em;color:#bcb5ce}
-.door-panel-line{width:48px;height:1px;background:var(--acid);margin:22px 0}
-.door-handle{position:absolute;right:12%;top:51%;width:10px;height:78px;border-radius:12px;transform-origin:center 85%;background:linear-gradient(90deg,#766a54,#e7d7a6 42%,#8c7954);box-shadow:0 0 18px #d3ef7930,3px 2px 6px #0009}
-.door-keyhole{position:absolute;right:12.6%;top:61%;width:5px;height:5px;border-radius:50%;background:#302b20;box-shadow:0 0 0 2px #d8c99a66}
-.door-hand{position:absolute;z-index:6;width:clamp(260px,36vw,500px);right:-22%;top:30%;opacity:0;transform:translate(190px,25px) rotate(-7deg);filter:drop-shadow(0 18px 25px #0008);pointer-events:none}
-.door-portal-floor{position:absolute;left:-35%;right:-35%;bottom:-2px;height:25px;background:linear-gradient(90deg,transparent,#9383f533,transparent);filter:blur(12px);opacity:.7}
-.door-reveal.is-opening .door-reveal-stage{opacity:1;transform:translateY(0) scale(1)}
-.door-reveal.is-opening .door-project{opacity:1;transform:translateY(0)}
-.door-reveal.is-opening .door-project:nth-child(1){transition-delay:3.05s}
-.door-reveal.is-opening .door-project:nth-child(2){transition-delay:3.25s}
-.door-reveal.is-opening .door-project:nth-child(3){transition-delay:3.4s}
-.door-reveal.is-opening .door-hand{animation:door-hand-reach 1.15s cubic-bezier(.2,.72,.18,1) .2s forwards,door-hand-release .5s ease 1.35s forwards}
-.door-reveal.is-opening .door-panel{transform:rotateY(-112deg)}
-.door-reveal.is-opening .door-handle{animation:door-handle-turn .4s cubic-bezier(.2,.72,.18,1) 1.05s both}
-@keyframes door-hand-reach{
-  0%{opacity:0;transform:translate(145px,32px) rotate(-12deg)}
-  18%{opacity:1}
-  72%{opacity:1;transform:translate(0,0) rotate(0)}
-  100%{opacity:1;transform:translate(-7px,2px) rotate(2deg)}
-}
-@keyframes door-hand-release{to{opacity:0;transform:translate(60px,25px) rotate(8deg)}}
-@keyframes door-handle-turn{50%{transform:rotate(13deg);filter:brightness(1.5)}}
+.door-reveal-bottom{align-self:end;min-height:42px}
+.door-open-instructions{display:flex;align-items:center;gap:9px;color:#8f8999;font:8px var(--mono);letter-spacing:.1em}
+.door-open-instructions kbd{padding:8px 10px;border:1px solid #b9aedb55;border-radius:4px;background:#ffffff08;color:#e6e0f3;font:8px var(--mono);box-shadow:0 2px 0 #0008}
+.door-reveal-bottom button,.door-gallery-footer button{border:1px solid #c9c0ff5c;background:#ffffff08;color:#f4f0e8;padding:12px 16px;font:9px var(--mono);letter-spacing:.1em;cursor:pointer;transition:background .25s,border-color .25s,color .25s}
+.door-reveal-bottom button:hover,.door-gallery-footer button:hover{background:#d3ef79;color:#111116;border-color:#d3ef79}
+.door-reveal-bottom button span,.door-gallery-footer button span{padding-left:10px;color:var(--acid)}
+.door-reveal-bottom button:hover span,.door-gallery-footer button:hover span{color:#111116}
+
+/* The room is already composed behind the closed door. */
+.door-gallery-room{position:absolute;z-index:1;inset:8% 5% 8%;display:flex;align-items:center;justify-content:center;opacity:0;visibility:hidden;transform:scale(.975);transition:opacity .75s ease .55s,transform 1s cubic-bezier(.2,.72,.18,1) .55s,visibility 0s linear 1.3s}
+.door-gallery-shell{width:min(1280px,100%);margin:auto;position:relative}
+.door-gallery-heading{display:flex;align-items:end;justify-content:space-between;gap:35px;margin-bottom:clamp(22px,3vh,40px)}
+.door-gallery-kicker{font:9px var(--mono);letter-spacing:.18em;color:var(--acid)}
+.door-gallery-heading h2{font:500 clamp(42px,5.5vw,78px)/.87 'Space Grotesk',sans-serif;letter-spacing:-.075em;margin:15px 0 0;color:#f4f0e8}
+.door-gallery-heading h2 em{font-weight:400;color:#b7a7ed}
+.door-gallery-intro{max-width:320px;padding-bottom:4px}
+.door-gallery-intro>span{font:8px var(--mono);letter-spacing:.14em;color:#b7a7ed}
+.door-gallery-intro p{font-size:12px;line-height:1.8;color:#b9b4c0;margin:12px 0 0}
+.door-gallery-projects{display:grid;grid-template-columns:1.13fr 1fr 1fr;gap:clamp(12px,1.7vw,24px);align-items:start}
+.door-gallery-card{display:block;min-width:0;color:#f4f0e8;text-decoration:none;opacity:0;transform:translateY(22px);transition:opacity .6s ease,transform .7s cubic-bezier(.2,.72,.18,1)}
+.door-gallery-art{position:relative;overflow:hidden;background:#24212d;border:1px solid #ffffff25;aspect-ratio:1.23;box-shadow:0 22px 60px #0005}
+.door-gallery-card--naya .door-gallery-art{aspect-ratio:1.03}
+.door-gallery-card--forme .door-gallery-art{background:#d9d0c4}
+.door-gallery-card--flow .door-gallery-art{background:#292631}
+.door-gallery-art img{display:block;width:100%;height:100%;object-fit:cover;transition:transform .8s cubic-bezier(.2,.72,.18,1),filter .5s}
+.door-gallery-card:hover .door-gallery-art img{transform:scale(1.045);filter:saturate(1.08)}
+.door-gallery-card-meta{display:flex;justify-content:space-between;gap:8px;margin:15px 0 9px;font:7px var(--mono);letter-spacing:.11em;color:#a9a2b4}
+.door-gallery-card-meta span:last-child{color:#817b8e;text-align:right}
+.door-gallery-card-title{display:flex;align-items:center;justify-content:space-between;gap:12px;border-bottom:1px solid #ffffff30;padding-bottom:10px}
+.door-gallery-card-title h3{font:500 clamp(17px,2vw,25px) 'Space Grotesk',sans-serif;letter-spacing:.055em;margin:0}
+.door-gallery-card-title>span{font-size:20px;color:var(--acid);transition:transform .25s}
+.door-gallery-card:hover .door-gallery-card-title>span{transform:translate(3px,-3px)}
+.door-gallery-card>p{font-size:10px;line-height:1.7;color:#aaa5b2;margin:10px 0 0;max-width:330px}
+.door-gallery-footer{display:flex;justify-content:space-between;align-items:center;gap:15px;margin-top:clamp(22px,3vh,38px);padding-top:16px;border-top:1px solid #ffffff28;font:8px var(--mono);letter-spacing:.14em;color:#9d96a8}
+.door-gallery-footer button{padding:9px 12px;font-size:8px}
+
+/* Architectural door, with a proper leaf, recessed panels and brass furniture. */
+.door-threshold{position:absolute;z-index:5;left:50%;top:50%;width:min(46vw,610px);height:min(75vh,760px);min-width:350px;min-height:450px;transform:translate(-50%,-48%);perspective:1900px;filter:drop-shadow(0 30px 65px #0009)}
+.door-arch-outer{position:absolute;inset:0;border:2px solid #b5a2e9a0;border-bottom:0;border-radius:48% 48% 0 0 / 18% 18% 0 0;box-shadow:0 0 0 10px #9b88d70c,0 0 90px #9b88d744,inset 0 0 55px #a992ef20}
+.door-arch-inner{position:absolute;inset:12px 12px 0;border:1px solid #e8e0ff55;border-bottom:0;border-radius:48% 48% 0 0 / 18% 18% 0 0}
+.door-leaf{position:absolute;inset:19px 20px 0;z-index:2;overflow:hidden;transform-origin:left center;transform-style:preserve-3d;background:linear-gradient(105deg,#302b3a 0%,#17151f 46%,#292333 100%);border:1px solid #c8b8f078;border-bottom:0;box-shadow:inset 0 0 0 7px #ffffff08,inset 20px 0 60px #0005,18px 15px 48px #0009;transition:transform 1.45s cubic-bezier(.72,0,.22,1);backface-visibility:hidden}
+.door-leaf:before{content:"";position:absolute;inset:20px;border:1px solid #c9c0ff35;border-bottom:0;border-radius:46% 46% 0 0 / 18% 18% 0 0}
+.door-leaf:after{content:"";position:absolute;inset:30px 30px 0;background:linear-gradient(90deg,transparent,#ffffff04 50%,transparent);pointer-events:none}
+.door-leaf-border{position:absolute;inset:10% 11% 12%;border:1px solid #c7b9f65c;border-radius:48% 48% 0 0 / 18% 18% 0 0}
+.door-leaf-upper{position:absolute;left:17%;right:17%;top:20%;height:35%;border:1px solid #c7b9f65c;border-radius:46% 46% 2px 2px / 22% 22% 2px 2px;box-shadow:inset 0 0 38px #aa96e80b}
+.door-leaf-lower{position:absolute;left:17%;right:17%;top:59%;bottom:10%;border:1px solid #c7b9f63d;box-shadow:inset 0 0 35px #aa96e808}
+.door-leaf-mark{position:absolute;left:0;right:0;top:35%;text-align:center;font:500 clamp(64px,8vw,112px)/1 'Space Grotesk',sans-serif;letter-spacing:-.12em;color:#f4f0e8;text-shadow:0 0 48px #9383f55c}
+.door-leaf-mark span{font-size:.58em;color:#b7a7ed;vertical-align:top}
+.door-leaf-caption{position:absolute;left:0;right:0;top:51%;text-align:center;font:8px var(--mono);letter-spacing:.25em;color:#bdb5ce}
+.door-handle-plate{position:absolute;right:13%;top:47%;width:34px;height:78px;border:1px solid #d7c58c77;border-radius:18px;background:linear-gradient(90deg,#75644755,#e4d29a33,#5e503655);box-shadow:0 4px 15px #0006}
+.door-handle{position:absolute;right:calc(13% + 11px);top:51%;width:12px;height:48px;border-radius:9px;background:linear-gradient(90deg,#796a49,#f0dfaa 38%,#a38b58 70%,#685638);box-shadow:0 0 15px #e3d09a3d,3px 3px 5px #0008;transform-origin:center 78%}
+.door-floor-light{position:absolute;left:-35%;right:-35%;bottom:-5px;height:30px;background:linear-gradient(90deg,transparent,#a995ed5c,transparent);filter:blur(12px)}
+.door-reveal.is-open .door-gallery-room{opacity:1;visibility:visible;transform:scale(1);transition-delay:.45s,.45s,0s}
+.door-reveal.is-open .door-gallery-card{opacity:1;transform:translateY(0);transition-delay:1.05s,1.05s}
+.door-reveal.is-open .door-gallery-card:nth-child(2){transition-delay:1.2s,1.2s}
+.door-reveal.is-open .door-gallery-card:nth-child(3){transition-delay:1.35s,1.35s}
+.door-reveal.is-open .door-leaf{transform:rotateY(-108deg)}
+.door-reveal.is-open .door-handle{animation:door-brass-turn .35s ease both}
+@keyframes door-brass-turn{50%{transform:rotate(12deg);filter:brightness(1.5)}}
 body.door-reveal-active{overflow:hidden}
 body.door-reveal-active .site-header,body.door-reveal-active main,body.door-reveal-active .footer{visibility:hidden}
-@media(max-width:900px){.door-reveal-stage{inset:15% 4% 12%;grid-template-columns:.55fr 1.45fr;gap:2vw}.door-reveal-copy h2{font-size:clamp(40px,7vw,66px)}.door-portal{width:54vw;height:68vh}.door-hand{width:42vw;right:-28%;top:29%}}
-@media(max-width:640px){.door-reveal{padding:17px}.door-reveal-top{font-size:8px;letter-spacing:.08em}.door-reveal-stage{inset:18% 5% 13%;display:flex;flex-direction:column;justify-content:center;gap:22px}.door-reveal-copy{padding:0;text-align:center}.door-reveal-copy h2{font-size:clamp(42px,12vw,64px);margin:10px 0}.door-reveal-copy p{margin:0 auto;font-size:12px}.door-reveal-index{font-size:8px}.door-reveal-projects{width:100%;grid-template-columns:1fr 1fr 1fr;gap:8px}.door-project:first-child{grid-row:auto}.door-project img,.door-project:first-child img{aspect-ratio:.82}.door-project span{font-size:7px;letter-spacing:.04em}.door-project strong{font-size:10px}.door-portal{width:72vw;height:55vh;min-width:0;min-height:0;top:48%}.door-hand{width:60vw;right:-40%;top:34%}.door-panel-inset{inset:15% 7% 10%}.door-panel-monogram{font-size:clamp(70px,18vw,105px)}.door-panel-caption,.door-panel-bottom{font-size:7px;letter-spacing:.14em}.door-reveal-bottom{font-size:8px;letter-spacing:.06em}.door-reveal-bottom button{font-size:8px}}
-@media(prefers-reduced-motion:reduce){.door-reveal,.door-reveal *{animation:none!important;transition:none!important}}
+.door-reveal button:focus-visible,.door-gallery-card:focus-visible{outline:2px solid var(--acid);outline-offset:5px}
+@media(max-width:900px){
+ .door-reveal{padding:22px}
+ .door-threshold{width:60vw;height:70vh}
+ .door-gallery-room{inset:10% 4% 8%}
+ .door-gallery-heading{margin-bottom:24px}
+ .door-gallery-projects{gap:12px}
+ .door-gallery-card-meta{flex-direction:column;gap:4px}
+}
+@media(max-width:640px){
+ .door-reveal{padding:16px}
+ .door-reveal-top{font-size:7px;letter-spacing:.07em}
+ .door-reveal-top span:last-child{display:none}
+ .door-threshold{width:83vw;height:60vh;min-width:0;min-height:0;top:46%}
+ .door-leaf{inset:14px 14px 0}
+ .door-leaf-mark{font-size:clamp(65px,17vw,100px)}
+ .door-leaf-caption{font-size:7px;letter-spacing:.16em}
+ .door-handle-plate{width:26px;height:62px}
+ .door-handle{height:39px;width:9px}
+ .door-reveal-bottom{align-items:flex-end;flex-wrap:wrap;font-size:7px;letter-spacing:.05em}
+ .door-open-instructions{order:3;width:100%;justify-content:center}
+ .door-reveal-bottom button{font-size:8px;padding:11px}
+ .door-gallery-room{inset:9% 5% 7%;align-items:flex-start;overflow:auto}
+ .door-gallery-shell{padding:20px 0 12px}
+ .door-gallery-heading{display:block;margin-bottom:18px}
+ .door-gallery-heading h2{font-size:clamp(40px,12vw,58px);margin-top:9px}
+ .door-gallery-intro{margin-top:14px;max-width:100%}
+ .door-gallery-intro p{font-size:10px;margin-top:7px}
+ .door-gallery-projects{grid-template-columns:1fr;gap:18px}
+ .door-gallery-card{display:grid;grid-template-columns:112px 1fr;column-gap:12px;align-items:start}
+ .door-gallery-art,.door-gallery-card--naya .door-gallery-art{grid-row:1/5;aspect-ratio:.95}
+ .door-gallery-card-meta{grid-column:2;flex-direction:column;gap:4px;margin:2px 0 6px;font-size:6px}
+ .door-gallery-card-title{grid-column:2;padding-bottom:6px}
+ .door-gallery-card-title h3{font-size:15px}
+ .door-gallery-card-title>span{font-size:16px}
+ .door-gallery-card>p{grid-column:2;font-size:8px;line-height:1.5;margin:6px 0 0}
+ .door-gallery-footer{margin-top:20px;padding-top:12px}
+ .door-gallery-footer>span{font-size:6px}
+ .door-gallery-footer button{font-size:7px;padding:8px}
+}
+@media(prefers-reduced-motion:reduce){
+ .door-reveal,.door-reveal *{animation:none!important;transition:none!important;scroll-behavior:auto!important}
+}
