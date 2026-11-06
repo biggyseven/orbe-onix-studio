@@ -25,3 +25,12 @@ Editorial futurism: a restrained mix of graphite surfaces, warm ivory, transluce
 
 ## Visual assets
 The orbital artwork and concept project illustrations are hand-authored SVG. No generated raster artwork is required.
+
+
+## 0.7 — Digital couture experiment
+- Asymmetrical editorial hero with a code-drawn glass sculpture.
+- Overlapping optical orbit paths and floating material labels.
+- A manifesto section to interrupt the page rhythm.
+- Bespoke SVG art direction for each concept project.
+- Subtle pointer parallax for fine-pointer devices, disabled for reduced motion.
+- No generated raster images.
