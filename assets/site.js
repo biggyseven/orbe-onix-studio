@@ -375,17 +375,32 @@
     updateTasks(null);
   }
 
-  // Portfolio threshold: the door waits for Space, right-click or the touch button.
+  // Portfolio threshold: open the leaf, travel through the arch, then reveal the collection.
   const doorScene = one('[data-door-reveal]');
   if (doorScene && new URLSearchParams(window.location.search).get('door') === '1') {
     const doorRoom = one('[data-door-room]', doorScene);
     const openButton = one('[data-door-open]', doorScene);
     const closeButton = one('[data-door-close]', doorScene);
+    const galleryTitle = one('#door-gallery-title', doorScene);
+    const reducedMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const doorTimers = [];
     let doorOpened = false;
 
+    const later = (callback, delay) => {
+      const timer = window.setTimeout(callback, reducedMotion ? 0 : delay);
+      doorTimers.push(timer);
+    };
+
+    const clearDoorTimers = () => {
+      doorTimers.forEach(window.clearTimeout);
+      doorTimers.length = 0;
+    };
+
     const closeDoorScene = () => {
+      clearDoorTimers();
+      doorOpened = false;
       document.body.classList.remove('door-reveal-active');
-      doorScene.classList.remove('is-open');
+      doorScene.classList.remove('is-open', 'is-entering', 'has-entered');
       doorScene.setAttribute('aria-hidden', 'true');
       doorScene.hidden = true;
       if (doorRoom) doorRoom.setAttribute('aria-hidden', 'true');
@@ -400,16 +415,26 @@
       if (doorOpened) return;
       doorOpened = true;
       doorScene.classList.add('is-open');
-      if (doorRoom) doorRoom.setAttribute('aria-hidden', 'false');
-      const galleryTitle = one('#door-gallery-title', doorScene);
-      if (galleryTitle) window.setTimeout(() => galleryTitle.focus({ preventScroll: true }), 1850);
+
+      // Let the door swing first, then move the whole threshold past the viewer.
+      later(() => {
+        if (!doorOpened) return;
+        doorScene.classList.add('is-entering');
+      }, 1080);
+
+      // The gallery becomes interactive only after the camera has crossed the arch.
+      later(() => {
+        if (!doorOpened) return;
+        doorScene.classList.add('has-entered');
+        if (doorRoom) doorRoom.setAttribute('aria-hidden', 'false');
+        if (galleryTitle) galleryTitle.focus({ preventScroll: true });
+      }, 2420);
     };
 
     const onDoorKey = event => {
       if (event.code === 'Space' || event.key === ' ') {
         event.preventDefault();
-        if (doorOpened) return;
-        openDoor();
+        if (!doorOpened) openDoor();
       } else if (event.key === 'Escape') {
         event.preventDefault();
         closeDoorScene();
