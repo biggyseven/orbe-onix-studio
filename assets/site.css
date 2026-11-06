@@ -1432,3 +1432,103 @@ body.door-reveal-active .site-header,body.door-reveal-active main,body.door-reve
 @media(prefers-reduced-motion:reduce){
   .door-gallery-room,.door-gallery-card,.door-arch-outer,.door-arch-inner,.door-floor-light,.door-reveal-bottom{transition:none!important}
 }
+
+
+/* CINEMATIC PORTAL — rounded arch, swinging leaf, forward passage into the gallery */
+.door-threshold{
+  transform-origin:50% 50%;
+  will-change:transform,opacity,filter;
+  transition:transform 1.28s cubic-bezier(.58,.02,.18,1),opacity .9s ease .28s,filter 1s ease .2s;
+}
+.door-arch-outer,
+.door-arch-inner{
+  border-radius:50% 50% 0 0 / 40% 40% 0 0;
+}
+.door-leaf{
+  border-radius:49% 49% 0 0 / 40% 40% 0 0;
+  transition:transform 1.08s cubic-bezier(.72,0,.22,1);
+}
+.door-leaf:before{
+  border-radius:47% 47% 0 0 / 39% 39% 0 0;
+}
+.door-leaf-border{
+  border-radius:49% 49% 0 0 / 40% 40% 0 0;
+}
+.door-leaf-upper{
+  border-radius:48% 48% 2px 2px / 39% 39% 2px 2px;
+}
+.door-gallery-room{
+  z-index:1;
+  background:linear-gradient(135deg,#111018 0%,#0b0b10 56%,#171321 100%);
+  opacity:0;
+  visibility:hidden;
+  transform:scale(.72) translateY(3%);
+  transition:opacity .95s ease,transform 1.35s cubic-bezier(.18,.72,.18,1),visibility 0s linear 0s;
+  will-change:transform,opacity;
+}
+.door-reveal.is-open .door-leaf{transform:rotateY(-112deg)}
+.door-reveal.is-open:not(.is-entering):not(.has-entered) .door-gallery-room{
+  z-index:1;
+  opacity:0;
+  visibility:hidden;
+  transform:scale(.72) translateY(3%);
+  transition-delay:0s;
+}
+.door-reveal.is-open:not(.has-entered) .door-gallery-card{
+  opacity:0;
+  transform:translateY(22px);
+  transition-delay:0s!important;
+}
+.door-reveal.is-entering .door-threshold{
+  transform:translate(-50%,-48%) scale(2.55);
+  opacity:0;
+  filter:blur(9px);
+  pointer-events:none;
+}
+.door-reveal.is-entering .door-gallery-room{
+  z-index:1;
+  opacity:1;
+  visibility:visible;
+  transform:scale(1) translateY(0);
+  transition-delay:0s;
+}
+.door-reveal.is-entering .door-reveal-bottom,
+.door-reveal.has-entered .door-reveal-bottom{
+  opacity:0;
+  visibility:hidden;
+  pointer-events:none;
+  transition:opacity .35s ease,visibility 0s linear .35s;
+}
+.door-reveal.has-entered .door-threshold{
+  visibility:hidden;
+  pointer-events:none;
+}
+.door-reveal.has-entered .door-gallery-room{
+  z-index:6;
+  opacity:1;
+  visibility:visible;
+  transform:scale(1) translateY(0);
+  transition:none;
+}
+.door-reveal.has-entered .door-gallery-card{
+  opacity:1;
+  transform:translateY(0);
+  transition-delay:.12s;
+}
+.door-reveal.has-entered .door-gallery-card:nth-child(2){transition-delay:.24s}
+.door-reveal.has-entered .door-gallery-card:nth-child(3){transition-delay:.36s}
+.door-reveal.is-entering .door-reveal-top,
+.door-reveal.has-entered .door-reveal-top{opacity:0;transition:opacity .45s ease}
+.door-reveal.is-entering .door-reveal-top{transition-delay:.35s}
+.door-reveal.has-entered .door-reveal-top{visibility:hidden}
+.door-reveal button:focus-visible,
+.door-gallery-card:focus-visible,
+.door-gallery-heading h2:focus-visible{outline:2px solid var(--acid);outline-offset:5px}
+
+@media(prefers-reduced-motion:reduce){
+  .door-threshold,.door-leaf,.door-gallery-room,.door-gallery-card,.door-reveal-top,.door-reveal-bottom{
+    transition:none!important;
+    animation:none!important;
+  }
+  .door-reveal.is-entering .door-threshold{transform:translate(-50%,-48%);filter:none}
+}
