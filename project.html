@@ -89,10 +89,11 @@
      <h3 data-naya-title>A place to<br><em>slow down.</em></h3>
      <p data-naya-copy>Un refuge pensé pour retrouver le rythme du paysage, entre lumière douce, matières naturelles et horizons ouverts.</p>
      <div class="naya-demo-planner">
+      <label>ARRIVAL DATE<input type="date" data-naya-arrival aria-label="Arrival date"></label>
       <label>TRAVELERS<select data-naya-guests><option value="1">01 guest</option><option value="2" selected>02 guests</option><option value="3">03 guests</option><option value="4">04 guests</option></select></label>
-      <label>DURATION<select data-naya-nights><option value="2">02 nights</option><option value="3" selected>03 nights</option><option value="5">05 nights</option><option value="7">07 nights</option></select></label>
+      <label class="naya-duration">DURATION<select data-naya-nights><option value="2">02 nights</option><option value="3" selected>03 nights</option><option value="5">05 nights</option><option value="7">07 nights</option></select></label>
      </div>
-     <div class="naya-demo-summary"><span>YOUR STAY, AT A GLANCE</span><b data-naya-summary>02 guests <i>·</i> 03 nights</b></div>
+     <div class="naya-demo-summary"><span>YOUR STAY, AT A GLANCE</span><b data-naya-summary aria-live="polite">02 guests · 03 nights</b></div>
      <a class="demo-cta" href="contact.html">Discuss a stay concept <span>↗</span></a>
      <small class="demo-disclaimer">Demonstration only. No availability or reservation is checked.</small>
     </div>
@@ -134,10 +135,10 @@
      <div class="flow-demo-welcome"><div><small>MONDAY / YOUR OVERVIEW</small><h3>Good morning,<br><em>Jordan.</em></h3><p>Here's the shape of your team's work today.</p></div><span>◷&nbsp; Week 42</span></div>
      <div class="flow-demo-metrics"><article><small>ACTIVE PROJECTS</small><b>08</b><span>Across 4 teams</span></article><article><small>ON TRACK</small><b>06</b><span>75% of workspace</span></article><article><small>MY OPEN TASKS</small><b data-flow-open-count>03</b><span>In your queue</span></article></div>
      <div class="flow-demo-bottom"><div class="flow-demo-taskbox"><div class="flow-demo-sectionhead"><b>YOUR NEXT MOVES</b><span>Interactive checklist</span></div>
-      <label class="flow-task-row"><input type="checkbox" data-flow-task><span><b>Review homepage direction</b><small>ORBIT / DESIGN · TODAY</small></span><i>HIGH</i></label>
-      <label class="flow-task-row"><input type="checkbox" data-flow-task><span><b>Prepare sprint notes</b><small>PLATFORM / OPS · TODAY</small></span><i>MED</i></label>
-      <label class="flow-task-row"><input type="checkbox" data-flow-task><span><b>Share the prototype</b><small>ORBIT / PRODUCT · TOMORROW</small></span><i>LOW</i></label>
-      <div class="flow-demo-progress"><span data-flow-progress-label>0 of 3 completed</span><div><i data-flow-progress></i></div></div>
+      <label class="flow-task-row"><input type="checkbox" data-flow-task="review"><span><b>Review homepage direction</b><small>ORBIT / DESIGN · TODAY</small></span><i>HIGH</i></label>
+      <label class="flow-task-row"><input type="checkbox" data-flow-task="notes"><span><b>Prepare sprint notes</b><small>PLATFORM / OPS · TODAY</small></span><i>MED</i></label>
+      <label class="flow-task-row"><input type="checkbox" data-flow-task="share"><span><b>Share the prototype</b><small>ORBIT / PRODUCT · TOMORROW</small></span><i>LOW</i></label>
+      <div class="flow-demo-progress"><span data-flow-progress-label>0 of 3 completed</span><div role="progressbar" aria-label="Task completion" aria-valuemin="0" aria-valuemax="3" aria-valuenow="0"><i data-flow-progress></i></div></div>
      </div><div class="flow-demo-focus"><small>TEAM FOCUS</small><strong>Make space<br>for deep work.</strong><p>One clear priority at a time.</p><span>01 / 03</span></div></div>
     </div>
     <div class="flow-demo-panel" data-flow-panel="projects" hidden>
@@ -147,9 +148,9 @@
     <div class="flow-demo-panel" data-flow-panel="tasks" hidden>
      <div class="flow-demo-welcome"><div><small>YOUR WORKSPACE / TASKS</small><h3>Small steps.<br><em>Clear progress.</em></h3><p>Complete a task to update your overview.</p></div><span data-flow-task-count>03 OPEN</span></div>
      <div class="flow-demo-taskbox flow-demo-taskbox--full">
-      <label class="flow-task-row"><input type="checkbox" data-flow-task><span><b>Review homepage direction</b><small>ORBIT / DESIGN · TODAY</small></span><i>HIGH</i></label>
-      <label class="flow-task-row"><input type="checkbox" data-flow-task><span><b>Prepare sprint notes</b><small>PLATFORM / OPS · TODAY</small></span><i>MED</i></label>
-      <label class="flow-task-row"><input type="checkbox" data-flow-task><span><b>Share the prototype</b><small>ORBIT / PRODUCT · TOMORROW</small></span><i>LOW</i></label>
+      <label class="flow-task-row"><input type="checkbox" data-flow-task="review"><span><b>Review homepage direction</b><small>ORBIT / DESIGN · TODAY</small></span><i>HIGH</i></label>
+      <label class="flow-task-row"><input type="checkbox" data-flow-task="notes"><span><b>Prepare sprint notes</b><small>PLATFORM / OPS · TODAY</small></span><i>MED</i></label>
+      <label class="flow-task-row"><input type="checkbox" data-flow-task="share"><span><b>Share the prototype</b><small>ORBIT / PRODUCT · TOMORROW</small></span><i>LOW</i></label>
       <div class="flow-demo-progress"><span data-flow-progress-label>0 of 3 completed</span><div><i data-flow-progress></i></div></div>
      </div>
     </div>
