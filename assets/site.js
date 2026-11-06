@@ -394,7 +394,8 @@
       doorScene.hidden = false;
       doorScene.setAttribute('aria-hidden', 'false');
       requestAnimationFrame(() => requestAnimationFrame(() => doorScene.classList.add('is-opening')));
-      window.setTimeout(finishDoor, 4700);
+      if (skipDoor) skipDoor.focus({ preventScroll: true });
+      window.setTimeout(finishDoor, 5500);
     };
     const skipDoor = one('[data-door-skip]');
     if (skipDoor) skipDoor.addEventListener('click', finishDoor);
