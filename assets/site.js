@@ -375,5 +375,31 @@
     updateTasks(null);
   }
 
+  // Portfolio door reveal: entered only from an explicit "Travaux" navigation.
+  const doorScene = one('[data-door-reveal]');
+  if (doorScene && new URLSearchParams(window.location.search).get('door') === '1') {
+    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const finishDoor = () => {
+      document.body.classList.remove('door-reveal-active');
+      doorScene.classList.remove('is-opening');
+      doorScene.setAttribute('aria-hidden', 'true');
+      doorScene.hidden = true;
+      const cleanUrl = new URL(window.location.href);
+      cleanUrl.searchParams.delete('door');
+      window.history.replaceState({}, '', cleanUrl.pathname + cleanUrl.search + cleanUrl.hash);
+    };
+    const startDoor = () => {
+      if (reducedMotion) { finishDoor(); return; }
+      document.body.classList.add('door-reveal-active');
+      doorScene.hidden = false;
+      doorScene.setAttribute('aria-hidden', 'false');
+      requestAnimationFrame(() => requestAnimationFrame(() => doorScene.classList.add('is-opening')));
+      window.setTimeout(finishDoor, 4700);
+    };
+    const skipDoor = one('[data-door-skip]');
+    if (skipDoor) skipDoor.addEventListener('click', finishDoor);
+    startDoor();
+  }
+
   all('[data-year]').forEach(node => { node.textContent = new Date().getFullYear(); });
 })();
