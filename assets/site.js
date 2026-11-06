@@ -375,31 +375,61 @@
     updateTasks(null);
   }
 
-  // Portfolio door reveal: entered only from an explicit "Travaux" navigation.
+  // Portfolio threshold: the door waits for Space, right-click or the touch button.
   const doorScene = one('[data-door-reveal]');
   if (doorScene && new URLSearchParams(window.location.search).get('door') === '1') {
-    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    const finishDoor = () => {
+    const doorRoom = one('[data-door-room]', doorScene);
+    const openButton = one('[data-door-open]', doorScene);
+    const closeButton = one('[data-door-close]', doorScene);
+    let doorOpened = false;
+
+    const closeDoorScene = () => {
       document.body.classList.remove('door-reveal-active');
-      doorScene.classList.remove('is-opening');
+      doorScene.classList.remove('is-open');
       doorScene.setAttribute('aria-hidden', 'true');
       doorScene.hidden = true;
+      if (doorRoom) doorRoom.setAttribute('aria-hidden', 'true');
       const cleanUrl = new URL(window.location.href);
       cleanUrl.searchParams.delete('door');
       window.history.replaceState({}, '', cleanUrl.pathname + cleanUrl.search + cleanUrl.hash);
+      const heading = one('.portfolio-intro h1');
+      if (heading) { heading.tabIndex = -1; heading.focus({ preventScroll: true }); }
     };
-    const startDoor = () => {
-      if (reducedMotion) { finishDoor(); return; }
-      document.body.classList.add('door-reveal-active');
-      doorScene.hidden = false;
-      doorScene.setAttribute('aria-hidden', 'false');
-      requestAnimationFrame(() => requestAnimationFrame(() => doorScene.classList.add('is-opening')));
-      if (skipDoor) skipDoor.focus({ preventScroll: true });
-      window.setTimeout(finishDoor, 5500);
+
+    const openDoor = () => {
+      if (doorOpened) return;
+      doorOpened = true;
+      doorScene.classList.add('is-open');
+      if (doorRoom) doorRoom.setAttribute('aria-hidden', 'false');
+      if (closeButton) window.setTimeout(() => closeButton.focus({ preventScroll: true }), 850);
     };
-    const skipDoor = one('[data-door-skip]');
-    if (skipDoor) skipDoor.addEventListener('click', finishDoor);
-    startDoor();
+
+    const onDoorKey = event => {
+      if (event.code === 'Space' || event.key === ' ') {
+        if (doorOpened) return;
+        event.preventDefault();
+        openDoor();
+      } else if (event.key === 'Escape') {
+        event.preventDefault();
+        closeDoorScene();
+      }
+    };
+
+    const onDoorContext = event => {
+      if (doorOpened) return;
+      event.preventDefault();
+      openDoor();
+    };
+
+    document.body.classList.add('door-reveal-active');
+    doorScene.hidden = false;
+    doorScene.setAttribute('aria-hidden', 'false');
+    if (doorRoom) doorRoom.setAttribute('aria-hidden', 'true');
+    if (openButton) openButton.addEventListener('click', openDoor);
+    if (closeButton) closeButton.addEventListener('click', closeDoorScene);
+    doorScene.addEventListener('keydown', onDoorKey);
+    doorScene.addEventListener('contextmenu', onDoorContext);
+    if (openButton) window.setTimeout(() => openButton.focus({ preventScroll: true }), 60);
   }
 
   all('[data-year]').forEach(node => { node.textContent = new Date().getFullYear(); });
