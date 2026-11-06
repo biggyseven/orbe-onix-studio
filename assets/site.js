@@ -401,13 +401,14 @@
       doorOpened = true;
       doorScene.classList.add('is-open');
       if (doorRoom) doorRoom.setAttribute('aria-hidden', 'false');
-      if (closeButton) window.setTimeout(() => closeButton.focus({ preventScroll: true }), 850);
+      const galleryTitle = one('#door-gallery-title', doorScene);
+      if (galleryTitle) window.setTimeout(() => galleryTitle.focus({ preventScroll: true }), 1850);
     };
 
     const onDoorKey = event => {
       if (event.code === 'Space' || event.key === ' ') {
-        if (doorOpened) return;
         event.preventDefault();
+        if (doorOpened) return;
         openDoor();
       } else if (event.key === 'Escape') {
         event.preventDefault();
