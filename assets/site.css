@@ -1586,3 +1586,55 @@ body.door-reveal-active .site-header,body.door-reveal-active main,body.door-reve
     transition:none!important;
   }
 }
+
+
+/* FINAL EXIT PASS — retreat through the portal, then close the door behind the visitor */
+.door-reveal.is-exiting .door-gallery-room{
+  z-index:6;
+  visibility:visible;
+  pointer-events:none;
+  animation:door-gallery-recede .98s cubic-bezier(.7,0,.25,1) both;
+}
+.door-reveal.is-exiting .door-threshold{
+  z-index:5;
+  visibility:visible;
+  pointer-events:none;
+  animation:door-portal-return 1.42s cubic-bezier(.18,.72,.18,1) both;
+  transition:none;
+}
+.door-reveal.is-exiting .door-leaf{
+  transform:rotateY(-112deg);
+  transition:transform .88s cubic-bezier(.2,.72,.18,1);
+}
+.door-reveal.is-exiting.is-exit-close .door-leaf{
+  transform:rotateY(0deg);
+}
+.door-reveal.is-exiting .door-reveal-top,
+.door-reveal.is-exiting .door-reveal-bottom{
+  opacity:0;
+  visibility:hidden;
+  pointer-events:none;
+}
+.door-reveal.is-exiting .door-gallery-card{
+  opacity:0;
+  transform:translateY(16px);
+}
+@keyframes door-gallery-recede{
+  0%{opacity:1;transform:scale(1) translateY(0)}
+  58%{opacity:.88}
+  100%{opacity:0;transform:scale(.7) translateY(3%)}
+}
+@keyframes door-portal-return{
+  0%{opacity:0;transform:translate(-50%,-48%) scale(2.55);filter:blur(9px)}
+  28%{opacity:.72;filter:blur(4px)}
+  100%{opacity:1;transform:translate(-50%,-48%) scale(1);filter:blur(0)}
+}
+@media(prefers-reduced-motion:reduce){
+  .door-reveal.is-exiting .door-gallery-room,
+  .door-reveal.is-exiting .door-threshold{
+    animation:none!important;
+  }
+  .door-reveal.is-exiting .door-gallery-room{opacity:0;visibility:hidden}
+  .door-reveal.is-exiting .door-threshold{opacity:1;visibility:visible;transform:translate(-50%,-48%)}
+  .door-reveal.is-exiting .door-leaf{transition:none!important}
+}
