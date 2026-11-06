@@ -1,36 +1,33 @@
-# Design system
+# ORBE & ONIX — Design system
 
-## Direction
-Editorial futurism: a restrained mix of graphite surfaces, warm ivory, translucent glass, lavender reflections and expressive serif typography. Avoid event-poster styling, neon overload and gratuitous animation.
+## Direction artistique
+Éditorial futuriste, surfaces graphite, ivoire chaud, verre fumé et reflets lavande. Le langage visuel doit rester lisible, précis et distinctif. Éviter le néon gratuit, les effets de poster et les animations sans fonction.
 
-## Tokens
-- Ink: #111116
-- Ink secondary: #191920
-- Paper: #efeee9
-- Lavender: #aa98ee
-- Lavender highlight: #d5ccff
-- Muted text: #a7a3ad
+## Tokens de référence
+- Graphite : `#111116`
+- Graphite secondaire : `#191920`
+- Ivoire : `#efeee9`
+- Lavande : `#9383f5`
+- Lavande claire : `#c9c0ff`
+- Accent acide : `#d3ef79`
 
-## Typography
-- Manrope for interface and headings
-- DM Sans for supporting UI
-- Cormorant Garamond for expressive editorial moments
-- Space Mono for metadata and labels
+## Typographie
+- Space Grotesk : titres et expression
+- Inter : interface et lecture
+- IBM Plex Mono : métadonnées et repères
 
 ## Interaction
-- Use motion to reveal hierarchy, not distract.
-- Respect `prefers-reduced-motion`.
-- Keep hover and focus states visible.
-- Glass surfaces require adequate text contrast and solid fallbacks.
+- Le mouvement révèle une hiérarchie ou un état.
+- Respecter `prefers-reduced-motion`.
+- Conserver des états focus visibles et une navigation clavier.
+- Le verre ne doit jamais réduire le contraste.
+- Les prototypes restent locaux et ne simulent pas une transaction réelle.
 
-## Visual assets
-The orbital artwork and concept project illustrations are hand-authored SVG. No generated raster artwork is required.
+## Matières visuelles
+Les illustrations de marque et de projets sont dessinées en SVG et CSS. Aucun visuel raster généré n'est nécessaire.
 
-
-## 0.7 — Digital couture experiment
-- Asymmetrical editorial hero with a code-drawn glass sculpture.
-- Overlapping optical orbit paths and floating material labels.
-- A manifesto section to interrupt the page rhythm.
-- Bespoke SVG art direction for each concept project.
-- Subtle pointer parallax for fine-pointer devices, disabled for reduced motion.
-- No generated raster images.
+## Responsive
+- Navigation mobile dédiée.
+- Grilles adaptées aux largeurs intermédiaires et mobiles.
+- Éviter le débordement horizontal.
+- Tester les pages sur clavier, tactile et pointeur fin.
