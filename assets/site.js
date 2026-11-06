@@ -402,7 +402,7 @@
       doorOpened = false;
       doorExiting = false;
       document.body.classList.remove('door-reveal-active');
-      doorScene.classList.remove('is-open', 'is-entering', 'has-entered', 'is-exiting', 'is-exit-return');
+      doorScene.classList.remove('is-open', 'is-entering', 'has-entered', 'is-exiting', 'is-exit-close');
       doorScene.setAttribute('aria-hidden', 'true');
       doorScene.hidden = true;
       if (doorRoom) doorRoom.setAttribute('aria-hidden', 'true');
@@ -419,12 +419,10 @@
       clearDoorTimers();
       if (doorRoom) doorRoom.setAttribute('aria-hidden', 'true');
 
-      // First pull the visitor back through the portal; then swing the door shut.
+      // Reverse the arrival: retreat through the arch, then close the leaf behind us.
+      doorScene.classList.remove('is-entering', 'has-entered', 'is-exit-return');
       doorScene.classList.add('is-exiting');
-      later(() => doorScene.classList.add('is-exit-return'), 40);
-      later(() => {
-        doorScene.classList.remove('is-open');
-      }, 1120);
+      later(() => doorScene.classList.add('is-exit-close'), 1320);
       later(finishDoorExit, 2320);
     };
 
