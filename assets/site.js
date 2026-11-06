@@ -421,8 +421,8 @@
       // Reverse the arrival: retreat through the arch, then close the leaf behind us.
       doorScene.classList.remove('is-entering', 'has-entered', 'is-exit-return');
       doorScene.classList.add('is-exiting');
-      later(() => doorScene.classList.add('is-exit-close'), 1320);
-      later(finishDoorExit, 2320);
+      later(() => doorScene.classList.add('is-exit-close'), 670);
+      later(finishDoorExit, 1370);
     };
 
     const openDoor = () => {
