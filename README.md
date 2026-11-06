@@ -22,6 +22,10 @@ An independent creative practice exploring the intersection of digital design, w
 - Vanilla JavaScript for navigation, filters, scroll progress, material controls and brief generation
 - Hand-authored SVG and CSS artwork; no generated raster imagery
 
+## Open the website
+
+You do not need to download the code to browse the site. Enable GitHub Pages with **Settings → Pages → Source: GitHub Actions**, then run the existing **Deploy static site to GitHub Pages** workflow from the Actions tab. After its first successful run, open and bookmark: `https://biggyseven.github.io/orbe-onix-studio/`. Full instructions: [`docs/OPEN_THE_SITE.md`](docs/OPEN_THE_SITE.md).
+
 ## Run locally
 
 Serve the repository root with any static server:
