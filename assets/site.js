@@ -218,6 +218,22 @@
     const requested = params.get('ref') || 'naya-house';
     const key = Object.prototype.hasOwnProperty.call(projectData, requested) ? requested : 'naya-house';
     const data = projectData[key];
+    document.body.dataset.caseLayout = key;
+    const prototypeCopy = {
+      'naya-house': ['03 / THE GUEST JOURNEY','Enter the','slower side.','Une expérience d’hospitalité qui commence par une atmosphère, puis glisse naturellement vers la préparation du séjour.','IMMERSIVE WEB EXPERIENCE'],
+      'forme': ['03 / THE COLLECTION','Objects with','presence.','Une vitrine éditoriale pensée comme une galerie : les objets prennent la place, le récit accompagne.','EDITORIAL COMMERCE STUDY'],
+      'flowstate': ['03 / THE WORKSPACE','Clarity at','work.','Un espace produit dense et fonctionnel, conçu pour faire émerger les priorités et rapprocher les actions du contexte.','PRODUCT INTERFACE STUDY']
+    }[key];
+    const put = (selector, value) => { const node = one(selector); if (node) node.textContent = value; };
+    const prototypeFields = {
+      '[data-prototype-kicker]':prototypeCopy[0],
+      '[data-prototype-title]':prototypeCopy[1] + ' ',
+      '[data-prototype-copy]':prototypeCopy[3],
+      '[data-prototype-stamp]':prototypeCopy[4] + ' / NO DATA TRANSMITTED'
+    };
+    Object.entries(prototypeFields).forEach(([selector,value])=>put(selector,value));
+    const prototypeTitle=one('[data-prototype-title]');
+    if(prototypeTitle) prototypeTitle.innerHTML=prototypeCopy[1]+' <em>'+prototypeCopy[2]+'</em>';
     const put = (selector, value) => { const node = one(selector); if (node) node.textContent = value; };
     const fields = {
       '#case-name':data.name,'#case-type':data.type,'#case-lede':data.lede,
