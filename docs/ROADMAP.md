@@ -1,26 +1,26 @@
-# ORBE & ONIX — Roadmap
+# ORBE & ONIX — Finalisation et qualité
 
-## Foundation
-- [x] Establish the studio direction and design language.
-- [x] Build a static, multi-page public site.
-- [x] Create an SVG/CSS orbital visual system without raster image dependencies.
-- [ ] Validate on physical mobile devices and multiple browsers.
-- [ ] Complete accessibility review and keyboard pass.
+## Socle public
+- [x] Site statique multi-pages publié sur GitHub Pages.
+- [x] Identité SVG, système typographique et palette cohérente.
+- [x] Pages Accueil, Travaux, Services, Studio, Lab, Contact et études de cas.
+- [x] Trois concepts indépendants clairement identifiés.
+- [x] Navigation mobile, filtres portfolio et expériences interactives locales.
+- [x] Respect de la préférence de mouvement réduit dans les animations principales.
+- [ ] Vérification physique sur plusieurs mobiles et navigateurs.
 
-## Experience
-- [ ] Refine case-study storytelling and add fully built concept demos.
-- [ ] Build the Studio and contact experience.
-- [ ] Add real contact routing once a verified email or business channel is chosen.
+## Fonctionnalités et limites
+- [x] NAYA HOUSE : changement de scènes et résumé de séjour local, sans disponibilité ni réservation.
+- [x] FORME : sélection locale d'objets, sans commande ni paiement.
+- [x] FLOWSTATE : navigation entre vues et synchronisation des tâches en mémoire de page.
+- [x] Formulaire de contact : validation et génération/copie d'un brief dans le navigateur.
+- [ ] Relier le formulaire à une adresse ou un service de réception confirmé par le propriétaire.
+- [ ] Ajouter une protection anti-spam si une réception serveur est activée.
 
-## Engineering
-- [ ] Add automated HTML, link, and asset checks to CI.
-- [ ] Establish component conventions and shared page primitives.
-- [ ] Add privacy-conscious analytics only after deployment requirements are defined.
+## Qualité
+- [ ] Exécuter les contrôles automatiques de structure, liens et syntaxe avant chaque publication.
+- [ ] Audit clavier et contraste.
+- [ ] Vérification manuelle des mises en page sur appareils réels.
 
-## Backend (later phase)
-- [ ] Select PHP/MySQL or another justified backend.
-- [ ] Define prospect-management workflows.
-- [ ] Add secure administration, roles, audit trail, backups and spam protection.
-
-## Honesty rule
-Concept projects remain labelled as concepts until they are genuinely commissioned. Do not publish invented client names, testimonials, conversion data or business results.
+## À ne pas prétendre
+Aucun CRM, stockage de prospects, compte utilisateur, paiement, réservation, CMS ou service de messagerie n'est connecté dans cette version. Les concepts ne sont pas des missions clients livrées et leurs données sont fictives.
