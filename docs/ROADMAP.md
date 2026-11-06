@@ -18,7 +18,7 @@
 - [ ] Ajouter une protection anti-spam si une réception serveur est activée.
 
 ## Qualité
-- [ ] Exécuter les contrôles automatiques de structure, liens et syntaxe avant chaque publication.
+- [x] Contrôles automatiques de structure, liens, repères HTML et intégrité CSS à chaque publication.
 - [ ] Audit clavier et contraste.
 - [ ] Vérification manuelle des mises en page sur appareils réels.
 
