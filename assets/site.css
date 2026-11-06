@@ -1304,7 +1304,7 @@ body.door-reveal-active .site-header,body.door-reveal-active main,body.door-reve
 @media(max-width:640px){
  .door-reveal{padding:16px}
  .door-reveal-top{font-size:7px;letter-spacing:.07em}
- .door-reveal-top span:last-child{display:none}
+ .door-reveal-top > span:nth-child(2){display:none}
  .door-threshold{width:83vw;height:60vh;min-width:0;min-height:0;top:46%}
  .door-leaf{inset:14px 14px 0}
  .door-leaf-mark{font-size:clamp(65px,17vw,100px)}
@@ -1635,4 +1635,35 @@ body.door-reveal-active .site-header,body.door-reveal-active main,body.door-reve
   .door-reveal.is-exiting .door-gallery-room{opacity:0;visibility:hidden}
   .door-reveal.is-exiting .door-threshold{opacity:1;visibility:visible;transform:translate(-50%,-48%)}
   .door-reveal.is-exiting .door-leaf{transition:none!important}
+}
+
+
+/* HOME EXIT — a clear route back from the closed portfolio threshold */
+.door-home-link{
+  display:inline-flex;
+  flex:0 0 auto;
+  align-items:center;
+  justify-content:center;
+  gap:14px;
+  padding:11px 15px;
+  border:1px solid #c9c0ff66;
+  background:#ffffff08;
+  color:#f4f0e8;
+  text-decoration:none;
+  font:9px var(--mono);
+  letter-spacing:.13em;
+  transition:background .22s ease,border-color .22s ease,color .22s ease,transform .22s ease;
+}
+.door-home-link span{color:var(--acid);transition:transform .22s ease}
+.door-home-link:hover{
+  color:#111116;
+  background:var(--acid);
+  border-color:var(--acid);
+  transform:translateY(-2px);
+}
+.door-home-link:hover span{color:#111116;transform:translate(2px,-2px)}
+.door-home-link:focus-visible{outline:2px solid var(--acid);outline-offset:5px}
+@media(max-width:640px){
+  .door-reveal-top{gap:9px}
+  .door-home-link{padding:9px 10px;font-size:7px;gap:8px;letter-spacing:.08em}
 }
