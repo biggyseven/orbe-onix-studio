@@ -1088,3 +1088,130 @@ body.light-page .site-header .brand-name{color:#f5f2f8}
 @media(prefers-reduced-motion:reduce){
  .naya-demo-building,.naya-demo-sun,.naya-demo-palm,.naya-demo-word,.demo-cta:after,.forme-product-art,.flow-demo-nav button,.flow-demo-metrics article,.flow-demo-progress>div i{transition:none}
 }
+
+
+/* V1.6 — three distinct art directions, not one shared card template */
+.prototype-lab{padding:112px 0 130px;overflow:hidden;background:#e4e0d8}
+.prototype-intro{margin-bottom:58px;max-width:none;display:grid;grid-template-columns:1fr minmax(190px,260px);align-items:end}
+.prototype-intro h2{font-size:clamp(54px,8vw,104px);letter-spacing:-.09em}
+.prototype-intro p{max-width:500px}
+.prototype-shell{box-shadow:none;border-radius:0;max-width:none}
+.prototype-stamp{align-self:end;justify-self:end;text-align:right}
+.prototype-intro:after{display:none}
+
+/* NAYA HOUSE: full-bleed hospitality campaign with a floating booking panel */
+body[data-case-layout=naya-house] .prototype-lab{background:#e8dfd2;padding:120px 0 140px}
+body[data-case-layout=naya-house] .prototype-intro{padding:0 0 42px}
+body[data-case-layout=naya-house] .prototype-intro h2{font-size:clamp(58px,9vw,118px);line-height:.78}
+body[data-case-layout=naya-house] .prototype-intro h2 em{color:#9d755d}
+body[data-case-layout=naya-house] .prototype-shell.naya-prototype{width:100vw;margin-left:calc((min(100vw, 100%) - 100vw)/2);min-height:0;background:#e8dfd2}
+body[data-case-layout=naya-house] .naya-prototype .prototype-topline{padding:0 5vw;background:#26332e;height:58px}
+body[data-case-layout=naya-house] .naya-demo-grid{display:block;position:relative;min-height:0}
+body[data-case-layout=naya-house] .naya-demo-visual{height:min(72vw,760px);min-height:560px}
+body[data-case-layout=naya-house] .naya-demo-sun{width:clamp(170px,23vw,330px);right:19%;top:10%}
+body[data-case-layout=naya-house] .naya-demo-building{left:28%;right:22%;bottom:20%;height:43%}
+body[data-case-layout=naya-house] .naya-demo-word{left:9%;top:18%;font-size:clamp(58px,9vw,130px);line-height:.78}
+body[data-case-layout=naya-house] .naya-demo-caption{left:9%;bottom:8%}
+body[data-case-layout=naya-house] .naya-demo-content{position:absolute;z-index:8;right:6%;bottom:7%;width:min(430px,39vw);padding:30px 34px 26px;background:#eee8deee;backdrop-filter:blur(22px);box-shadow:0 25px 90px #1b28284a}
+body[data-case-layout=naya-house] .naya-demo-content h3{font-size:clamp(36px,4vw,54px)}
+body[data-case-layout=naya-house] .naya-demo-tabs{margin:17px 0 24px}
+body[data-case-layout=naya-house] .naya-demo-content>p{min-height:55px}
+body[data-case-layout=naya-house] .naya-demo-planner{grid-template-columns:1fr 1fr}
+body[data-case-layout=naya-house] .naya-demo-planner label:first-child{grid-column:1/-1}
+body[data-case-layout=naya-house] .naya-demo-summary{margin-top:8px}
+body[data-case-layout=naya-house] .naya-demo-visual:before{inset:59% 0 0}
+
+/* FORME: a magazine-like shop floor, with an editorial rail and asymmetric objects */
+body[data-case-layout=forme] .prototype-lab{background:#e9e4dc;padding:104px 0 130px}
+body[data-case-layout=forme] .prototype-intro{grid-template-columns:1fr 190px;align-items:start;margin-bottom:42px}
+body[data-case-layout=forme] .prototype-intro h2{font-size:clamp(60px,9vw,112px);line-height:.8}
+body[data-case-layout=forme] .prototype-intro h2 em{color:#9c7e65}
+body[data-case-layout=forme] .prototype-shell.forme-prototype{background:transparent;padding:0;overflow:visible}
+.forme-store-layout{display:grid;grid-template-columns:minmax(220px,27%) 1fr;gap:clamp(28px,5vw,76px);align-items:start}
+.forme-store-aside{position:sticky;top:35px;min-height:580px;padding:35px 0 30px;border-top:1px solid #bdb3a6;border-bottom:1px solid #bdb3a6;display:flex;flex-direction:column;align-items:flex-start}
+.forme-store-index{font:7px var(--mono);letter-spacing:.15em;color:#887d70}
+.forme-store-aside h3{font:clamp(42px,5vw,70px)/.88 var(--serif);font-weight:400;letter-spacing:-.07em;margin:55px 0 20px}
+.forme-store-aside h3 em{color:#9c7e65}
+.forme-store-aside p{font:12px/1.9 var(--sans);color:#756c62;max-width:255px}
+.forme-store-categories{display:flex;flex-direction:column;gap:13px;margin-top:50px;font:7px var(--mono);letter-spacing:.1em;color:#81766b}
+.forme-store-categories span:first-child{color:#a17c62;margin-bottom:6px}
+.forme-store-aside>small{margin-top:auto;padding-top:30px;font:7px/1.8 var(--mono);letter-spacing:.08em;color:#9b9187}
+.forme-store-main{min-width:0}
+body[data-case-layout=forme] .forme-demo-head{padding:0 0 22px;border-bottom:1px solid #bdb3a6;margin-bottom:0;align-items:end}
+body[data-case-layout=forme] .forme-demo-head h3{font-size:clamp(30px,3.4vw,48px)}
+body[data-case-layout=forme] .forme-demo-grid{grid-template-columns:1.1fr .9fr;gap:26px 20px;align-items:start}
+body[data-case-layout=forme] .forme-product:first-child{grid-row:span 2}
+body[data-case-layout=forme] .forme-product:first-child .forme-product-art{height:560px}
+body[data-case-layout=forme] .forme-product:nth-child(2) .forme-product-art{height:255px}
+body[data-case-layout=forme] .forme-product:nth-child(3) .forme-product-art{height:255px}
+body[data-case-layout=forme] .forme-product:nth-child(2){margin-top:38px}
+body[data-case-layout=forme] .forme-product:nth-child(3){margin-top:0}
+body[data-case-layout=forme] .forme-demo-footer{margin-top:32px;border-top:1px solid #bdb3a6}
+body[data-case-layout=forme] .forme-demo-bag{font-size:7px}
+body[data-case-layout=forme] .forme-product-art{background:#d9d0c4}
+body[data-case-layout=forme] .forme-product-meta{border-bottom-color:#bdb3a6}
+
+/* FLOWSTATE: application canvas, compact and information-dense */
+body[data-case-layout=flowstate] .prototype-lab{background:#dce2dc;padding:92px 0 115px}
+body[data-case-layout=flowstate] .prototype-intro{grid-template-columns:1fr 210px;margin-bottom:32px}
+body[data-case-layout=flowstate] .prototype-intro h2{font-size:clamp(48px,6vw,78px)}
+body[data-case-layout=flowstate] .prototype-intro h2 em{color:#718b75}
+body[data-case-layout=flowstate] .prototype-shell.flow-prototype{min-height:670px;grid-template-columns:230px 1fr;background:#f1f3ef;border:1px solid #cbd4cb;box-shadow:0 30px 90px #293b3017}
+body[data-case-layout=flowstate] .flow-demo-sidebar{padding:30px 22px}
+body[data-case-layout=flowstate] .flow-demo-main{padding:32px clamp(22px,4vw,60px)}
+body[data-case-layout=flowstate] .flow-demo-welcome{margin:55px 0 35px}
+body[data-case-layout=flowstate] .flow-demo-metrics{gap:14px}
+body[data-case-layout=flowstate] .flow-demo-metrics article{padding:22px 19px}
+body[data-case-layout=flowstate] .flow-demo-metrics b{font-size:42px}
+body[data-case-layout=flowstate] .flow-demo-bottom{grid-template-columns:minmax(0,1.5fr) minmax(170px,.7fr);gap:15px;margin-top:16px}
+body[data-case-layout=flowstate] .flow-demo-taskbox,body[data-case-layout=flowstate] .flow-demo-focus{padding:22px}
+body[data-case-layout=flowstate] .flow-demo-taskbox--full{max-width:none}
+body[data-case-layout=flowstate] .flow-demo-panel[hidden]{display:none!important}
+body[data-case-layout=flowstate] .flow-demo-nav button[aria-pressed=true]{background:#3b5147;color:#f1f4e9}
+body[data-case-layout=flowstate] .flow-demo-progress>div{height:5px}
+body[data-case-layout=flowstate] .flow-demo-progress>div i{background:#718d74}
+body[data-case-layout=flowstate] .flow-project-list{padding:14px 25px}
+body[data-case-layout=flowstate] .flow-project-list article{padding:23px 0}
+body[data-case-layout=flowstate] .flow-project-list article>i span{background:#718d74}
+
+@media(max-width:900px){
+ body[data-case-layout=forme] .forme-store-layout{grid-template-columns:210px 1fr;gap:28px}
+ body[data-case-layout=forme] .forme-product:first-child .forme-product-art{height:470px}
+ body[data-case-layout=forme] .forme-product:nth-child(2) .forme-product-art,body[data-case-layout=forme] .forme-product:nth-child(3) .forme-product-art{height:210px}
+ body[data-case-layout=flowstate] .prototype-shell.flow-prototype{grid-template-columns:175px 1fr}
+}
+@media(max-width:640px){
+ .prototype-lab{padding:72px 0 85px}
+ .prototype-intro{display:flex;gap:18px;margin-bottom:28px}
+ .prototype-intro h2{font-size:clamp(48px,13vw,72px)}
+ .prototype-stamp{justify-self:start;text-align:left}
+ body[data-case-layout=naya-house] .prototype-lab{padding:75px 0 85px}
+ body[data-case-layout=naya-house] .naya-prototype .prototype-topline{padding:0 15px}
+ body[data-case-layout=naya-house] .naya-demo-visual{height:540px;min-height:540px}
+ body[data-case-layout=naya-house] .naya-demo-word{font-size:58px;top:16%;left:7%}
+ body[data-case-layout=naya-house] .naya-demo-building{left:14%;right:10%;bottom:18%;height:37%}
+ body[data-case-layout=naya-house] .naya-demo-content{position:relative;right:auto;bottom:auto;width:auto;margin:-25px 14px 0;padding:25px 20px 22px}
+ body[data-case-layout=naya-house] .naya-demo-planner{grid-template-columns:1fr 1fr}
+ body[data-case-layout=naya-house] .naya-demo-planner label:first-child{grid-column:1/-1}
+ body[data-case-layout=forme] .forme-store-layout{grid-template-columns:1fr;gap:30px}
+ body[data-case-layout=forme] .forme-store-aside{position:relative;top:auto;min-height:0;padding:22px 0 25px}
+ body[data-case-layout=forme] .forme-store-aside h3{font-size:52px;margin:24px 0 12px}
+ body[data-case-layout=forme] .forme-store-categories{margin-top:22px;display:grid;grid-template-columns:1fr 1fr}
+ body[data-case-layout=forme] .forme-store-aside>small{margin-top:25px;padding-top:15px}
+ body[data-case-layout=forme] .forme-demo-grid{grid-template-columns:1fr 1fr;gap:22px 12px}
+ body[data-case-layout=forme] .forme-product:first-child{grid-column:1/-1;grid-row:auto}
+ body[data-case-layout=forme] .forme-product:first-child .forme-product-art{height:420px}
+ body[data-case-layout=forme] .forme-product:nth-child(2){margin-top:0}
+ body[data-case-layout=forme] .forme-product:nth-child(2) .forme-product-art,body[data-case-layout=forme] .forme-product:nth-child(3) .forme-product-art{height:220px}
+ body[data-case-layout=forme] .forme-product-meta{flex-direction:column}
+ body[data-case-layout=forme] .forme-product-meta button{align-self:flex-start}
+ body[data-case-layout=forme] .forme-demo-head h3{font-size:34px}
+ body[data-case-layout=flowstate] .prototype-lab{padding:70px 0 85px}
+ body[data-case-layout=flowstate] .prototype-shell.flow-prototype{grid-template-columns:58px 1fr;min-height:0}
+ body[data-case-layout=flowstate] .flow-demo-sidebar{padding:18px 6px}
+ body[data-case-layout=flowstate] .flow-demo-main{padding:18px 12px}
+ body[data-case-layout=flowstate] .flow-demo-welcome{margin:35px 0 22px}
+ body[data-case-layout=flowstate] .flow-demo-metrics article{padding:10px}
+ body[data-case-layout=flowstate] .flow-demo-bottom{grid-template-columns:1fr}
+ body[data-case-layout=flowstate] .flow-demo-focus{min-height:140px}
+}
