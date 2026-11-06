@@ -16,4 +16,28 @@
  const query=new URLSearchParams(location.search).get('ref')||'naya-house',data=projectData[query]||projectData['naya-house'];
  if($('#case-name')){$('#case-name').textContent=data.name;$('#case-type').textContent=data.type;$('#case-intro').textContent=data.intro;$('#case-goal').textContent=data.goal;$('#case-scope').textContent=data.scope;$('#case-status').textContent=data.status;document.title=data.name+' — ORBE & ONIX';}
  $$('[data-year]').forEach(el=>el.textContent=new Date().getFullYear());
+
+ const stage=$('[data-parallax]'),stageObject=$('.hero-stage-object');
+ if(stage&&stageObject&&matchMedia('(pointer:fine)').matches&&!matchMedia('(prefers-reduced-motion: reduce)').matches){
+   let raf=0,px=0,py=0;
+   stage.addEventListener('pointermove',e=>{
+     const r=stage.getBoundingClientRect();
+     px=((e.clientX-r.left)/r.width-.5);
+     py=((e.clientY-r.top)/r.height-.5);
+     if(!raf)raf=requestAnimationFrame(()=>{
+       stageObject.style.transform='rotate('+(-5+px*4)+'deg) translate3d('+px*12+'px,'+py*12+'px,0) scale(1.015)';
+       raf=0;
+     });
+   });
+   stage.addEventListener('pointerleave',()=>{stageObject.style.transform='';});
+ }
+ const magnetic=$('[data-magnetic]');
+ magnetic.forEach(el=>{
+   if(!matchMedia('(pointer:fine)').matches)return;
+   el.addEventListener('pointermove',e=>{
+     const r=el.getBoundingClientRect(),x=(e.clientX-r.left-r.width/2)/r.width,y=(e.clientY-r.top-r.height/2)/r.height;
+     el.style.transform='translate('+x*7+'px,'+y*6+'px)';
+   });
+   el.addEventListener('pointerleave',()=>{el.style.transform='';});
+ });
 })();
