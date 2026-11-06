@@ -234,7 +234,6 @@
     Object.entries(prototypeFields).forEach(([selector,value])=>put(selector,value));
     const prototypeTitle=one('[data-prototype-title]');
     if(prototypeTitle) prototypeTitle.innerHTML=prototypeCopy[1]+' <em>'+prototypeCopy[2]+'</em>';
-    const put = (selector, value) => { const node = one(selector); if (node) node.textContent = value; };
     const fields = {
       '#case-name':data.name,'#case-type':data.type,'#case-lede':data.lede,
       '#case-discipline':data.discipline,'#case-intro':data.intro,'#case-headline':data.headline,
