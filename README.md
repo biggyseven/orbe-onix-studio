@@ -1,33 +1,30 @@
 # ORBE & ONIX — Digital Experience Studio
 
-An independent creative studio exploring the intersection of digital design, web development and considered interactions.
+An independent creative practice exploring the intersection of digital design, web development and considered interactions.
 
 **Working line:** Ideas take form.  
-**Visual direction:** editorial futurism, smoked glass, translucent surfaces, graphite, ivory and restrained lavender.
+**Art direction:** editorial futurism, smoked glass, translucent surfaces, graphite, warm ivory and restrained lavender.
 
-## Project
+## Public website
 
-This repository contains the public-facing studio website, built as a lightweight static experience. Visuals are produced with CSS, HTML and hand-authored SVG rather than generated raster imagery.
+- `index.html` — homepage and selected work
+- `work.html` — filterable concept archive
+- `project.html` — dynamic concept case-study template
+- `services.html` — services, delivery process and FAQs
+- `studio.html` — studio point of view and principles
+- `lab.html` — interactive material playground and visual field notes
+- `contact.html` — project brief builder (client-side only)
 
-### Pages
-
-- `index.html` — studio homepage
-- `work.html` — selected concepts and project archive
-- `services.html` — service offer and delivery approach
-- `project.html` — project case-study template
-
-### Stack
+## Stack
 
 - Semantic HTML
-- CSS custom properties, responsive layout and glass effects
-- Vanilla JavaScript for navigation, filters, and project data
-- SVG artwork authored in code
+- CSS custom properties, responsive layouts, glass and material studies
+- Vanilla JavaScript for navigation, filters, scroll progress, material controls and brief generation
+- Hand-authored SVG and CSS artwork; no generated raster imagery
 
 ## Run locally
 
-Open `index.html` directly, or serve the directory with any static server.
-
-For example:
+Serve the repository root with any static server:
 
 ```bash
 python -m http.server 8000
@@ -35,14 +32,16 @@ python -m http.server 8000
 
 Then visit `http://localhost:8000`.
 
-## Project status
+## Honest project status
 
-This is an evolving portfolio and studio concept. Projects shown as NAYA HOUSE, FORME and FLOWSTATE are **independent concept projects**, not client commissions. Contact and lead-capture integrations, analytics, CMS, and backend services are not connected yet.
+NAYA HOUSE, FORME and FLOWSTATE are **independent concept projects**, not client commissions. The studio is in its early public-building stage.
 
-## Design principles
+The contact page currently generates a copyable brief in the browser. It does not transmit or store personal data. No contact API, CRM, payment flow, analytics, CMS or client portal is connected.
 
-1. No decorative animation without a purpose.
+## Principles
+
+1. No decorative motion without a purpose.
 2. Glass effects must preserve legibility.
-3. Strong art direction, restrained motion.
-4. Mobile-first behavior and reduced-motion support.
-5. Honest presentation of concept work and capabilities.
+3. Strong art direction, restrained interaction.
+4. Responsive behavior and reduced-motion support.
+5. Clearly distinguish concepts, prototypes and commissioned work.
