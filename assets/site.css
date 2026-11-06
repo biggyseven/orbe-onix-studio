@@ -847,3 +847,5 @@ body.light-page .site-header .brand-name{color:#f5f2f8}
  .case-bottom-actions{font-size:7px;letter-spacing:.04em}
 }
 @media(prefers-reduced-motion:reduce){.portfolio-art,.portfolio-card-arrow,.case-next-arrow{transition:none}}
+
+.case-hero-heading h1:after{content:".";color:var(--oo-acid)}
