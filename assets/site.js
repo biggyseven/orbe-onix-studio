@@ -276,12 +276,31 @@
     });
     const guests = one('[data-naya-guests]');
     const nights = one('[data-naya-nights]');
+    const arrival = one('[data-naya-arrival]');
     const summary = one('[data-naya-summary]');
+    const localDate = date => [date.getFullYear(),String(date.getMonth()+1).padStart(2,'0'),String(date.getDate()).padStart(2,'0')].join('-');
     const updateStay = () => {
-      if (summary && guests && nights) summary.innerHTML = String(guests.value).padStart(2,'0')+' guests <i>·</i> '+String(nights.value).padStart(2,'0')+' nights';
+      if (!summary || !guests || !nights) return;
+      const guestLabel = String(guests.value).padStart(2,'0') + (Number(guests.value) > 1 ? ' guests' : ' guest');
+      let stayLabel = String(nights.value).padStart(2,'0') + ' nights';
+      if (arrival && arrival.value) {
+        const start = new Date(arrival.value + 'T12:00:00');
+        const end = new Date(start);
+        end.setDate(end.getDate() + Number(nights.value));
+        const formatter = new Intl.DateTimeFormat('en-GB',{day:'2-digit',month:'short'});
+        stayLabel += ' / ' + formatter.format(start) + ' → ' + formatter.format(end);
+      }
+      summary.textContent = guestLabel + ' · ' + stayLabel;
     };
-    if (guests) guests.addEventListener('change',updateStay);
-    if (nights) nights.addEventListener('change',updateStay);
+    if (arrival) {
+      const today = new Date();
+      arrival.min = localDate(today);
+      const suggested = new Date(today);
+      suggested.setDate(suggested.getDate() + 14);
+      arrival.value = localDate(suggested);
+    }
+    [guests,nights,arrival].filter(Boolean).forEach(control => control.addEventListener('change',updateStay));
+    updateStay();
   }
 
   const formeDemo = one('[data-project-demo="forme"]');
@@ -319,18 +338,23 @@
       panels.forEach(panel=>{panel.hidden=panel.dataset.flowPanel!==key;});
     };
     tabs.forEach(tab=>tab.addEventListener('click',()=>switchFlowTab(tab.dataset.flowTab)));
-    const taskBoxes=all('[data-flow-task]');
+    const taskIds=['review','notes','share'];
+    const taskState={review:false,notes:false,share:false};
     const updateTasks=changed=>{
-      const index=taskBoxes.indexOf(changed);
-      if(index>=0){const sameIndex=index%3;taskBoxes.forEach((box,i)=>{if(i%3===sameIndex)box.checked=changed.checked;});}
-      const completed=taskBoxes.slice(0,3).filter(box=>box.checked).length;
-      const open=3-completed;
+      if(changed && Object.prototype.hasOwnProperty.call(taskState,changed.dataset.flowTask)) {
+        taskState[changed.dataset.flowTask]=changed.checked;
+        all('[data-flow-task="'+changed.dataset.flowTask+'"]').forEach(box=>{box.checked=changed.checked;});
+      }
+      const completed=taskIds.filter(id=>taskState[id]).length;
+      const open=taskIds.length-completed;
       all('[data-flow-open-count]').forEach(node=>node.textContent=String(open).padStart(2,'0'));
       all('[data-flow-task-count]').forEach(node=>node.textContent=String(open).padStart(2,'0')+' OPEN');
       all('[data-flow-progress-label]').forEach(node=>node.textContent=completed+' of 3 completed');
       all('[data-flow-progress]').forEach(node=>node.style.width=(completed/3*100)+'%');
+      const bars=all('[role="progressbar"]');
+      bars.forEach(bar=>bar.setAttribute('aria-valuenow',String(completed)));
     };
-    taskBoxes.forEach(box=>box.addEventListener('change',()=>updateTasks(box)));
+    all('[data-flow-task]').forEach(box=>box.addEventListener('change',()=>updateTasks(box)));
     switchFlowTab('overview');
     updateTasks(null);
   }
