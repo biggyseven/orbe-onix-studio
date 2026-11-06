@@ -1532,3 +1532,57 @@ body.door-reveal-active .site-header,body.door-reveal-active main,body.door-reve
   }
   .door-reveal.is-entering .door-threshold{transform:translate(-50%,-48%);filter:none}
 }
+
+
+/* REVERSE PORTAL JOURNEY — gallery exit, return through the arch, door closes */
+.door-reveal.is-exiting .door-gallery-room{
+  z-index:6;
+  opacity:0;
+  visibility:visible;
+  transform:scale(.7) translateY(3%);
+  transition:opacity .82s ease,transform 1.12s cubic-bezier(.7,0,.25,1),visibility 0s;
+}
+.door-reveal.is-exiting .door-threshold{
+  z-index:5;
+  visibility:visible;
+  opacity:0;
+  transform:translate(-50%,-48%) scale(2.55);
+  filter:blur(9px);
+  transition:transform 1.08s cubic-bezier(.18,.72,.18,1),opacity .85s ease,filter .9s ease;
+  pointer-events:none;
+}
+.door-reveal.is-exiting.is-exit-return .door-gallery-room{
+  opacity:0;
+  visibility:hidden;
+  transform:scale(.7) translateY(3%);
+}
+.door-reveal.is-exiting.is-exit-return .door-threshold{
+  opacity:1;
+  visibility:visible;
+  transform:translate(-50%,-48%) scale(1);
+  filter:blur(0);
+}
+.door-reveal.is-exiting.is-exit-return .door-leaf{
+  transform:rotateY(-112deg);
+  transition:transform 1s cubic-bezier(.2,.72,.18,1);
+}
+.door-reveal.is-exiting.is-exit-return:not(.is-open) .door-leaf{
+  transform:rotateY(0deg);
+}
+.door-reveal.is-exiting .door-reveal-top,
+.door-reveal.is-exiting .door-reveal-bottom{
+  opacity:0;
+  visibility:hidden;
+  pointer-events:none;
+}
+.door-reveal.is-exiting .door-gallery-card{
+  opacity:0;
+  transform:translateY(16px);
+}
+@media(prefers-reduced-motion:reduce){
+  .door-reveal.is-exiting .door-gallery-room,
+  .door-reveal.is-exiting .door-threshold,
+  .door-reveal.is-exiting .door-leaf{
+    transition:none!important;
+  }
+}
