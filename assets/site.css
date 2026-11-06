@@ -1232,7 +1232,7 @@ body[data-case-layout=flowstate] .flow-project-list article>i span{background:#7
 .door-reveal-bottom{position:relative;z-index:6}
 .door-reveal-bottom button{border:0;background:none;color:#e8e2f4;font:10px var(--mono);letter-spacing:.13em;cursor:pointer;padding:12px 0}
 .door-reveal-bottom button span{color:var(--acid);padding-left:10px}
-.door-reveal-stage{position:absolute;inset:11% 5% 10%;display:grid;grid-template-columns:minmax(210px,.7fr) 1.3fr;align-items:center;gap:4vw;opacity:0;transform:translateY(24px) scale(.985);transition:opacity .75s ease 2.35s,transform .9s cubic-bezier(.2,.72,.18,1) 2.35s}
+.door-reveal-stage{position:absolute;inset:11% 5% 10%;display:grid;grid-template-columns:minmax(210px,.7fr) 1.3fr;align-items:center;gap:4vw;opacity:0;transform:translateY(24px) scale(.985);transition:opacity .75s ease 2.85s,transform .9s cubic-bezier(.2,.72,.18,1) 2.85s}
 .door-reveal-copy{align-self:center;padding-left:2vw}
 .door-reveal-index{font:10px var(--mono);letter-spacing:.2em;color:var(--acid)}
 .door-reveal-copy h2{font:500 clamp(44px,6vw,94px)/.96 'Space Grotesk',sans-serif;letter-spacing:-.075em;margin:24px 0}
@@ -1262,13 +1262,18 @@ body[data-case-layout=flowstate] .flow-project-list article>i span{background:#7
 .door-portal-floor{position:absolute;left:-35%;right:-35%;bottom:-2px;height:25px;background:linear-gradient(90deg,transparent,#9383f533,transparent);filter:blur(12px);opacity:.7}
 .door-reveal.is-opening .door-reveal-stage{opacity:1;transform:translateY(0) scale(1)}
 .door-reveal.is-opening .door-project{opacity:1;transform:translateY(0)}
-.door-reveal.is-opening .door-project:nth-child(1){transition-delay:2.85s}
-.door-reveal.is-opening .door-project:nth-child(2){transition-delay:3.05s}
-.door-reveal.is-opening .door-project:nth-child(3){transition-delay:3.2s}
+.door-reveal.is-opening .door-project:nth-child(1){transition-delay:3.05s}
+.door-reveal.is-opening .door-project:nth-child(2){transition-delay:3.25s}
+.door-reveal.is-opening .door-project:nth-child(3){transition-delay:3.4s}
 .door-reveal.is-opening .door-hand{animation:door-hand-reach 1.15s cubic-bezier(.2,.72,.18,1) .2s forwards,door-hand-release .5s ease 1.35s forwards}
 .door-reveal.is-opening .door-panel{transform:rotateY(-112deg)}
 .door-reveal.is-opening .door-handle{animation:door-handle-turn .4s cubic-bezier(.2,.72,.18,1) 1.05s both}
-@keyframes door-hand-reach{0%{opacity:0;transform:translate(145px,32px) rotate(-12deg)}18%{opacity:1}72%{opacity:1;transform:translate(0,0) rotate(0)}100%{opacity:1;transform:translate(-7px,2px) rotate(2deg)}20%{opacity:1}75%{opacity:1;transform:translate(0,0) rotate(0)}100%{opacity:1;transform:translate(-10px,4px) rotate(3deg)}}
+@keyframes door-hand-reach{
+  0%{opacity:0;transform:translate(145px,32px) rotate(-12deg)}
+  18%{opacity:1}
+  72%{opacity:1;transform:translate(0,0) rotate(0)}
+  100%{opacity:1;transform:translate(-7px,2px) rotate(2deg)}
+}
 @keyframes door-hand-release{to{opacity:0;transform:translate(60px,25px) rotate(8deg)}}
 @keyframes door-handle-turn{50%{transform:rotate(13deg);filter:brightness(1.5)}}
 body.door-reveal-active{overflow:hidden}
