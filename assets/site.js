@@ -375,7 +375,7 @@
     updateTasks(null);
   }
 
-  // Portfolio threshold: open the leaf, travel through the arch, then reveal the collection.
+  // Portfolio threshold: open, enter the gallery, then travel back out on close.
   const doorScene = one('[data-door-reveal]');
   if (doorScene && new URLSearchParams(window.location.search).get('door') === '1') {
     const doorRoom = one('[data-door-room]', doorScene);
@@ -385,6 +385,7 @@
     const reducedMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     const doorTimers = [];
     let doorOpened = false;
+    let doorExiting = false;
 
     const later = (callback, delay) => {
       const timer = window.setTimeout(callback, reducedMotion ? 0 : delay);
@@ -396,11 +397,12 @@
       doorTimers.length = 0;
     };
 
-    const closeDoorScene = () => {
+    const finishDoorExit = () => {
       clearDoorTimers();
       doorOpened = false;
+      doorExiting = false;
       document.body.classList.remove('door-reveal-active');
-      doorScene.classList.remove('is-open', 'is-entering', 'has-entered');
+      doorScene.classList.remove('is-open', 'is-entering', 'has-entered', 'is-exiting', 'is-exit-return');
       doorScene.setAttribute('aria-hidden', 'true');
       doorScene.hidden = true;
       if (doorRoom) doorRoom.setAttribute('aria-hidden', 'true');
@@ -411,20 +413,33 @@
       if (heading) { heading.tabIndex = -1; heading.focus({ preventScroll: true }); }
     };
 
+    const exitDoorScene = () => {
+      if (!doorOpened || doorExiting) return;
+      doorExiting = true;
+      clearDoorTimers();
+      if (doorRoom) doorRoom.setAttribute('aria-hidden', 'true');
+
+      // First pull the visitor back through the portal; then swing the door shut.
+      doorScene.classList.add('is-exiting');
+      later(() => doorScene.classList.add('is-exit-return'), 40);
+      later(() => {
+        doorScene.classList.remove('is-open');
+      }, 1120);
+      later(finishDoorExit, 2320);
+    };
+
     const openDoor = () => {
-      if (doorOpened) return;
+      if (doorOpened || doorExiting) return;
       doorOpened = true;
       doorScene.classList.add('is-open');
 
-      // Let the door swing first, then move the whole threshold past the viewer.
       later(() => {
-        if (!doorOpened) return;
+        if (!doorOpened || doorExiting) return;
         doorScene.classList.add('is-entering');
       }, 1080);
 
-      // The gallery becomes interactive only after the camera has crossed the arch.
       later(() => {
-        if (!doorOpened) return;
+        if (!doorOpened || doorExiting) return;
         doorScene.classList.add('has-entered');
         if (doorRoom) doorRoom.setAttribute('aria-hidden', 'false');
         if (galleryTitle) galleryTitle.focus({ preventScroll: true });
@@ -437,12 +452,12 @@
         if (!doorOpened) openDoor();
       } else if (event.key === 'Escape') {
         event.preventDefault();
-        closeDoorScene();
+        if (doorOpened) exitDoorScene();
       }
     };
 
     const onDoorContext = event => {
-      if (doorOpened) return;
+      if (doorOpened || doorExiting) return;
       event.preventDefault();
       openDoor();
     };
@@ -452,7 +467,7 @@
     doorScene.setAttribute('aria-hidden', 'false');
     if (doorRoom) doorRoom.setAttribute('aria-hidden', 'true');
     if (openButton) openButton.addEventListener('click', openDoor);
-    if (closeButton) closeButton.addEventListener('click', closeDoorScene);
+    if (closeButton) closeButton.addEventListener('click', exitDoorScene);
     doorScene.addEventListener('keydown', onDoorKey);
     doorScene.addEventListener('contextmenu', onDoorContext);
     if (openButton) window.setTimeout(() => openButton.focus({ preventScroll: true }), 60);
