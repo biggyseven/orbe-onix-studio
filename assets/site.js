@@ -401,16 +401,15 @@
       clearDoorTimers();
       doorOpened = false;
       doorExiting = false;
-      document.body.classList.remove('door-reveal-active');
+
+      // Stay in the threshold scene: restore the closed door, not the page below it.
       doorScene.classList.remove('is-open', 'is-entering', 'has-entered', 'is-exiting', 'is-exit-close');
-      doorScene.setAttribute('aria-hidden', 'true');
-      doorScene.hidden = true;
+      doorScene.hidden = false;
+      doorScene.setAttribute('aria-hidden', 'false');
       if (doorRoom) doorRoom.setAttribute('aria-hidden', 'true');
-      const cleanUrl = new URL(window.location.href);
-      cleanUrl.searchParams.delete('door');
-      window.history.replaceState({}, '', cleanUrl.pathname + cleanUrl.search + cleanUrl.hash);
-      const heading = one('.portfolio-intro h1');
-      if (heading) { heading.tabIndex = -1; heading.focus({ preventScroll: true }); }
+
+      // Keep the URL and page lock intact so the visitor can enter the gallery again.
+      if (openButton) openButton.focus({ preventScroll: true });
     };
 
     const exitDoorScene = () => {
