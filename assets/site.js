@@ -245,5 +245,95 @@
     document.title=data.name+' — Project study — ORBE & ONIX';
   }
 
+  // Interactive concept prototypes. All state is local to this browser session.
+  const demoKey = new URLSearchParams(window.location.search).get('ref') || 'naya-house';
+  all('[data-project-demo]').forEach(demo => {
+    demo.hidden = demo.dataset.projectDemo !== demoKey;
+  });
+
+  const nayaDemo = one('[data-project-demo="naya-house"]');
+  if (nayaDemo) {
+    const scenes = {
+      stay: { title:'A place to<br><em>slow down.</em>', copy:'Un refuge pensé pour retrouver le rythme du paysage, entre lumière douce, matières naturelles et horizons ouverts.', caption:'COASTAL LIVING / CAMEROON' },
+      spaces: { title:'Space to<br><em>feel at home.</em>', copy:'Des espaces ouverts, des matières tactiles et des perspectives cadrées sur le paysage. Chaque détail invite à prendre son temps.', caption:'SPACES / MATERIAL / LIGHT' },
+      rituals: { title:'Find your own<br><em>rhythm.</em>', copy:'Un café face à la lumière, une marche au bord de l’eau, une fin de journée sans programme. Le séjour se compose à votre rythme.', caption:'SLOW MOMENTS / DAILY RITUALS' }
+    };
+    all('[data-naya-scene]').filter(node => node.tagName === 'BUTTON').forEach(button => {
+      button.addEventListener('click', () => {
+        const key = button.dataset.nayaScene;
+        const scene = scenes[key];
+        if (!scene) return;
+        all('[data-naya-scene]').filter(node => node.tagName === 'BUTTON').forEach(item => item.setAttribute('aria-pressed', String(item === button)));
+        const title = one('[data-naya-title]');
+        const copy = one('[data-naya-copy]');
+        const caption = one('.naya-demo-caption');
+        const visual = one('.naya-demo-visual');
+        if (title) title.innerHTML = scene.title;
+        if (copy) copy.textContent = scene.copy;
+        if (caption) caption.textContent = scene.caption;
+        if (visual) visual.dataset.nayaScene = key;
+      });
+    });
+    const guests = one('[data-naya-guests]');
+    const nights = one('[data-naya-nights]');
+    const summary = one('[data-naya-summary]');
+    const updateStay = () => {
+      if (summary && guests && nights) summary.innerHTML = String(guests.value).padStart(2,'0')+' guests <i>·</i> '+String(nights.value).padStart(2,'0')+' nights';
+    };
+    if (guests) guests.addEventListener('change',updateStay);
+    if (nights) nights.addEventListener('change',updateStay);
+  }
+
+  const formeDemo = one('[data-project-demo="forme"]');
+  if (formeDemo) {
+    const bag = [];
+    const count = one('[data-forme-count]');
+    const summary = one('[data-forme-summary]');
+    const clear = one('[data-forme-clear]');
+    const renderBag = () => {
+      if (count) count.textContent = String(bag.length).padStart(2,'0');
+      if (summary) summary.textContent = bag.length ? bag.join(' · ') : 'Your bag is empty. Select an object to begin.';
+      if (clear) clear.disabled = bag.length === 0;
+      all('[data-forme-add]').forEach(button => {
+        const selected = bag.includes(button.dataset.formeAdd);
+        button.textContent = selected ? 'Added ✓' : 'Add to bag +';
+        button.setAttribute('aria-pressed',String(selected));
+      });
+    };
+    all('[data-forme-add]').forEach(button => button.addEventListener('click',() => {
+      const item=button.dataset.formeAdd;
+      const index=bag.indexOf(item);
+      if(index>=0) bag.splice(index,1); else bag.push(item);
+      renderBag();
+    }));
+    if(clear) clear.addEventListener('click',()=>{bag.length=0;renderBag();});
+    renderBag();
+  }
+
+  const flowDemo = one('[data-project-demo="flowstate"]');
+  if (flowDemo) {
+    const tabs=all('[data-flow-tab]');
+    const panels=all('[data-flow-panel]');
+    const switchFlowTab = key => {
+      tabs.forEach(tab=>tab.setAttribute('aria-pressed',String(tab.dataset.flowTab===key)));
+      panels.forEach(panel=>{panel.hidden=panel.dataset.flowPanel!==key;});
+    };
+    tabs.forEach(tab=>tab.addEventListener('click',()=>switchFlowTab(tab.dataset.flowTab)));
+    const taskBoxes=all('[data-flow-task]');
+    const updateTasks=changed=>{
+      const index=taskBoxes.indexOf(changed);
+      if(index>=0){const sameIndex=index%3;taskBoxes.forEach((box,i)=>{if(i%3===sameIndex)box.checked=changed.checked;});}
+      const completed=taskBoxes.slice(0,3).filter(box=>box.checked).length;
+      const open=3-completed;
+      all('[data-flow-open-count]').forEach(node=>node.textContent=String(open).padStart(2,'0'));
+      all('[data-flow-task-count]').forEach(node=>node.textContent=String(open).padStart(2,'0')+' OPEN');
+      all('[data-flow-progress-label]').forEach(node=>node.textContent=completed+' of 3 completed');
+      all('[data-flow-progress]').forEach(node=>node.style.width=(completed/3*100)+'%');
+    };
+    taskBoxes.forEach(box=>box.addEventListener('change',()=>updateTasks(box)));
+    switchFlowTab('overview');
+    updateTasks(null);
+  }
+
   all('[data-year]').forEach(node => { node.textContent = new Date().getFullYear(); });
 })();
