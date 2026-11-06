@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 360" fill="none" role="img" aria-labelledby="handTitle">
+  <title id="handTitle">A sculptural hand reaching for a door handle</title>
+  <defs>
+    <linearGradient id="skin" x1="250" y1="90" x2="465" y2="315" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FFFDF7"/>
+      <stop offset=".38" stop-color="#E5DCD0"/>
+      <stop offset="1" stop-color="#A99B91"/>
+    </linearGradient>
+    <linearGradient id="edge" x1="290" y1="110" x2="475" y2="305" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FFFDF8"/>
+      <stop offset="1" stop-color="#988C86"/>
+    </linearGradient>
+    <filter id="handShadow" x="225" y="65" width="400" height="310" color-interpolation-filters="sRGB" filterUnits="userSpaceOnUse">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="12"/>
+      <feOffset dx="-5" dy="13"/>
+      <feComponentTransfer><feFuncA type="linear" slope=".3"/></feComponentTransfer>
+      <feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+  <g filter="url(#handShadow)">
+    <path d="M600 172H492c-30 0-53-7-77-24l-49-35c-15-11-33-5-34 11-1 13 14 24 27 34l31 23c10 7 3 21-9 17l-91-32c-19-7-34 4-30 20 3 11 18 20 33 26l73 31c12 5 7 21-7 17l-73-24c-21-7-37 7-30 21 5 11 22 18 39 24l82 27c31 10 61 7 89-5l134-18Z" fill="url(#skin)" stroke="#F9F5EE" stroke-width="3" stroke-linejoin="round"/>
+    <path d="M360 144c-14-14-29-31-41-48-10-14-28-14-36-2-8 12 1 27 11 40l29 37" fill="url(#edge)" stroke="#F9F5EE" stroke-width="3" stroke-linecap="round"/>
+    <path d="M492 172c-30 0-53-7-77-24l-49-35" stroke="#95877F" stroke-opacity=".45" stroke-width="2" stroke-linecap="round"/>
+    <path d="M391 181c17 14 33 21 51 23M342 210c20 8 37 15 53 21M361 275c24 7 44 6 64-1" stroke="#8F8178" stroke-opacity=".56" stroke-width="2.2" stroke-linecap="round"/>
+    <path d="M300 196c-11-2-21 2-27 10M322 241c-10-2-18 1-23 8" stroke="#FFFDF7" stroke-opacity=".85" stroke-width="3" stroke-linecap="round"/>
+    <path d="M410 153c8 6 17 10 28 12" stroke="#FFFDF7" stroke-opacity=".72" stroke-width="2.5" stroke-linecap="round"/>
+  </g>
+  <path d="M586 184c-28 9-48 15-69 15" stroke="#D8CABB" stroke-opacity=".65" stroke-width="2" stroke-linecap="round"/>
+</svg>
