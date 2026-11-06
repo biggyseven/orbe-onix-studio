@@ -152,55 +152,97 @@
     });
   }
 
-  // Dynamic case-study copy and artwork.
+  // Dynamic editorial case studies: each project has its own narrative and visual language.
   const projectData = {
     'naya-house': {
-      name: 'NAYA HOUSE',
-      type: 'Hospitality / Website concept',
-      intro: 'Une expérience digitale imaginée pour une adresse hôtelière contemporaine. Le concept explore une navigation calme, une hiérarchie éditoriale généreuse et une présentation immersive des espaces.',
-      goal: 'Présenter un lieu et faciliter la prise de contact',
-      scope: 'Direction artistique, UX, interface responsive',
-      status: 'Concept indépendant',
-      art: 'assets/project-naya.svg',
-      discipline: 'Hospitality'
+      name:'NAYA HOUSE', number:'001', type:'HOSPITALITY / WEBSITE CONCEPT',
+      lede:'Une adresse à ressentir avant même d’y arriver.',
+      discipline:'Hospitality / Digital experience',
+      intro:'NAYA HOUSE imagine l’expérience numérique d’un refuge côtier contemporain. Le concept place l’atmosphère au premier plan : lumière chaude, horizons ouverts et rythme éditorial apaisé.',
+      headline:'Concevoir une première impression qui donne envie de ralentir.',
+      questionTitle:'Comment faire ressentir un lieu à travers un écran ?',
+      question:'Le défi consiste à transmettre une atmosphère sans encombrer l’interface, puis à guider naturellement vers les informations utiles et la prise de contact.',
+      responseTitle:'Une direction qui laisse respirer le contenu.',
+      response:'Une composition éditoriale généreuse, des images au premier plan et une navigation courte donnent au lieu le rôle principal.',
+      p1t:'L’espace avant l’information.',p1:'Une hiérarchie claire laisse le visiteur découvrir le lieu avant de parcourir les détails pratiques.',
+      p2t:'Une palette inspirée du paysage.',p2:'Des tons minéraux et solaires prolongent l’identité côtière sans transformer l’interface en décor.',
+      p3t:'Le mouvement avec mesure.',p3:'Des transitions discrètes accompagnent la découverte et préservent une sensation de calme.',
+      scopeIntro:'Le concept explore le parcours d’un visiteur, de la découverte de l’adresse à la préparation d’un séjour.',
+      scope:['Architecture éditoriale et hiérarchie','Direction artistique & UI','Parcours responsive','Principes de réservation et contact'],
+      honesty:'Concept indépendant. Aucun établissement réel, système de réservation opérationnel ou résultat commercial n’est revendiqué.',
+      art:'assets/project-naya.svg', next:'forme', nextName:'FORME', nextType:'Commerce / E-commerce concept', nextNumber:'002',
+      artKicker:'NAYA HOUSE / COASTAL RETREAT'
     },
     'forme': {
-      name: 'FORME',
-      type: 'Commerce / E-commerce concept',
-      intro: 'Une boutique de décoration conçue autour de la matière, de la lumière et d’un catalogue lisible. Le concept propose une expérience produit minimaliste et tactile.',
-      goal: 'Valoriser une collection et son univers',
-      scope: 'Direction artistique, parcours boutique, UI',
-      status: 'Concept indépendant',
-      art: 'assets/project-forme.svg',
-      discipline: 'Commerce'
+      name:'FORME', number:'002', type:'COMMERCE / E-COMMERCE CONCEPT',
+      lede:'Des objets du quotidien, traités comme des pièces de collection.',
+      discipline:'Commerce / E-commerce experience',
+      intro:'FORME est une boutique conceptuelle dédiée aux objets et à la décoration. L’exploration cherche l’équilibre entre une direction artistique affirmée, une découverte produit tactile et un parcours d’achat sans friction.',
+      headline:'Donner au produit l’espace qu’il mérite.',
+      questionTitle:'Comment rendre une boutique mémorable sans ralentir l’achat ?',
+      question:'Le visiteur doit pouvoir ressentir l’univers de la marque, comprendre les objets et accéder rapidement aux informations essentielles.',
+      responseTitle:'Une vitrine éditoriale, un parcours direct.',
+      response:'La mise en page s’inspire des catalogues et des galeries : peu d’éléments, une typographie expressive et des fiches produit structurées.',
+      p1t:'Le produit comme image centrale.',p1:'Les compositions donnent de la présence aux objets et clarifient les proportions, les matières et les usages.',
+      p2t:'Une identité sobre et tactile.',p2:'Un système typographique contrasté et des tons naturels soutiennent une perception contemporaine.',
+      p3t:'Une progression sans détour.',p3:'Catégories, découverte, fiche produit et panier forment un chemin lisible et cohérent.',
+      scopeIntro:'L’étude se concentre sur les premières étapes d’une expérience e-commerce, de la vitrine à la compréhension du produit.',
+      scope:['Structure de catalogue et catégories','Direction artistique & UI produit','Parcours de découverte responsive','Principes de panier et conversion'],
+      honesty:'Concept indépendant. Les produits, la marque et le parcours d’achat sont fictifs : aucune boutique ou transaction réelle n’est proposée.',
+      art:'assets/project-forme.svg', next:'flowstate', nextName:'FLOWSTATE', nextType:'Digital product / Application concept', nextNumber:'003',
+      artKicker:'FORME / OBJECTS FOR LIVING'
     },
     'flowstate': {
-      name: 'FLOWSTATE',
-      type: 'Digital product / Application concept',
-      intro: 'Un tableau de bord imaginé pour rendre le suivi de projets plus clair. Le concept explore la visualisation des tâches, les états et la densité d’information.',
-      goal: 'Clarifier le suivi des projets',
-      scope: 'Architecture d’information, UX, interface',
-      status: 'Concept indépendant',
-      art: 'assets/project-flowstate.svg',
-      discipline: 'Digital product'
+      name:'FLOWSTATE', number:'003', type:'DIGITAL PRODUCT / APPLICATION CONCEPT',
+      lede:'Moins de bruit. Une meilleure lecture du travail.',
+      discipline:'Digital product / Productivity interface',
+      intro:'FLOWSTATE imagine un espace de travail pour suivre projets, tâches et priorités. Le concept s’intéresse à la densité d’information : rendre un système riche compréhensible dès le premier regard.',
+      headline:'Transformer la complexité en clarté opérationnelle.',
+      questionTitle:'Comment donner une vue d’ensemble sans surcharger le tableau de bord ?',
+      question:'Un outil de pilotage doit exposer les états importants, aider à prioriser et permettre d’agir rapidement sans perdre le contexte.',
+      responseTitle:'Une architecture qui sépare le signal du bruit.',
+      response:'Les indicateurs, les projets actifs et les prochaines actions sont organisés en niveaux de lecture complémentaires.',
+      p1t:'La hiérarchie avant la densité.',p1:'Les données prioritaires apparaissent en premier, avec des niveaux de détail progressifs.',
+      p2t:'Un langage fonctionnel.',p2:'Couleurs, états et composants servent la compréhension plutôt que l’ornement.',
+      p3t:'Des actions à portée de main.',p3:'Les vues synthétiques rapprochent les informations des prochaines décisions.',
+      scopeIntro:'L’exploration couvre la structure d’un tableau de bord et les composants nécessaires à une lecture rapide des activités.',
+      scope:['Architecture de l’information','Système de composants UI','Vue synthétique responsive','États, indicateurs et priorités'],
+      honesty:'Concept indépendant. Les données affichées sont fictives et l’interface ne correspond pas à un logiciel commercial ou déployé.',
+      art:'assets/project-flowstate.svg', next:'naya-house', nextName:'NAYA HOUSE', nextType:'Hospitality / Website concept', nextNumber:'001',
+      artKicker:'FLOWSTATE / WORKSPACE STUDY'
     }
   };
   const caseName = one('#case-name');
   if (caseName) {
     const params = new URLSearchParams(window.location.search);
-    const key = params.get('ref') || 'naya-house';
-    const data = projectData[key] || projectData['naya-house'];
-    caseName.textContent = data.name;
+    const requested = params.get('ref') || 'naya-house';
+    const key = Object.prototype.hasOwnProperty.call(projectData, requested) ? requested : 'naya-house';
+    const data = projectData[key];
+    const put = (selector, value) => { const node = one(selector); if (node) node.textContent = value; };
     const fields = {
-      '#case-type': data.type, '#case-intro': data.intro, '#case-goal': data.goal,
-      '#case-scope': data.scope, '#case-status': data.status, '#case-discipline': data.discipline
+      '#case-name':data.name,'#case-type':data.type,'#case-lede':data.lede,
+      '#case-discipline':data.discipline,'#case-intro':data.intro,'#case-headline':data.headline,
+      '#case-question-title':data.questionTitle,'#case-question':data.question,
+      '#case-response-title':data.responseTitle,'#case-response':data.response,
+      '#case-principle-one-title':data.p1t,'#case-principle-one':data.p1,
+      '#case-principle-two-title':data.p2t,'#case-principle-two':data.p2,
+      '#case-principle-three-title':data.p3t,'#case-principle-three':data.p3,
+      '#case-scope-intro':data.scopeIntro,'#case-scope-a':data.scope[0],
+      '#case-scope-b':data.scope[1],'#case-scope-c':data.scope[2],'#case-scope-d':data.scope[3]
     };
-    Object.entries(fields).forEach(([selector, value]) => {
-      const node = one(selector); if (node) node.textContent = value;
-    });
-    const art = one('#case-art');
-    if (art) { art.src = data.art; art.alt = 'Illustration vectorielle du concept ' + data.name; }
-    document.title = data.name + ' — ORBE & ONIX';
+    Object.entries(fields).forEach(([selector,value])=>put(selector,value));
+    put('[data-case-number]',data.number);
+    put('[data-art-kicker]',data.artKicker);
+    put('[data-next-number]',data.nextNumber);
+    put('[data-next-name]',data.nextName);
+    put('[data-next-type]',data.nextType);
+    const artwork=one('[data-case-artwork]');
+    if(artwork) artwork.dataset.art=key;
+    const next=one('[data-case-next]');
+    if(next) next.href='project.html?ref='+data.next;
+    const art=one('#case-art');
+    if(art){art.src=data.art;art.alt='Étude visuelle du concept '+data.name;}
+    document.title=data.name+' — Project study — ORBE & ONIX';
   }
 
   all('[data-year]').forEach(node => { node.textContent = new Date().getFullYear(); });
