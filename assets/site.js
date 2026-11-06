@@ -261,7 +261,8 @@
   }
 
   // Interactive concept prototypes. All state is local to this browser session.
-  const demoKey = new URLSearchParams(window.location.search).get('ref') || 'naya-house';
+  const requestedDemo = new URLSearchParams(window.location.search).get('ref') || 'naya-house';
+  const demoKey = ['naya-house', 'forme', 'flowstate'].includes(requestedDemo) ? requestedDemo : 'naya-house';
   all('[data-project-demo]').forEach(demo => {
     demo.hidden = demo.dataset.projectDemo !== demoKey;
   });
