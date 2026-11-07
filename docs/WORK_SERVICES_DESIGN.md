@@ -1,7 +1,7 @@
 # ORBE & ONIX — Conception des pages Travaux et Services
 
-**Document de conception · v0.2 · 7 novembre 2026**  
-**Statut : Travaux et Services intégrés en première version.** `work.html` reprend les trois concepts avec filtres clarifiés et périmètres explorés ; `services.html` présente les quatre familles de services, leurs livrables, dépendances, le processus et la FAQ. La consolidation de `project.html` et les vérifications visuelles restent à effectuer. Cette évolution ne crée ni backend, ni formulaire de transmission, ni paiement, ni fonctionnalité commerciale nouvelle.
+**Document de conception · v0.3 · 7 novembre 2026**  
+**Statut : première intégration de Travaux, Services et des études de cas.** `work.html` présente les trois concepts dans une archive homogène, avec filtres et périmètres explorés ; l’ancienne couche d’entrée qui masquait l’archive a été retirée des parcours et les liens internes pointent désormais directement vers la page. `services.html` présente les quatre familles de prestations, leurs livrables, dépendances, limites, processus et FAQ. `project.html` personnalise désormais le périmètre, le récit et la note de transparence pour NAYA HOUSE, FORME et FLOWSTATE, avec prototypes locaux explicitement signalés. Le contrôle visuel dans le navigateur reste à confirmer. Cette évolution ne crée ni backend, ni formulaire de transmission, ni paiement, ni fonctionnalité commerciale nouvelle.
 
 ---
 
