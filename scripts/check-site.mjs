@@ -46,7 +46,11 @@ if (exists(buttonCssPath)) {
 const homePath = join(root, 'index.html');
 if (exists(homePath)) {
   const homeHtml = readFileSync(homePath, 'utf8');
-  const header = (homeHtml.match(/<header\\b[\\s\\S]*?<\\/header>/i) || [''])[0];
+  const headerStart = homeHtml.indexOf('<header');
+  const headerEnd = homeHtml.indexOf('</header>', headerStart);
+  const header = headerStart >= 0 && headerEnd > headerStart
+    ? homeHtml.slice(headerStart, headerEnd + '</header>'.length)
+    : '';
   if (!header.includes('class="button primary" href="contact.html"')) {
     errors.push('index.html: header project CTA must use the primary button variant');
   }
