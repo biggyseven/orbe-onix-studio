@@ -44,7 +44,7 @@ if (exists(buttonCssPath)) {
 }
 
 const responsiveChecks = [
-  ['tablet header breakpoint', '@media (min-width:761px) and (max-width:940px)'],
+  ['tablet header breakpoint', '@media(max-width:940px){\n  .header-inner{height:72px;gap:16px}'],
   ['tablet menu open state', '.nav.is-open{display:flex}'],
   ['work archive tablet columns', '.portfolio-page .portfolio-grid{grid-template-columns:repeat(2,minmax(0,1fr))'],
   ['work archive mobile column', '.portfolio-page .portfolio-grid{grid-template-columns:1fr'],
