@@ -590,6 +590,7 @@
       const captureButton = motionControls?.querySelector("[data-sculpture-capture]");
       const captureStatus = motionControls?.querySelector("[data-capture-status]");
       const lightButtons = motionControls ? [...motionControls.querySelectorAll("[data-light-preset]")] : [];
+      const galleryButtons = [...document.querySelectorAll("[data-study-gallery-view]")];
       const viewPresets = {
         front: { x: -.12, y: .08, z: -.08, cameraZ: camera.position.z },
         "three-quarter": { x: -.12, y: .62, z: -.08, cameraZ: camera.position.z - .18 },
@@ -768,6 +769,95 @@
       const stopLoop = () => {
         if (animationFrame) cancelAnimationFrame(animationFrame);
         animationFrame = 0;
+      };
+
+      const renderStudyGallery = () => {
+        const galleryImages = [...document.querySelectorAll("[data-study-render]")];
+        if (!galleryImages.length || !renderer || !scene || !camera || !sculpture) return;
+
+        const width = 720;
+        const height = 540;
+        const ratio = renderer.getPixelRatio();
+        const target = new THREE.WebGLRenderTarget(width, height, {
+          format: THREE.RGBAFormat,
+          type: THREE.UnsignedByteType,
+          depthBuffer: true,
+          stencilBuffer: false,
+          samples: 4
+        });
+        target.texture.colorSpace = THREE.SRGBColorSpace;
+        target.texture.generateMipmaps = false;
+
+        const previousTarget = renderer.getRenderTarget();
+        const previousViewport = renderer.getViewport(new THREE.Vector4());
+        const previousScissor = renderer.getScissor(new THREE.Vector4());
+        const previousScissorTest = renderer.getScissorTest();
+        const previousClearColor = renderer.getClearColor(new THREE.Color()).clone();
+        const previousClearAlpha = renderer.getClearAlpha();
+        const previousAspect = camera.aspect;
+        const previousCameraZ = camera.position.z;
+        const previousRotation = sculpture.rotation.clone();
+        const previousPositionY = sculpture.position.y;
+        const frames = [
+          { key: "front", pose: viewPresets.front },
+          { key: "three-quarter", pose: viewPresets["three-quarter"] },
+          { key: "side", pose: viewPresets.side }
+        ];
+
+        try {
+          applyMaterialFocus(1);
+          renderer.setRenderTarget(target);
+          renderer.setViewport(0, 0, width / ratio, height / ratio);
+          renderer.setScissorTest(false);
+          renderer.setClearColor(0x000000, 0);
+
+          frames.forEach(frame => {
+            const image = galleryImages.find(item => item.dataset.studyRender === frame.key);
+            if (!image) return;
+
+            sculpture.rotation.set(frame.pose.x, frame.pose.y, frame.pose.z);
+            sculpture.position.y = 0;
+            camera.position.set(0, 0, frame.pose.cameraZ);
+            camera.aspect = width / height;
+            camera.updateProjectionMatrix();
+            renderer.clear(true, true, true);
+            renderer.render(scene, camera);
+
+            const pixels = new Uint8Array(width * height * 4);
+            renderer.readRenderTargetPixels(target, 0, 0, width, height, pixels);
+            const output = document.createElement("canvas");
+            output.width = width;
+            output.height = height;
+            const context = output.getContext("2d");
+            if (!context) return;
+
+            const imageData = context.createImageData(width, height);
+            const rowLength = width * 4;
+            for (let row = 0; row < height; row += 1) {
+              const sourceStart = (height - row - 1) * rowLength;
+              imageData.data.set(pixels.subarray(sourceStart, sourceStart + rowLength), row * rowLength);
+            }
+            context.putImageData(imageData, 0, 0);
+            image.src = output.toDataURL("image/webp", .9);
+            image.classList.add("is-rendered");
+            image.closest(".study-gallery-card")?.classList.add("is-rendered");
+          });
+        } catch (error) {
+          console.warn("ORBE & ONIX gallery renders unavailable.", error);
+        } finally {
+          renderer.setRenderTarget(previousTarget);
+          renderer.setViewport(previousViewport);
+          renderer.setScissor(previousScissor);
+          renderer.setScissorTest(previousScissorTest);
+          renderer.setClearColor(previousClearColor, previousClearAlpha);
+          camera.aspect = previousAspect;
+          camera.position.set(0, 0, previousCameraZ);
+          camera.updateProjectionMatrix();
+          sculpture.rotation.copy(previousRotation);
+          sculpture.position.y = previousPositionY;
+          target.dispose();
+          renderer.render(scene, camera);
+        }
       };
 
       const captureSculpture = async () => {
@@ -949,6 +1039,20 @@
         });
       }
       updateMotionControls();
+      renderStudyGallery();
+
+      galleryButtons.forEach(button => {
+        button.addEventListener("click", () => {
+          const viewButton = viewButtons.find(item => item.dataset.sculptureView === button.dataset.studyGalleryView);
+          const lightButton = lightButtons.find(item => item.dataset.lightPreset === button.dataset.studyGalleryLight);
+          lightButton?.click();
+          viewButton?.click();
+          document.querySelector("#explorer")?.scrollIntoView({
+            behavior: reducedMotion ? "auto" : "smooth",
+            block: "center"
+          });
+        });
+      });
 
       if (stage.hasAttribute("data-sculpture-stage")) {
         document.addEventListener("keydown", event => {
