@@ -68,6 +68,40 @@ if (exists(studyPath)) {
   }
 }
 
+const workPath = join(root, 'work.html');
+if (exists(workPath)) {
+  const workHtml = readFileSync(workPath, 'utf8');
+  for (const filter of ['all', 'sites', 'commerce', 'applications']) {
+    if (!workHtml.includes('data-filter="' + filter + '"')) {
+      errors.push('work.html: missing archive filter ' + filter);
+    }
+  }
+  for (const category of ['sites', 'commerce', 'applications']) {
+    const cards = workHtml.match(new RegExp('data-category="' + category + '"', 'g')) || [];
+    if (cards.length !== 1) errors.push('work.html: expected one concept in category ' + category);
+  }
+  if ((workHtml.match(/class="portfolio-card-scope"/g) || []).length !== 3) {
+    errors.push('work.html: every concept must declare its explored scope');
+  }
+}
+
+const servicesPath = join(root, 'services.html');
+if (exists(servicesPath)) {
+  const servicesHtml = readFileSync(servicesPath, 'utf8');
+  if ((servicesHtml.match(/class="services-card"/g) || []).length !== 4) {
+    errors.push('services.html: expected four service families');
+  }
+  if ((servicesHtml.match(/class="services-process-step"/g) || []).length !== 5) {
+    errors.push('services.html: expected five process steps');
+  }
+  if ((servicesHtml.match(/<details>/g) || []).length !== 6) {
+    errors.push('services.html: expected six FAQ entries');
+  }
+  if (!servicesHtml.includes('Il n’envoie pas automatiquement votre demande')) {
+    errors.push('services.html: contact brief limitation must remain explicit');
+  }
+}
+
 if (errors.length) {
   console.error('Site validation failed:\n' + errors.map(error => ' - ' + error).join('\n'));
   process.exit(1);
