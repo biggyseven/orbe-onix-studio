@@ -1822,7 +1822,7 @@ body.door-reveal-active .site-header,body.door-reveal-active main,body.door-reve
 
 .hero-v07.hero-motion-ready .hero-topline>*,
 .hero-v07.hero-motion-ready .hero-v07-kicker,
-.hero-v07.hero-motion-ready .hero-v07 h1 span,
+.hero-v07.hero-motion-ready h1 span,
 .hero-v07.hero-motion-ready .hero-v07-copyline,
 .hero-v07.hero-motion-ready .hero-v07-actions,
 .hero-v07.hero-motion-ready .hero-v07-index,
@@ -1837,7 +1837,7 @@ body.door-reveal-active .site-header,body.door-reveal-active main,body.door-reve
 .hero-v07.hero-motion-ready .hero-stage-card{opacity:0;filter:blur(5px)}
 .hero-v07.hero-motion-ready.hero-motion-in .hero-topline>*,
 .hero-v07.hero-motion-ready.hero-motion-in .hero-v07-kicker,
-.hero-v07.hero-motion-ready.hero-motion-in .hero-v07 h1 span,
+.hero-v07.hero-motion-ready.hero-motion-in h1 span,
 .hero-v07.hero-motion-ready.hero-motion-in .hero-v07-copyline,
 .hero-v07.hero-motion-ready.hero-motion-in .hero-v07-actions,
 .hero-v07.hero-motion-ready.hero-motion-in .hero-v07-index,
@@ -1848,8 +1848,8 @@ body.door-reveal-active .site-header,body.door-reveal-active main,body.door-reve
   transition:opacity .72s ease,transform .85s cubic-bezier(.18,.72,.18,1);
 }
 .hero-v07.hero-motion-ready.hero-motion-in .hero-v07-kicker{transition-delay:.08s}
-.hero-v07.hero-motion-ready.hero-motion-in .hero-v07 h1 span:first-child{transition-delay:.18s}
-.hero-v07.hero-motion-ready.hero-motion-in .hero-v07 h1 span:last-child{transition-delay:.34s}
+.hero-v07.hero-motion-ready.hero-motion-in h1 span:first-child{transition-delay:.18s}
+.hero-v07.hero-motion-ready.hero-motion-in h1 span:last-child{transition-delay:.34s}
 .hero-v07.hero-motion-ready.hero-motion-in .hero-v07-copyline{transition-delay:.48s}
 .hero-v07.hero-motion-ready.hero-motion-in .hero-v07-actions{transition-delay:.58s}
 .hero-v07.hero-motion-ready.hero-motion-in .hero-v07-index{transition-delay:.68s}
@@ -1941,7 +1941,7 @@ body.door-reveal-active .site-header,body.door-reveal-active main,body.door-reve
   .hero-v07.hero-motion-ready>*,
   .hero-v07.hero-motion-ready .hero-topline>*,
   .hero-v07.hero-motion-ready .hero-v07-kicker,
-  .hero-v07.hero-motion-ready .hero-v07 h1 span,
+  .hero-v07.hero-motion-ready h1 span,
   .hero-v07.hero-motion-ready .hero-v07-copyline,
   .hero-v07.hero-motion-ready .hero-v07-actions,
   .hero-v07.hero-motion-ready .hero-v07-index,
