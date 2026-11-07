@@ -18,12 +18,7 @@
   let scene;
   let camera;
   let sculpture;
-  let chromeRing;
-  let glassRing;
-  let bridge;
   let pearl;
-  let orbit;
-  let envTexture;
   const pointer = { x: 0, y: 0, targetX: 0, targetY: 0 };
   const resources = [];
 
@@ -40,24 +35,24 @@
 
   const makeEnvironment = THREE => {
     const envCanvas = document.createElement("canvas");
-    envCanvas.width = 1024;
-    envCanvas.height = 512;
+    envCanvas.width = 2048;
+    envCanvas.height = 1024;
     const ctx = envCanvas.getContext("2d");
-    const base = ctx.createLinearGradient(0, 0, 1024, 512);
+    const base = ctx.createLinearGradient(0, 0, 2048, 1024);
     base.addColorStop(0, "#2b2638");
     base.addColorStop(.28, "#aaa0c7");
     base.addColorStop(.46, "#17151e");
     base.addColorStop(.67, "#777187");
     base.addColorStop(1, "#17141d");
     ctx.fillStyle = base;
-    ctx.fillRect(0, 0, 1024, 512);
+    ctx.fillRect(0, 0, 2048, 1024);
 
     const lights = [
-      [80, 0, 118, 512, "#fff", .9],
-      [270, 40, 42, 360, "#d8ccff", .85],
-      [470, 0, 115, 210, "#fff", .62],
-      [735, 45, 65, 420, "#d9d0ed", .82],
-      [905, 0, 30, 512, "#fff", .5]
+      [160, 0, 170, 1024, "#fff", .78],
+      [540, 60, 70, 720, "#d8ccff", .72],
+      [940, 0, 150, 430, "#fff", .58],
+      [1460, 90, 90, 840, "#d9d0ed", .68],
+      [1810, 0, 48, 1024, "#fff", .42]
     ];
     lights.forEach(([x,y,w,h,color,alpha]) => {
       const gradient = ctx.createLinearGradient(x, y, x+w, y+h);
@@ -70,11 +65,11 @@
     });
     ctx.globalAlpha = 1;
 
-    const floor = ctx.createLinearGradient(0, 330, 0, 512);
+    const floor = ctx.createLinearGradient(0, 660, 0, 1024);
     floor.addColorStop(0, "rgba(212,198,255,0)");
     floor.addColorStop(1, "rgba(216,206,240,.34)");
     ctx.fillStyle = floor;
-    ctx.fillRect(0, 330, 1024, 182);
+    ctx.fillRect(0, 660, 2048, 364);
 
     const texture = new THREE.CanvasTexture(envCanvas);
     texture.mapping = THREE.EquirectangularReflectionMapping;
@@ -159,8 +154,8 @@
       scene = new THREE.Scene();
       scene.environment = makeEnvironment(THREE);
 
-      camera = new THREE.PerspectiveCamera(34, 1, .1, 40);
-      camera.position.set(0, 0, 6.2);
+      camera = new THREE.PerspectiveCamera(33, 1, .1, 40);
+      camera.position.set(0, 0, 6.7);
       camera.lookAt(0, 0, 0);
 
       renderer = new THREE.WebGLRenderer({
@@ -169,10 +164,10 @@
         antialias: true,
         powerPreference: "high-performance"
       });
-      renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, window.innerWidth < 760 ? 1.25 : 1.6));
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, window.innerWidth < 760 ? 1.5 : 2));
       renderer.outputColorSpace = THREE.SRGBColorSpace;
       renderer.toneMapping = THREE.ACESFilmicToneMapping;
-      renderer.toneMappingExposure = 1.16;
+      renderer.toneMappingExposure = 1.08;
       renderer.setClearColor(0x000000, 0);
 
       scene.add(new THREE.HemisphereLight(0xded5ff, 0x17131e, 1.4));
@@ -194,18 +189,9 @@
       scene.add(acid);
 
       sculpture = new THREE.Group();
-      sculpture.rotation.set(-.12, .08, -.08);
+      sculpture.rotation.set(-.08, .12, -.12);
+      sculpture.scale.setScalar(.94);
       scene.add(sculpture);
-
-      const chromeMaterial = new THREE.MeshPhysicalMaterial({
-        color: 0xd7d3e0,
-        metalness: .96,
-        roughness: .135,
-        clearcoat: 1,
-        clearcoatRoughness: .055,
-        envMapIntensity: 1.95
-      });
-      resources.push(chromeMaterial);
 
       const glassMaterial = new THREE.MeshPhysicalMaterial({
         color: 0xa995ec,
@@ -234,111 +220,52 @@
       });
       resources.push(pearlMaterial);
 
-      const glassPath = new THREE.CatmullRomCurve3([
-        new THREE.Vector3(-1.05, .12, .16),
-        new THREE.Vector3(-.88, .82, -.12),
-        new THREE.Vector3(-.24, 1.12, .18),
-        new THREE.Vector3(.52, .9, -.2),
-        new THREE.Vector3(1.02, .28, .3),
-        new THREE.Vector3(.78, -.48, .14),
-        new THREE.Vector3(.1, -1.02, -.2),
-        new THREE.Vector3(-.66, -.72, .24),
-        new THREE.Vector3(-1.16, -.2, -.08)
-      ], true, "catmullrom", .48);
+      // One continuous ribbon forms the sculpture. Its centerline never crosses
+      // itself, and its opening stays clear around the floating pearl.
+      const ribbonPath = new THREE.CatmullRomCurve3([
+        new THREE.Vector3(-.96, .04, -.02),
+        new THREE.Vector3(-.82, .58, .12),
+        new THREE.Vector3(-.28, .86, .22),
+        new THREE.Vector3(.38, .82, .08),
+        new THREE.Vector3(.91, .42, -.14),
+        new THREE.Vector3(.98, -.18, -.08),
+        new THREE.Vector3(.54, -.75, .16),
+        new THREE.Vector3(-.14, -.88, .24),
+        new THREE.Vector3(-.78, -.58, .08)
+      ], true, "catmullrom", .42);
 
-      const chromePath = new THREE.CatmullRomCurve3([
-        new THREE.Vector3(-1.28, .48, -.08),
-        new THREE.Vector3(-.78, 1.02, .22),
-        new THREE.Vector3(-.02, 1.02, -.22),
-        new THREE.Vector3(.76, .66, .2),
-        new THREE.Vector3(1.2, -.04, -.18),
-        new THREE.Vector3(.66, -.78, .26),
-        new THREE.Vector3(-.18, -.98, -.14),
-        new THREE.Vector3(-.94, -.54, .18)
-      ], true, "catmullrom", .48);
-
-      const chromeGeometry = makeSculpturalTubeGeometry(THREE, chromePath, {
-        radius: .178,
-        depthRatio: .82,
-        phase: .8,
-        swell: .13,
-        twist: Math.PI * 2
+      const ribbonGeometry = makeSculpturalTubeGeometry(THREE, ribbonPath, {
+        tubularSegments: 480,
+        radialSegments: 64,
+        radius: .148,
+        depthRatio: .56,
+        phase: .55,
+        swell: .12,
+        twist: 0
       });
-      chromeRing = new THREE.Mesh(chromeGeometry, chromeMaterial);
-      chromeRing.rotation.set(.92, .22, -.28);
-      sculpture.add(chromeRing);
-      resources.push(chromeGeometry);
-
-      const glassGeometry = makeSculpturalTubeGeometry(THREE, glassPath, {
-        radius: .235,
-        depthRatio: .52,
-        phase: 1.35,
-        swell: .19,
-        twist: Math.PI * 2
-      });
-      glassRing = new THREE.Mesh(glassGeometry, glassMaterial);
-      glassRing.rotation.set(-.58, .62, .42);
-      sculpture.add(glassRing);
-      resources.push(glassGeometry);
-
-      const bridgePath = new THREE.CatmullRomCurve3([
-        new THREE.Vector3(-.92, -.24, .52),
-        new THREE.Vector3(-.62, .28, .68),
-        new THREE.Vector3(-.04, .48, .58),
-        new THREE.Vector3(.52, .2, .7),
-        new THREE.Vector3(.9, -.2, .44)
-      ], false, "catmullrom", .5);
-      const bridgeGeometry = makeSculpturalTubeGeometry(THREE, bridgePath, {
-        tubularSegments: 156,
-        radialSegments: 28,
-        radius: .078,
-        depthRatio: .86,
-        phase: .4,
-        swell: .1,
-        closed: false
-      });
-      const bridgeMaterial = new THREE.MeshPhysicalMaterial({
-        color: 0xf1edfa,
-        metalness: .88,
-        roughness: .145,
+      const ribbonMaterial = new THREE.MeshPhysicalMaterial({
+        color: 0xa995ec,
+        metalness: .16,
+        roughness: .105,
+        transmission: .76,
+        thickness: .92,
+        ior: 1.49,
         clearcoat: 1,
-        clearcoatRoughness: .055,
-        envMapIntensity: 1.9
+        clearcoatRoughness: .045,
+        attenuationColor: new THREE.Color(0xb3a0f5),
+        attenuationDistance: 1.18,
+        envMapIntensity: 1.95
       });
-      resources.push(bridgeGeometry, bridgeMaterial);
-      bridge = new THREE.Mesh(bridgeGeometry, bridgeMaterial);
-      sculpture.add(bridge);
+      resources.push(ribbonGeometry, ribbonMaterial);
+      const ribbon = new THREE.Mesh(ribbonGeometry, ribbonMaterial);
+      ribbon.rotation.set(-.18, .12, -.12);
+      sculpture.add(ribbon);
 
-      const pearlGeometry = new THREE.SphereGeometry(.235, 64, 48);
+      const pearlGeometry = new THREE.SphereGeometry(.17, 96, 72);
       pearl = new THREE.Mesh(pearlGeometry, pearlMaterial);
-      pearl.position.set(-.08, .08, .34);
+      pearl.position.set(.02, -.015, .02);
       sculpture.add(pearl);
       resources.push(pearlGeometry);
-
-      const coreGeometry = new THREE.SphereGeometry(.075, 40, 32);
-      const coreMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff });
-      resources.push(coreGeometry, coreMaterial);
-      const core = new THREE.Mesh(coreGeometry, coreMaterial);
-      core.position.set(-.08, .08, .56);
-      sculpture.add(core);
-
-      const orbitGeometry = new THREE.TorusGeometry(1.78, .012, 10, 220);
-      const orbitMaterial = new THREE.MeshBasicMaterial({
-        color: 0xc9b8ff,
-        transparent: true,
-        opacity: .4
-      });
-      resources.push(orbitGeometry, orbitMaterial);
-      orbit = new THREE.Mesh(orbitGeometry, orbitMaterial);
-      orbit.rotation.set(1.27, .3, -.48);
-      sculpture.add(orbit);
-
-      const markerGeometry = new THREE.SphereGeometry(.045, 24, 20);
-      const markerMaterial = new THREE.MeshBasicMaterial({ color: 0xd9e9a0 });
-      resources.push(markerGeometry, markerMaterial);
-      const marker = new THREE.Mesh(markerGeometry, markerMaterial);
-      marker.position.set(1.53, -.62, .14);
-      sculpture.add(marker);
 
       const resize = () => {
         if (!renderer || disposed) return;
@@ -368,14 +295,10 @@
         if (!reducedMotion) {
           pointer.x += (pointer.targetX - pointer.x) * .035;
           pointer.y += (pointer.targetY - pointer.y) * .035;
-          sculpture.rotation.y = .08 + pointer.x * .22 + Math.sin(elapsed * .22) * .035;
-          sculpture.rotation.x = -.12 - pointer.y * .16 + Math.cos(elapsed * .18) * .025;
-          sculpture.rotation.z = -.08 + Math.sin(elapsed * .14) * .025;
-          glassRing.rotation.z = .48 + Math.sin(elapsed * .18) * .07;
-          chromeRing.rotation.y = .22 + Math.cos(elapsed * .15) * .045;
-          bridge.rotation.y = Math.sin(elapsed * .18) * .025;
-          orbit.rotation.z = -.48 + elapsed * .035;
-          pearl.position.y = .08 + Math.sin(elapsed * .85) * .045;
+          sculpture.rotation.y = .12 + pointer.x * .16 + Math.sin(elapsed * .18) * .022;
+          sculpture.rotation.x = -.08 - pointer.y * .12 + Math.cos(elapsed * .16) * .016;
+          sculpture.rotation.z = -.12 + Math.sin(elapsed * .12) * .014;
+          pearl.position.y = -.015 + Math.sin(elapsed * .7) * .022;
         }
 
         renderer.render(scene, camera);
