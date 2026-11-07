@@ -193,21 +193,6 @@
       sculpture.scale.setScalar(.94);
       scene.add(sculpture);
 
-      const glassMaterial = new THREE.MeshPhysicalMaterial({
-        color: 0xa995ec,
-        metalness: .12,
-        roughness: .065,
-        transmission: .82,
-        thickness: .88,
-        ior: 1.49,
-        clearcoat: 1,
-        clearcoatRoughness: .055,
-        attenuationColor: new THREE.Color(0xb3a0f5),
-        attenuationDistance: 1.05,
-        envMapIntensity: 1.8
-      });
-      resources.push(glassMaterial);
-
       const pearlMaterial = new THREE.MeshPhysicalMaterial({
         color: 0xe4dcff,
         metalness: .3,
