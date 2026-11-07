@@ -199,6 +199,35 @@
       scene = new THREE.Scene();
       scene.environment = makeEnvironment(THREE);
 
+      // A restrained soft contact shadow anchors the sculpture to the dark stage.
+      const shadowCanvas = document.createElement("canvas");
+      shadowCanvas.width = 512;
+      shadowCanvas.height = 384;
+      const shadowContext = shadowCanvas.getContext("2d");
+      const shadowGradient = shadowContext.createRadialGradient(256, 192, 16, 256, 192, 184);
+      shadowGradient.addColorStop(0, "rgba(5,4,10,.46)");
+      shadowGradient.addColorStop(.42, "rgba(8,6,14,.25)");
+      shadowGradient.addColorStop(.76, "rgba(12,9,20,.08)");
+      shadowGradient.addColorStop(1, "rgba(12,9,20,0)");
+      shadowContext.fillStyle = shadowGradient;
+      shadowContext.fillRect(0, 0, 512, 384);
+      const shadowTexture = new THREE.CanvasTexture(shadowCanvas);
+      shadowTexture.colorSpace = THREE.SRGBColorSpace;
+      shadowTexture.needsUpdate = true;
+      const shadowGeometry = new THREE.PlaneGeometry(3.9, 2.95);
+      const shadowMaterial = new THREE.MeshBasicMaterial({
+        map: shadowTexture,
+        transparent: true,
+        opacity: .72,
+        depthWrite: false,
+        toneMapped: false
+      });
+      const contactShadow = new THREE.Mesh(shadowGeometry, shadowMaterial);
+      contactShadow.position.set(0, -.08, -1.02);
+      contactShadow.renderOrder = 0;
+      scene.add(contactShadow);
+      resources.push(shadowTexture, shadowGeometry, shadowMaterial);
+
       camera = new THREE.PerspectiveCamera(33, 1, .1, 40);
       camera.position.set(0, 0, 6.25);
       camera.lookAt(0, 0, 0);
