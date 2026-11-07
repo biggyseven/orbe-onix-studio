@@ -27,8 +27,8 @@ for (const file of htmlFiles) {
 }
 
 const buttonCssPath = join(root, 'assets', 'site.css');
+const buttonCss = exists(buttonCssPath) ? readFileSync(buttonCssPath, 'utf8') : '';
 if (exists(buttonCssPath)) {
-  const buttonCss = readFileSync(buttonCssPath, 'utf8');
   for (const [label, token] of [
     ['primary button variant', '.button.primary{'],
     ['secondary button variant', '.button.ghost{'],
