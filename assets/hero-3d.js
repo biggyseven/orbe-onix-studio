@@ -301,7 +301,9 @@
       };
       const lightingButtons = [...document.querySelectorAll("[data-light-preset]")];
       const lightStatus = document.querySelector("[data-light-status]");
+      const sceneFrame = stage.closest(".study-scene-frame");
       let activeLightPreset = "studio";
+      if (sceneFrame) sceneFrame.dataset.lightPreset = activeLightPreset;
       let lightingTarget = lightPresets.studio;
       let lightTransitionActive = false;
 
@@ -540,6 +542,7 @@
         const preset = lightPresets[keyName];
         if (!preset) return;
         activeLightPreset = keyName;
+        if (sceneFrame) sceneFrame.dataset.lightPreset = keyName;
         lightingTarget = preset;
         lightTransitionActive = true;
         updateMotionControls();
