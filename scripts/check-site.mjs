@@ -80,7 +80,10 @@ if (exists(workPath)) {
     const cards = workHtml.match(new RegExp('data-category="' + category + '"', 'g')) || [];
     if (cards.length !== 1) errors.push('work.html: expected one concept in category ' + category);
   }
-  if ((workHtml.match(/class="portfolio-card-scope"/g) || []).length !== 3) {
+  if (workHtml.includes('data-door-reveal') || workHtml.includes('work.html?door=1')) {
+    errors.push('work.html: the old door overlay must not hide the updated archive');
+  }
+    if ((workHtml.match(/class="portfolio-card-scope"/g) || []).length !== 3) {
     errors.push('work.html: every concept must declare its explored scope');
   }
 }
@@ -99,6 +102,28 @@ if (exists(servicesPath)) {
   }
   if (!servicesHtml.includes('Il n’envoie pas automatiquement votre demande')) {
     errors.push('services.html: contact brief limitation must remain explicit');
+  }
+}
+
+const projectPath = join(root, 'project.html');
+const siteScriptPath = join(root, 'assets', 'site.js');
+if (exists(projectPath) && exists(siteScriptPath)) {
+  const projectHtml = readFileSync(projectPath, 'utf8');
+  const siteScript = readFileSync(siteScriptPath, 'utf8');
+
+  for (const key of ['naya-house', 'forme', 'flowstate']) {
+    if (!siteScript.includes("'" + key + "': {")) {
+      errors.push('assets/site.js: missing case-study data for ' + key);
+    }
+    if (!projectHtml.includes('data-project-demo="' + key + '"')) {
+      errors.push('project.html: missing prototype for ' + key);
+    }
+  }
+  for (const selector of ["'#case-scope':data.scopeShort", "'#case-honesty':data.honesty"]) {
+    if (!siteScript.includes(selector)) errors.push('assets/site.js: missing project-specific case field ' + selector);
+  }
+  if (!projectHtml.includes('id="case-honesty"')) {
+    errors.push('project.html: missing visible project honesty disclosure');
   }
 }
 
