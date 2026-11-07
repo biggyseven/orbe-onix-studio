@@ -427,32 +427,79 @@
       resize();
 
       const clock = new THREE.Clock();
+      let motionPlaying = !reducedMotion;
+      let rotationSpeed = .16;
+      let rotationPhase = 0;
+      let lastElapsed = clock.getElapsedTime();
+      let viewRotation = { x: -.12, y: .08, z: -.08 };
+      const motionControls = document.querySelector("[data-sculpture-controls]");
+      const motionToggle = motionControls?.querySelector("[data-motion-toggle]");
+      const motionLabel = motionControls?.querySelector("[data-motion-label]");
+      const motionStatus = motionControls?.querySelector("[data-motion-status]");
+      const speedButtons = motionControls ? [...motionControls.querySelectorAll("[data-motion-speed]")] : [];
+      const viewButtons = motionControls ? [...motionControls.querySelectorAll("[data-sculpture-view]")] : [];
+      const resetButton = motionControls?.querySelector("[data-sculpture-reset]");
+      const viewPresets = {
+        front: { x: -.12, y: .08, z: -.08 },
+        "three-quarter": { x: -.12, y: .62, z: -.08 },
+        side: { x: -.04, y: 1.48, z: -.035 }
+      };
+
+      const updateMotionControls = () => {
+        if (motionToggle) {
+          motionToggle.setAttribute("aria-pressed", String(motionPlaying));
+          motionToggle.classList.toggle("is-playing", motionPlaying);
+        }
+        if (motionLabel) motionLabel.textContent = motionPlaying ? "Mettre en pause" : "Reprendre le mouvement";
+        if (motionStatus) motionStatus.textContent = motionPlaying ? "Mouvement actif" : "Mouvement en pause";
+        speedButtons.forEach(button => {
+          button.setAttribute("aria-pressed", String(Number(button.dataset.motionSpeed) === rotationSpeed));
+        });
+        viewButtons.forEach(button => {
+          button.setAttribute("aria-pressed", String(
+            button.dataset.sculptureView === activeView
+          ));
+        });
+      };
+      let activeView = "front";
+
       const renderFrame = () => {
         animationFrame = 0;
         if (disposed || !visible || document.hidden || !renderer) return;
 
         const elapsed = clock.getElapsedTime();
-        if (!reducedMotion) {
+        const delta = Math.min(.05, Math.max(0, elapsed - lastElapsed));
+        lastElapsed = elapsed;
+
+        if (motionPlaying) {
           pointer.x += (pointer.targetX - pointer.x) * .025;
           pointer.y += (pointer.targetY - pointer.y) * .025;
+          rotationPhase = (rotationPhase + delta * rotationSpeed) % (Math.PI * 2);
 
-          // One unified sculpture motion: a slow full turn, gentle lift,
-          // and tiny breathing tilt. All three sculptural parts stay locked.
-          sculpture.rotation.y = .08 + elapsed * .16 + pointer.x * .045;
-          sculpture.rotation.x = -.12 + Math.sin(elapsed * .34) * .028 - pointer.y * .035;
-          sculpture.rotation.z = -.08 + Math.sin(elapsed * .23) * .018;
+          // One unified sculpture motion: the three sculptural parts stay locked.
+          sculpture.rotation.y = viewRotation.y + rotationPhase + pointer.x * .045;
+          sculpture.rotation.x = viewRotation.x + Math.sin(elapsed * .34) * .028 - pointer.y * .035;
+          sculpture.rotation.z = viewRotation.z + Math.sin(elapsed * .23) * .018;
           sculpture.position.y = Math.sin(elapsed * .58) * .045;
+        } else {
+          sculpture.rotation.set(
+            viewRotation.x,
+            viewRotation.y + rotationPhase,
+            viewRotation.z
+          );
+          sculpture.position.y = 0;
         }
 
         renderer.render(scene, camera);
         host.classList.add("is-ready");
-        if (!reducedMotion) animationFrame = requestAnimationFrame(renderFrame);
+        if (motionPlaying) animationFrame = requestAnimationFrame(renderFrame);
       };
 
       const startLoop = () => {
-        if (!reducedMotion && visible && !document.hidden && !animationFrame) {
+        if (motionPlaying && visible && !document.hidden && !animationFrame) {
+          lastElapsed = clock.getElapsedTime();
           animationFrame = requestAnimationFrame(renderFrame);
-        } else if (reducedMotion && renderer) {
+        } else if (renderer) {
           renderer.render(scene, camera);
           host.classList.add("is-ready");
         }
@@ -462,6 +509,55 @@
         if (animationFrame) cancelAnimationFrame(animationFrame);
         animationFrame = 0;
       };
+
+      if (motionToggle) {
+        motionToggle.addEventListener("click", () => {
+          motionPlaying = !motionPlaying;
+          lastElapsed = clock.getElapsedTime();
+          if (motionPlaying) startLoop();
+          else {
+            stopLoop();
+            sculpture.position.y = 0;
+            renderer.render(scene, camera);
+          }
+          updateMotionControls();
+        });
+      }
+
+      speedButtons.forEach(button => button.addEventListener("click", () => {
+        const nextSpeed = Number(button.dataset.motionSpeed);
+        if (!Number.isFinite(nextSpeed) || nextSpeed <= 0) return;
+        rotationSpeed = nextSpeed;
+        updateMotionControls();
+      }));
+
+      viewButtons.forEach(button => button.addEventListener("click", () => {
+        const nextView = button.dataset.sculptureView;
+        if (!viewPresets[nextView]) return;
+        activeView = nextView;
+        viewRotation = { ...viewPresets[nextView] };
+        rotationPhase = 0;
+        if (!motionPlaying) {
+          sculpture.rotation.set(viewRotation.x, viewRotation.y, viewRotation.z);
+          renderer.render(scene, camera);
+        }
+        updateMotionControls();
+      }));
+
+      if (resetButton) {
+        resetButton.addEventListener("click", () => {
+          activeView = "front";
+          viewRotation = { ...viewPresets.front };
+          rotationSpeed = .16;
+          rotationPhase = 0;
+          motionPlaying = !reducedMotion;
+          lastElapsed = clock.getElapsedTime();
+          updateMotionControls();
+          stopLoop();
+          startLoop();
+        });
+      }
+      updateMotionControls();
 
       if ("IntersectionObserver" in window) {
         const observer = new IntersectionObserver(entries => {
