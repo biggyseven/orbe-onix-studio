@@ -9,6 +9,14 @@
 - [x] Respect de la préférence de mouvement réduit dans les animations principales.
 - [ ] Vérification physique sur plusieurs mobiles et navigateurs.
 
+## Conception des pages Travaux et Services
+- [x] Proposition desktop et mobile documentée dans docs/WORK_SERVICES_DESIGN.md.
+- [x] Filtres, cartes, études de cas, livrables, limites, processus et FAQ définis.
+- [x] Concepts indépendants et limites du brief de contact explicitement préservés.
+- [ ] Arbitrer les points commerciaux avant intégration.
+- [ ] Intégrer les évolutions visuelles et éditoriales dans work.html, project.html et services.html.
+- [ ] Vérifier les pages sur appareils réels après intégration.
+
 ## Fonctionnalités et limites
 - [x] NAYA HOUSE : changement de scènes et résumé de séjour local, sans disponibilité ni réservation.
 - [x] FORME : sélection locale d'objets, sans commande ni paiement.
