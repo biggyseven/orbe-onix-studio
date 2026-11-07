@@ -244,7 +244,7 @@
       resources.push(shadowTexture, shadowGeometry, shadowMaterial);
 
       camera = new THREE.PerspectiveCamera(33, 1, .1, 40);
-      camera.position.set(0, 0, 6.25);
+      camera.position.set(0, 0, stage.hasAttribute("data-sculpture-stage") ? 5.4 : 6.25);
       camera.lookAt(0, 0, 0);
 
       renderer = new THREE.WebGLRenderer({
