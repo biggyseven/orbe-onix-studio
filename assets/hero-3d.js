@@ -281,6 +281,67 @@
       acid.position.set(2.2, -2.2, 2.6);
       scene.add(acid);
 
+      const lightRig = { key, fill, strip, rim, acid };
+      const lightPresets = {
+        studio: {
+          key: 3.5, fill: 1.85, strip: 2.2, rim: 3.7, acid: 5.5, exposure: 1.04,
+          colors: [0xffffff, 0xc4a9ff, 0xffffff, 0xf6f1ff, 0xd9e9a0],
+          label: "STUDIO / 01"
+        },
+        soft: {
+          key: 2.65, fill: 2.55, strip: 1.45, rim: 2.75, acid: 2.25, exposure: 1.08,
+          colors: [0xe9e2ff, 0xb8a8ed, 0xf3edff, 0xded2ff, 0xc9d2a8],
+          label: "SOFT / 02"
+        },
+        contrast: {
+          key: 4.9, fill: .9, strip: 3.25, rim: 4.45, acid: 3.5, exposure: 1.0,
+          colors: [0xffffff, 0x8f7bd0, 0xffffff, 0xffffff, 0xe2ed9b],
+          label: "CONTRAST / 03"
+        }
+      };
+      const lightingButtons = [...document.querySelectorAll("[data-light-preset]")];
+      const lightStatus = document.querySelector("[data-light-status]");
+      let activeLightPreset = "studio";
+      let lightingTarget = lightPresets.studio;
+      let lightTransitionActive = false;
+
+      const applyLighting = alpha => {
+        const target = lightingTarget;
+        const lightValues = [
+          [lightRig.key, target.key],
+          [lightRig.fill, target.fill],
+          [lightRig.strip, target.strip],
+          [lightRig.rim, target.rim],
+          [lightRig.acid, target.acid]
+        ];
+        lightValues.forEach(([light, intensity]) => {
+          light.intensity += (intensity - light.intensity) * alpha;
+        });
+        const rigLights = [lightRig.key, lightRig.fill, lightRig.strip, lightRig.rim, lightRig.acid];
+        rigLights.forEach((light, index) => {
+          light.color.lerp(new THREE.Color(target.colors[index]), alpha);
+        });
+        renderer.toneMappingExposure += (target.exposure - renderer.toneMappingExposure) * alpha;
+
+        const intensityRemaining = lightValues.some(([light, intensity]) =>
+          Math.abs(light.intensity - intensity) > .012
+        );
+        const colorRemaining = rigLights.some((light, index) => {
+          const targetColor = new THREE.Color(target.colors[index]);
+          const colorDelta = Math.abs(light.color.r - targetColor.r)
+            + Math.abs(light.color.g - targetColor.g)
+            + Math.abs(light.color.b - targetColor.b);
+          return colorDelta > .006;
+        });
+        lightTransitionActive = intensityRemaining || colorRemaining
+          || Math.abs(renderer.toneMappingExposure - target.exposure) > .002;
+        if (!lightTransitionActive) {
+          lightValues.forEach(([light, intensity]) => { light.intensity = intensity; });
+          rigLights.forEach((light, index) => light.color.setHex(target.colors[index]));
+          renderer.toneMappingExposure = target.exposure;
+        }
+      };
+
       sculpture = new THREE.Group();
       sculpture.rotation.set(-.12, .08, -.08);
       scene.add(sculpture);
@@ -432,6 +493,9 @@
       let rotationPhase = 0;
       let lastElapsed = clock.getElapsedTime();
       let viewRotation = { x: -.12, y: .08, z: -.08 };
+      let targetViewRotation = { ...viewRotation };
+      let viewTransitionActive = false;
+      let targetCameraZ = camera.position.z;
       const motionControls = document.querySelector("[data-sculpture-controls]");
       const motionToggle = motionControls?.querySelector("[data-motion-toggle]");
       const motionLabel = motionControls?.querySelector("[data-motion-label]");
@@ -439,10 +503,17 @@
       const speedButtons = motionControls ? [...motionControls.querySelectorAll("[data-motion-speed]")] : [];
       const viewButtons = motionControls ? [...motionControls.querySelectorAll("[data-sculpture-view]")] : [];
       const resetButton = motionControls?.querySelector("[data-sculpture-reset]");
+      const lightButtons = motionControls ? [...motionControls.querySelectorAll("[data-light-preset]")] : [];
       const viewPresets = {
-        front: { x: -.12, y: .08, z: -.08 },
-        "three-quarter": { x: -.12, y: .62, z: -.08 },
-        side: { x: -.04, y: 1.48, z: -.035 }
+        front: { x: -.12, y: .08, z: -.08, cameraZ: camera.position.z },
+        "three-quarter": { x: -.12, y: .62, z: -.08, cameraZ: camera.position.z - .18 },
+        side: { x: -.04, y: 1.48, z: -.035, cameraZ: camera.position.z + .28 }
+      };
+
+      const hasActiveAnimation = () => motionPlaying || viewTransitionActive || lightTransitionActive;
+      const approachAngle = (current, target, amount) => {
+        const difference = Math.atan2(Math.sin(target - current), Math.cos(target - current));
+        return current + difference * amount;
       };
 
       const updateMotionControls = () => {
@@ -456,14 +527,30 @@
           button.setAttribute("aria-pressed", String(Number(button.dataset.motionSpeed) === rotationSpeed));
         });
         viewButtons.forEach(button => {
-          button.setAttribute("aria-pressed", String(
-            button.dataset.sculptureView === activeView
-          ));
+          button.setAttribute("aria-pressed", String(button.dataset.sculptureView === activeView));
         });
+        lightButtons.forEach(button => {
+          button.setAttribute("aria-pressed", String(button.dataset.lightPreset === activeLightPreset));
+        });
+        if (lightStatus) lightStatus.textContent = lightPresets[activeLightPreset].label;
       };
       let activeView = "front";
 
-      // The exhibition links each visual callout to a focused material reading.
+      const setLightingPreset = keyName => {
+        const preset = lightPresets[keyName];
+        if (!preset) return;
+        activeLightPreset = keyName;
+        lightingTarget = preset;
+        lightTransitionActive = true;
+        updateMotionControls();
+        if (reducedMotion) {
+          applyLighting(1);
+          renderer.render(scene, camera);
+        } else {
+          startLoop();
+        }
+      };
+
       const partDetails = {
         chrome: {
           index: "01 / MATIÈRE SÉLECTIONNÉE",
@@ -492,16 +579,16 @@
       };
       const partTriggers = [...document.querySelectorAll("[data-study-part]")];
       const partDetail = document.querySelector("[data-study-detail]");
-      const selectStudyPart = key => {
-        const detail = partDetails[key];
+      const selectStudyPart = keyName => {
+        const detail = partDetails[keyName];
         if (!detail) return;
         partTriggers.forEach(button => {
-          const selected = button.dataset.studyPart === key;
+          const selected = button.dataset.studyPart === keyName;
           button.setAttribute("aria-pressed", String(selected));
           button.classList.toggle("is-active", selected);
         });
         document.querySelectorAll("[data-material-card]").forEach(card => {
-          card.classList.toggle("is-active", card.dataset.materialCard === key);
+          card.classList.toggle("is-active", card.dataset.materialCard === keyName);
         });
         if (!partDetail) return;
         const fields = {
@@ -530,32 +617,48 @@
         const delta = Math.min(.05, Math.max(0, elapsed - lastElapsed));
         lastElapsed = elapsed;
 
+        if (viewTransitionActive) {
+          const transitionAmount = 1 - Math.exp(-delta * 3.4);
+          viewRotation.x = approachAngle(viewRotation.x, targetViewRotation.x, transitionAmount);
+          viewRotation.y = approachAngle(viewRotation.y, targetViewRotation.y, transitionAmount);
+          viewRotation.z = approachAngle(viewRotation.z, targetViewRotation.z, transitionAmount);
+          camera.position.z += (targetCameraZ - camera.position.z) * transitionAmount;
+
+          const rotationRemaining = Math.max(
+            Math.abs(Math.atan2(Math.sin(targetViewRotation.x - viewRotation.x), Math.cos(targetViewRotation.x - viewRotation.x))),
+            Math.abs(Math.atan2(Math.sin(targetViewRotation.y - viewRotation.y), Math.cos(targetViewRotation.y - viewRotation.y))),
+            Math.abs(Math.atan2(Math.sin(targetViewRotation.z - viewRotation.z), Math.cos(targetViewRotation.z - viewRotation.z)))
+          );
+          if (rotationRemaining < .001 && Math.abs(targetCameraZ - camera.position.z) < .001) {
+            viewRotation = { ...targetViewRotation };
+            camera.position.z = targetCameraZ;
+            viewTransitionActive = false;
+            stage.classList.remove("is-view-transitioning");
+          }
+        }
+
+        if (lightTransitionActive) applyLighting(1 - Math.exp(-delta * 3.1));
+
         if (motionPlaying) {
           pointer.x += (pointer.targetX - pointer.x) * .025;
           pointer.y += (pointer.targetY - pointer.y) * .025;
           rotationPhase = (rotationPhase + delta * rotationSpeed) % (Math.PI * 2);
-
-          // One unified sculpture motion: the three sculptural parts stay locked.
-          sculpture.rotation.y = viewRotation.y + rotationPhase + pointer.x * .045;
-          sculpture.rotation.x = viewRotation.x + Math.sin(elapsed * .34) * .028 - pointer.y * .035;
-          sculpture.rotation.z = viewRotation.z + Math.sin(elapsed * .23) * .018;
-          sculpture.position.y = Math.sin(elapsed * .58) * .045;
-        } else {
-          sculpture.rotation.set(
-            viewRotation.x,
-            viewRotation.y + rotationPhase,
-            viewRotation.z
-          );
-          sculpture.position.y = 0;
         }
+
+        sculpture.rotation.set(
+          viewRotation.x + (motionPlaying ? Math.sin(elapsed * .34) * .028 - pointer.y * .035 : 0),
+          viewRotation.y + rotationPhase + (motionPlaying ? pointer.x * .045 : 0),
+          viewRotation.z + (motionPlaying ? Math.sin(elapsed * .23) * .018 : 0)
+        );
+        sculpture.position.y = motionPlaying ? Math.sin(elapsed * .58) * .045 : 0;
 
         renderer.render(scene, camera);
         host.classList.add("is-ready");
-        if (motionPlaying) animationFrame = requestAnimationFrame(renderFrame);
+        if (hasActiveAnimation()) animationFrame = requestAnimationFrame(renderFrame);
       };
 
       const startLoop = () => {
-        if (motionPlaying && visible && !document.hidden && !animationFrame) {
+        if (hasActiveAnimation() && visible && !document.hidden && !animationFrame) {
           lastElapsed = clock.getElapsedTime();
           animationFrame = requestAnimationFrame(renderFrame);
         } else if (renderer) {
@@ -573,7 +676,7 @@
         motionToggle.addEventListener("click", () => {
           motionPlaying = !motionPlaying;
           lastElapsed = clock.getElapsedTime();
-          if (motionPlaying) startLoop();
+          if (hasActiveAnimation()) startLoop();
           else {
             stopLoop();
             sculpture.position.y = 0;
@@ -592,24 +695,45 @@
 
       viewButtons.forEach(button => button.addEventListener("click", () => {
         const nextView = button.dataset.sculptureView;
-        if (!viewPresets[nextView]) return;
+        const preset = viewPresets[nextView];
+        if (!preset) return;
         activeView = nextView;
-        viewRotation = { ...viewPresets[nextView] };
+        targetViewRotation = { x: preset.x, y: preset.y, z: preset.z };
+        targetCameraZ = preset.cameraZ;
+        viewTransitionActive = !reducedMotion;
+        stage.classList.toggle("is-view-transitioning", viewTransitionActive);
         rotationPhase = 0;
-        if (!motionPlaying) {
+        if (reducedMotion) {
+          viewRotation = { ...targetViewRotation };
+          camera.position.z = targetCameraZ;
+        }
+        updateMotionControls();
+        if (viewTransitionActive || hasActiveAnimation()) startLoop();
+        else {
           sculpture.rotation.set(viewRotation.x, viewRotation.y, viewRotation.z);
           renderer.render(scene, camera);
         }
-        updateMotionControls();
+      }));
+
+      lightButtons.forEach(button => button.addEventListener("click", () => {
+        setLightingPreset(button.dataset.lightPreset);
       }));
 
       if (resetButton) {
         resetButton.addEventListener("click", () => {
           activeView = "front";
-          viewRotation = { ...viewPresets.front };
+          targetViewRotation = { ...viewPresets.front };
+          targetCameraZ = viewPresets.front.cameraZ;
+          viewTransitionActive = !reducedMotion;
+          stage.classList.toggle("is-view-transitioning", viewTransitionActive);
           rotationSpeed = .16;
           rotationPhase = 0;
           motionPlaying = !reducedMotion;
+          setLightingPreset("studio");
+          if (reducedMotion) {
+            viewRotation = { ...targetViewRotation };
+            camera.position.z = targetCameraZ;
+          }
           lastElapsed = clock.getElapsedTime();
           updateMotionControls();
           stopLoop();
@@ -641,22 +765,26 @@
           drag.x = event.clientX;
           drag.y = event.clientY;
 
-          // Freeze the exact current pose before handing rotation to the visitor.
           viewRotation = {
             x: sculpture.rotation.x,
-            y: sculpture.rotation.y,
+            y: sculpture.rotation.y - rotationPhase,
             z: sculpture.rotation.z
           };
+          targetViewRotation = { ...viewRotation };
+          targetCameraZ = camera.position.z;
           rotationPhase = 0;
+          viewTransitionActive = false;
           activeView = "custom";
           motionPlaying = false;
           pointer.targetX = 0;
           pointer.targetY = 0;
-          stopLoop();
+          stage.classList.remove("is-view-transitioning");
           stage.classList.add("is-dragging");
           stage.style.cursor = "grabbing";
           if (stage.setPointerCapture) stage.setPointerCapture(event.pointerId);
           updateMotionControls();
+          if (hasActiveAnimation()) startLoop();
+          else stopLoop();
         });
 
         stage.addEventListener("pointermove", event => {
@@ -667,6 +795,8 @@
             drag.y = event.clientY;
             viewRotation.y += deltaX * .009;
             viewRotation.x = Math.max(-1.05, Math.min(1.05, viewRotation.x + deltaY * .008));
+            targetViewRotation = { ...viewRotation };
+            activeView = "custom";
             sculpture.rotation.set(viewRotation.x, viewRotation.y, viewRotation.z);
             sculpture.position.y = 0;
             renderer.render(scene, camera);
@@ -688,6 +818,8 @@
           if (stage.hasPointerCapture && stage.hasPointerCapture(event.pointerId)) {
             stage.releasePointerCapture(event.pointerId);
           }
+          updateMotionControls();
+          if (hasActiveAnimation()) startLoop();
           renderer.render(scene, camera);
         };
         stage.addEventListener("pointerup", finishDrag);
@@ -710,7 +842,6 @@
           pointer.targetY = 0;
         }, { passive: true });
       }
-
       document.addEventListener("visibilitychange", () => {
         if (document.hidden) stopLoop();
         else startLoop();
