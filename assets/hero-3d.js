@@ -18,9 +18,6 @@
   let scene;
   let camera;
   let sculpture;
-  let outerChromeLoop;
-  let middleGlassLoop;
-  let innerChromeLoop;
   let pearl;
   const pointer = { x: 0, y: 0, targetX: 0, targetY: 0 };
   const resources = [];
@@ -266,9 +263,6 @@
         sculpture.add(loop);
         resources.push(geometry);
 
-        if (spec.name === "outer") outerChromeLoop = loop;
-        if (spec.name === "middle") middleGlassLoop = loop;
-        if (spec.name === "inner") innerChromeLoop = loop;
       });
 
       const pearlGeometry = new THREE.SphereGeometry(.16, 128, 96);
