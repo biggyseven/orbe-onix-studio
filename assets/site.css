@@ -3884,34 +3884,141 @@ body.door-reveal-active .site-header,body.door-reveal-active main,body.door-reve
   .services-text-link span,.services-faq-list summary:after{transition:none}
 }
 
-
-/* HEADER CTA — high-contrast project entry */
-.site-header .header-actions>a.button.ghost{
-  min-height:46px;
-  padding:13px 20px;
+/* =========================================================
+   ORBE & ONIX — BUTTON SYSTEM V2
+   Editorial geometry / clear action hierarchy
+   ========================================================= */
+.button{
+  position:relative;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
   gap:12px;
-  border:1px solid #d8ceff;
-  background:#d8ceff;
-  color:#17151e;
-  font-size:11px;
+  min-height:46px;
+  padding:0 19px;
+  border:1px solid transparent;
+  border-radius:5px;
+  background:transparent;
+  color:var(--white);
+  font-family:var(--sans);
+  font-size:10px;
   font-weight:600;
-  letter-spacing:.015em;
-  box-shadow:0 7px 24px rgba(185,167,239,.2);
-  opacity:1;
-  text-shadow:none;
-  -webkit-text-fill-color:#17151e;
+  line-height:1;
+  letter-spacing:.025em;
+  text-decoration:none;
+  text-transform:none;
+  box-shadow:none;
+  cursor:pointer;
+  transition:
+    transform .24s var(--oo-ease),
+    color .24s ease,
+    background-color .24s ease,
+    border-color .24s ease,
+    box-shadow .24s ease;
+  -webkit-tap-highlight-color:transparent;
 }
-.site-header .header-actions>a.button.ghost .arrow{
+.button .arrow{
+  display:inline-block;
+  color:currentColor;
+  font-size:16px;
+  line-height:1;
+  transition:transform .24s var(--oo-ease);
+}
+.button:hover{
+  transform:translateY(-2px);
+  box-shadow:none;
+}
+.button:hover .arrow{
+  transform:translate(2px,-2px);
+}
+.button.primary{
+  background:#c9c0ff;
+  border-color:#c9c0ff;
   color:#17151e;
-  opacity:1;
+  box-shadow:0 7px 22px rgba(185,167,239,.16);
 }
-.site-header .header-actions>a.button.ghost:hover{
+.button.primary:hover{
   background:#d3ef79;
   border-color:#d3ef79;
   color:#111116;
-  box-shadow:0 9px 28px rgba(211,239,121,.18);
+  box-shadow:0 9px 26px rgba(211,239,121,.16);
 }
-.site-header .header-actions>a.button.ghost:focus-visible{
+.button.ghost{
+  background:rgba(255,255,255,.025);
+  border-color:rgba(201,192,255,.55);
+  color:#f5f2fa;
+  -webkit-backdrop-filter:none;
+  backdrop-filter:none;
+}
+.button.ghost:hover{
+  background:rgba(201,192,255,.12);
+  border-color:#c9c0ff;
+  color:#fff;
+}
+.button.dark{
+  background:#19171f;
+  border-color:#19171f;
+  color:#f6f4f1;
+}
+.button.dark:hover{
+  background:#302b3b;
+  border-color:#302b3b;
+  color:#fff;
+}
+.button:focus-visible{
   outline:2px solid #d3ef79;
   outline-offset:4px;
+}
+.button:disabled,
+.button[aria-disabled="true"]{
+  opacity:.48;
+  cursor:not-allowed;
+  transform:none;
+  box-shadow:none;
+}
+.site-header .header-actions>a.button.primary{
+  min-height:43px;
+  padding:0 17px;
+  gap:10px;
+  font-size:10px;
+  font-weight:600;
+  box-shadow:0 5px 18px rgba(185,167,239,.14);
+}
+.site-header .header-actions>a.button.primary:hover{
+  box-shadow:0 8px 22px rgba(211,239,121,.15);
+}
+.site-header .header-actions>a.button.ghost[aria-current="page"]{
+  background:rgba(201,192,255,.11);
+  border-color:rgba(201,192,255,.72);
+  color:#eee9fb;
+}
+.text-link,
+.services-text-link{
+  display:inline-flex;
+  align-items:center;
+  gap:10px;
+  color:#e7e1f0;
+  font-size:10px;
+  font-weight:500;
+  letter-spacing:.045em;
+  text-decoration:none;
+  transition:color .22s ease,gap .22s ease;
+}
+.text-link:hover,
+.services-text-link:hover{
+  gap:14px;
+  color:#d8ceff;
+}
+.text-link:focus-visible,
+.services-text-link:focus-visible{
+  outline:2px solid #d3ef79;
+  outline-offset:5px;
+}
+@media(max-width:760px){
+  .button{min-height:45px;padding:0 17px}
+  .site-header .header-actions>a.button.primary{min-height:41px;padding:0 14px}
+}
+@media(prefers-reduced-motion:reduce){
+  .button,.button .arrow,.text-link,.services-text-link{transition:none}
+  .button:hover,.button:hover .arrow{transform:none}
 }
