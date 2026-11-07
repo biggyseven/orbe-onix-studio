@@ -587,6 +587,8 @@
       const speedButtons = motionControls ? [...motionControls.querySelectorAll("[data-motion-speed]")] : [];
       const viewButtons = motionControls ? [...motionControls.querySelectorAll("[data-sculpture-view]")] : [];
       const resetButton = motionControls?.querySelector("[data-sculpture-reset]");
+      const captureButton = motionControls?.querySelector("[data-sculpture-capture]");
+      const captureStatus = motionControls?.querySelector("[data-capture-status]");
       const lightButtons = motionControls ? [...motionControls.querySelectorAll("[data-light-preset]")] : [];
       const viewPresets = {
         front: { x: -.12, y: .08, z: -.08, cameraZ: camera.position.z },
@@ -768,6 +770,103 @@
         animationFrame = 0;
       };
 
+      const captureSculpture = async () => {
+        if (!renderer || !scene || !camera || !captureButton || captureButton.disabled) return;
+        captureButton.disabled = true;
+        if (captureStatus) captureStatus.textContent = "Préparation du PNG…";
+
+        let target;
+        let restoreRenderer = () => {};
+        let outputWidth = 0;
+        let outputHeight = 0;
+
+        try {
+          const bounds = host.getBoundingClientRect();
+          const scale = Math.min(3, 2400 / Math.max(bounds.width, bounds.height));
+          outputWidth = Math.max(1, Math.round(bounds.width * scale));
+          outputHeight = Math.max(1, Math.round(bounds.height * scale));
+          target = new THREE.WebGLRenderTarget(outputWidth, outputHeight, {
+            format: THREE.RGBAFormat,
+            type: THREE.UnsignedByteType,
+            depthBuffer: true,
+            stencilBuffer: false
+          });
+          target.texture.colorSpace = THREE.SRGBColorSpace;
+          target.texture.generateMipmaps = false;
+
+          const previousTarget = renderer.getRenderTarget();
+          const previousViewport = renderer.getViewport(new THREE.Vector4());
+          const previousScissor = renderer.getScissor(new THREE.Vector4());
+          const previousScissorTest = renderer.getScissorTest();
+          const previousClearColor = renderer.getClearColor(new THREE.Color()).clone();
+          const previousClearAlpha = renderer.getClearAlpha();
+
+          restoreRenderer = () => {
+            renderer.setRenderTarget(previousTarget);
+            renderer.setViewport(previousViewport);
+            renderer.setScissor(previousScissor);
+            renderer.setScissorTest(previousScissorTest);
+            renderer.setClearColor(previousClearColor, previousClearAlpha);
+            renderer.render(scene, camera);
+            restoreRenderer = () => {};
+          };
+
+          renderer.setRenderTarget(target);
+          renderer.setViewport(0, 0, outputWidth, outputHeight);
+          renderer.setScissorTest(false);
+          renderer.setClearColor(0x000000, 0);
+          renderer.clear(true, true, true);
+          renderer.render(scene, camera);
+
+          const pixels = new Uint8Array(outputWidth * outputHeight * 4);
+          renderer.readRenderTargetPixels(target, 0, 0, outputWidth, outputHeight, pixels);
+          restoreRenderer();
+
+          const output = document.createElement("canvas");
+          output.width = outputWidth;
+          output.height = outputHeight;
+          const context = output.getContext("2d");
+          if (!context) throw new Error("Canvas 2D context unavailable");
+
+          const imageData = context.createImageData(outputWidth, outputHeight);
+          const rowLength = outputWidth * 4;
+          for (let row = 0; row < outputHeight; row += 1) {
+            const sourceStart = (outputHeight - row - 1) * rowLength;
+            imageData.data.set(pixels.subarray(sourceStart, sourceStart + rowLength), row * rowLength);
+          }
+          context.putImageData(imageData, 0, 0);
+
+          const blob = await new Promise((resolve, reject) => {
+            output.toBlob(result => {
+              if (result) resolve(result);
+              else reject(new Error("PNG encoding failed"));
+            }, "image/png");
+          });
+          const url = URL.createObjectURL(blob);
+          const link = document.createElement("a");
+          link.href = url;
+          link.download = "orbe-onix-etude-001-" + new Date().toISOString().slice(0, 10) + ".png";
+          link.hidden = true;
+          document.body.append(link);
+          link.click();
+          link.remove();
+          window.setTimeout(() => URL.revokeObjectURL(url), 2000);
+
+          if (captureStatus) captureStatus.textContent = "PNG transparent exporté · " + outputWidth + " × " + outputHeight;
+        } catch (error) {
+          console.warn("ORBE & ONIX sculpture export failed.", error);
+          if (captureStatus) captureStatus.textContent = "Export impossible. Réessayez.";
+        } finally {
+          restoreRenderer();
+          if (target) target.dispose();
+          captureButton.disabled = false;
+        }
+      };
+
+      if (captureButton) {
+        captureButton.addEventListener("click", captureSculpture);
+      }
+
       if (motionToggle) {
         motionToggle.addEventListener("click", () => {
           motionPlaying = !motionPlaying;
@@ -850,6 +949,49 @@
         });
       }
       updateMotionControls();
+
+      if (stage.hasAttribute("data-sculpture-stage")) {
+        document.addEventListener("keydown", event => {
+          if (event.defaultPrevented || event.altKey || event.ctrlKey || event.metaKey || event.repeat) return;
+          if (event.target instanceof Element && event.target.closest("button, a, input, textarea, select, [contenteditable='true']")) return;
+
+          const triggerView = key => viewButtons.find(button => button.dataset.sculptureView === key)?.click();
+          switch (event.code) {
+            case "Space":
+              if (motionToggle) {
+                event.preventDefault();
+                motionToggle.click();
+              }
+              break;
+            case "Digit1":
+            case "Numpad1":
+              triggerView("front");
+              break;
+            case "Digit2":
+            case "Numpad2":
+              triggerView("three-quarter");
+              break;
+            case "Digit3":
+            case "Numpad3":
+              triggerView("side");
+              break;
+            case "KeyC":
+              if (captureButton) {
+                event.preventDefault();
+                captureButton.click();
+              }
+              break;
+            case "KeyF":
+              if (fullscreenButton) {
+                event.preventDefault();
+                fullscreenButton.click();
+              }
+              break;
+            default:
+              break;
+          }
+        });
+      }
 
       if ("IntersectionObserver" in window) {
         const observer = new IntersectionObserver(entries => {
