@@ -1,7 +1,7 @@
 # ORBE & ONIX — Conception des pages Travaux et Services
 
-**Document de conception · v0.1 · 7 novembre 2026**  
-**Statut : proposition exploitable, non implémentée.** Ce document prépare la prochaine évolution de work.html, project.html et services.html. Il ne crée ni backend, ni formulaire de transmission, ni paiement, ni fonctionnalité commerciale nouvelle.
+**Document de conception · v0.2 · 7 novembre 2026**  
+**Statut : Travaux et Services intégrés en première version.** `work.html` reprend les trois concepts avec filtres clarifiés et périmètres explorés ; `services.html` présente les quatre familles de services, leurs livrables, dépendances, le processus et la FAQ. La consolidation de `project.html` et les vérifications visuelles restent à effectuer. Cette évolution ne crée ni backend, ni formulaire de transmission, ni paiement, ni fonctionnalité commerciale nouvelle.
 
 ---
 
