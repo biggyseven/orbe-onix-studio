@@ -3325,7 +3325,7 @@ body.door-reveal-active .site-header,body.door-reveal-active main,body.door-reve
 .study-gallery-caption>div{min-width:0}
 .study-gallery-caption>div>span{
   color:#aaa0bf82;
-  font:7px var(--mono,"IBM Plex Mono",monospace;
+  font:7px var(--mono,"IBM Plex Mono",monospace);
   letter-spacing:.13em;
 }
 .study-gallery-caption h3{
@@ -3358,7 +3358,7 @@ body.door-reveal-active .site-header,body.door-reveal-active main,body.door-reve
   display:flex;align-items:center;gap:10px;
   margin:25px 0 0;
   color:#aaa0bf82;
-  font:7px var(--mono,"IBM Plex Mono",monospace;
+  font:7px var(--mono,"IBM Plex Mono",monospace);
   letter-spacing:.13em;
 }
 .study-gallery-note .signal-dot{flex:0 0 5px}
