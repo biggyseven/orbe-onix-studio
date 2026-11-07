@@ -3382,3 +3382,55 @@ body.door-reveal-active .site-header,body.door-reveal-active main,body.door-reve
   .study-gallery-card,.study-gallery-visual img,.study-gallery-caption button{transition:none!important}
   .study-gallery-card:hover{transform:none}
 }
+
+
+/* GALLERY COLOR BALANCE — align with the site's night / lavender / ice palette. */
+.study-gallery{
+  border-color:var(--o-line);
+  background:
+    radial-gradient(ellipse at 50% -8%,rgba(183,167,237,.075),transparent 52%),
+    linear-gradient(180deg,#171720 0%,#14141b 100%);
+}
+.study-gallery .study-section-heading .eyebrow{color:var(--o-lav)}
+.study-gallery .study-section-heading h2{
+  color:var(--o-paper);
+  text-wrap:balance;
+}
+.study-gallery .study-section-heading h2 em{color:var(--o-lav-bright)}
+.study-gallery .study-section-heading>p{
+  color:#aaa6b3;
+}
+.study-gallery-card{
+  border-color:rgba(233,229,244,.13);
+  background:linear-gradient(155deg,rgba(233,229,244,.055),rgba(183,167,237,.018) 58%,rgba(12,13,18,.16));
+}
+.study-gallery-card:hover{
+  border-color:rgba(216,206,255,.38);
+  background:linear-gradient(155deg,rgba(233,229,244,.085),rgba(183,167,237,.035) 58%,rgba(12,13,18,.12));
+}
+.study-gallery-visual,
+.study-gallery-card--quarter .study-gallery-visual,
+.study-gallery-card--profile .study-gallery-visual{
+  background:
+    radial-gradient(ellipse at 50% 44%,rgba(183,167,237,.105),transparent 46%),
+    linear-gradient(145deg,#272530 0%,#1d1c26 54%,#171720 100%);
+}
+.study-gallery-visual:after{
+  border-color:rgba(233,229,244,.12);
+  box-shadow:0 0 0 24px rgba(233,229,244,.018),0 0 0 48px rgba(183,167,237,.012);
+}
+.study-gallery-coordinate{color:rgba(233,229,244,.68)}
+.study-gallery-view-label{color:rgba(216,206,255,.72)}
+.study-gallery-caption>div>span{color:#a99fbb}
+.study-gallery-caption h3{color:var(--o-ice)}
+.study-gallery-caption p{color:#aaa6b3}
+.study-gallery-caption button{
+  border-color:rgba(233,229,244,.22);
+  background:rgba(233,229,244,.035);
+  color:var(--o-lav-bright);
+}
+.study-gallery-caption button:hover{
+  border-color:rgba(216,206,255,.58);
+  background:rgba(183,167,237,.12);
+}
+.study-gallery-note{color:#a99fbb}
