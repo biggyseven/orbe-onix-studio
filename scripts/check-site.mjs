@@ -26,6 +26,32 @@ for (const file of htmlFiles) {
   }
 }
 
+const buttonCssPath = join(root, 'assets', 'site.css');
+if (exists(buttonCssPath)) {
+  const buttonCss = readFileSync(buttonCssPath, 'utf8');
+  for (const [label, token] of [
+    ['primary button variant', '.button.primary{'],
+    ['secondary button variant', '.button.ghost{'],
+    ['dark button variant', '.button.dark{'],
+    ['visible keyboard focus', '.button:focus-visible{'],
+    ['reduced-motion support', '.button,.button .arrow,.text-link,.services-text-link{transition:none}']
+  ]) {
+    if (!buttonCss.includes(token)) errors.push('assets/site.css: missing button system v2 ' + label);
+  }
+  if (!buttonCss.includes('site-header .header-actions>a.button.primary')) {
+    errors.push('assets/site.css: header project CTA must use the primary button treatment');
+  }
+}
+
+const homePath = join(root, 'index.html');
+if (exists(homePath)) {
+  const homeHtml = readFileSync(homePath, 'utf8');
+  const header = (homeHtml.match(/<header\\b[\\s\\S]*?<\\/header>/i) || [''])[0];
+  if (!header.includes('class="button primary" href="contact.html"')) {
+    errors.push('index.html: header project CTA must use the primary button variant');
+  }
+}
+
 const studyPath = join(root, 'etude-de-forme.html');
 if (exists(studyPath)) {
   const studyHtml = readFileSync(studyPath, 'utf8');
