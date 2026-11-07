@@ -500,6 +500,9 @@
           button.setAttribute("aria-pressed", String(selected));
           button.classList.toggle("is-active", selected);
         });
+        document.querySelectorAll("[data-material-card]").forEach(card => {
+          card.classList.toggle("is-active", card.dataset.materialCard === key);
+        });
         if (!partDetail) return;
         const fields = {
           "[data-part-index]": detail.index,
