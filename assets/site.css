@@ -4051,3 +4051,126 @@ body.door-reveal-active .site-header,body.door-reveal-active main,body.door-reve
   .header-actions>.button{display:none}
   .menu-toggle{display:grid;place-items:center}
 }
+
+/* RESPONSIVE AUDIT — tablet structure, fluid teaser and touch targets */
+.home-lab-teaser{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) minmax(0,1.1fr);
+  align-items:center;
+  gap:30px;
+  padding:34px;
+  border-radius:22px;
+}
+.home-lab-art{
+  position:relative;
+  min-height:190px;
+  overflow:hidden;
+  border-radius:16px;
+  background:
+    radial-gradient(circle at 40% 55%,#c9bcff55,transparent 30%),
+    linear-gradient(135deg,#fff2,#fff0 55%),
+    #292431;
+}
+@media(max-width:980px){
+  .principle-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .principle-grid article{min-height:230px}
+  .principle-grid h3{margin-top:42px}
+  .material-lab{grid-template-columns:minmax(0,1fr)}
+  .material-stage{min-height:440px}
+  .material-controls{
+    min-height:250px;
+    padding:28px;
+    border-left:0;
+    border-top:1px solid #ffffff22;
+  }
+  .lab-note-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .lab-note-grid article:last-child{grid-column:1/-1}
+  .contact-layout{gap:5vw}
+  .contact-aside,.brief-form{min-width:0}
+}
+@media(max-width:900px){
+  .header-inner{height:72px;gap:16px}
+  .nav{
+    display:none;
+    position:absolute;
+    top:72px;left:0;right:0;
+    padding:22px clamp(22px,5vw,40px) 28px;
+    background:rgba(15,14,20,.97);
+    -webkit-backdrop-filter:blur(28px);
+    backdrop-filter:blur(28px);
+    border-bottom:1px solid rgba(255,255,255,.13);
+    flex-direction:column;
+    align-items:stretch;
+    gap:7px;
+  }
+  .nav.is-open{display:flex}
+  .nav a{padding:13px 4px;border-bottom:1px solid rgba(255,255,255,.08);font-size:13px}
+  .nav a:after{display:none}
+  .header-actions>.button{display:none}
+  .menu-toggle{display:grid;place-items:center;width:44px;height:44px;flex:none}
+}
+@media(max-width:760px){
+  .header-inner{height:70px}
+  .nav{top:70px}
+  .home-lab-teaser{
+    grid-template-columns:minmax(0,1fr);
+    gap:21px;
+    padding:23px;
+  }
+  .home-lab-art{min-height:180px}
+  .lab-note-grid{grid-template-columns:minmax(0,1fr)}
+  .lab-note-grid article:last-child{grid-column:auto}
+  .material-stage{min-height:390px}
+  .material-controls{min-height:260px;padding:27px 22px;gap:30px}
+}
+@media(max-width:420px){
+  .home-lab-teaser{padding:19px;gap:17px}
+  .home-lab-art{min-height:155px}
+}
+@media(hover:none) and (pointer:coarse){
+  .button,.menu-toggle,.filter-btn,.material-choice,
+  .study-control-buttons button,.study-motion-toggle,
+  .study-control-status button,.study-fullscreen-toggle,
+  .study-hotspot,.study-gallery-caption button,
+  .forme-product-meta button,.forme-demo-footer button,
+  .flow-demo-nav button,.naya-demo-tabs button,
+  .services-faq-list summary{
+    min-height:44px;
+  }
+  .menu-toggle{width:44px;height:44px}
+  .portfolio-page .filter-btn{padding:0 14px;font-size:9px}
+  .study-control-buttons button,.study-motion-toggle,
+  .study-control-status button,.study-fullscreen-toggle{
+    font-size:9px;
+  }
+  .study-hotspot{
+    min-height:40px;
+    padding:0 9px;
+    font-size:8px;
+    letter-spacing:.025em;
+  }
+  .study-gallery-caption button{
+    width:40px;height:40px;flex-basis:40px;
+  }
+  .forme-product-meta button,.forme-demo-footer button{
+    min-height:40px;font-size:8px;
+  }
+  .flow-demo-nav button{min-height:44px}
+  .naya-demo-tabs button{
+    display:inline-flex;
+    align-items:center;
+    padding-top:8px;
+    padding-bottom:12px;
+  }
+  .services-faq-list summary{min-height:44px}
+  .study-exhibition-viewer:fullscreen .study-control-buttons button,
+  .study-exhibition-viewer:fullscreen .study-fullscreen-toggle{
+    min-height:40px;
+    font-size:9px;
+  }
+}
+@media(max-width:480px) and (hover:none) and (pointer:coarse){
+  .study-hotspot{min-height:40px;font-size:8px}
+  .study-exhibition-viewer:fullscreen .study-control-label{font-size:8px}
+  .study-exhibition-viewer:fullscreen .study-detail-facts b{font-size:8px}
+}
