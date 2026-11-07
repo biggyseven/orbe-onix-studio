@@ -463,6 +463,62 @@
       };
       let activeView = "front";
 
+      // The exhibition links each visual callout to a focused material reading.
+      const partDetails = {
+        chrome: {
+          index: "01 / MATIÈRE SÉLECTIONNÉE",
+          title: "Chrome poli",
+          copy: "La boucle extérieure porte la structure. Sa surface miroir capte les grandes sources de lumière et fait lire le volume par contraste.",
+          finish: "Mirror polish",
+          role: "Structure extérieure",
+          reading: "Reflet & contraste"
+        },
+        glass: {
+          index: "02 / MATIÈRE SÉLECTIONNÉE",
+          title: "Verre lavande",
+          copy: "Le ruban central apporte la couleur et la profondeur. Ses bords adoucis révèlent la transparence sans perdre la présence de la matière.",
+          finish: "Optical glass · lavender",
+          role: "Volume central",
+          reading: "Transmission & teinte"
+        },
+        silver: {
+          index: "03 / MATIÈRE SÉLECTIONNÉE",
+          title: "Argent satiné",
+          copy: "La petite boucle intérieure précise la composition. Son reflet plus doux conduit le regard vers la perle centrale.",
+          finish: "Soft silver",
+          role: "Liaison intérieure",
+          reading: "Ligne & précision"
+        }
+      };
+      const partTriggers = [...document.querySelectorAll("[data-study-part]")];
+      const partDetail = document.querySelector("[data-study-detail]");
+      const selectStudyPart = key => {
+        const detail = partDetails[key];
+        if (!detail) return;
+        partTriggers.forEach(button => {
+          const selected = button.dataset.studyPart === key;
+          button.setAttribute("aria-pressed", String(selected));
+          button.classList.toggle("is-active", selected);
+        });
+        if (!partDetail) return;
+        const fields = {
+          "[data-part-index]": detail.index,
+          "[data-part-title]": detail.title,
+          "[data-part-copy]": detail.copy,
+          "[data-part-finish]": detail.finish,
+          "[data-part-role]": detail.role,
+          "[data-part-reading]": detail.reading
+        };
+        Object.entries(fields).forEach(([selector, value]) => {
+          const node = partDetail.querySelector(selector);
+          if (node) node.textContent = value;
+        });
+      };
+      partTriggers.forEach(button => {
+        button.addEventListener("click", () => selectStudyPart(button.dataset.studyPart));
+      });
+      if (partTriggers.length) selectStudyPart("chrome");
+
       const renderFrame = () => {
         animationFrame = 0;
         if (disposed || !visible || document.hidden || !renderer) return;
@@ -569,7 +625,78 @@
         resources.push({ dispose: () => observer.disconnect() });
       }
 
-      if (finePointer && !reducedMotion) {
+      if (stage.hasAttribute("data-sculpture-stage")) {
+        const drag = { active: false, pointerId: null, x: 0, y: 0 };
+        stage.style.touchAction = "pan-y";
+        stage.style.cursor = "grab";
+
+        stage.addEventListener("pointerdown", event => {
+          if (event.pointerType === "mouse" && event.button !== 0) return;
+          if (event.target.closest("button, a")) return;
+          drag.active = true;
+          drag.pointerId = event.pointerId;
+          drag.x = event.clientX;
+          drag.y = event.clientY;
+
+          // Freeze the exact current pose before handing rotation to the visitor.
+          viewRotation = {
+            x: sculpture.rotation.x,
+            y: sculpture.rotation.y,
+            z: sculpture.rotation.z
+          };
+          rotationPhase = 0;
+          activeView = "custom";
+          motionPlaying = false;
+          pointer.targetX = 0;
+          pointer.targetY = 0;
+          stopLoop();
+          stage.classList.add("is-dragging");
+          stage.style.cursor = "grabbing";
+          if (stage.setPointerCapture) stage.setPointerCapture(event.pointerId);
+          updateMotionControls();
+        });
+
+        stage.addEventListener("pointermove", event => {
+          if (drag.active && drag.pointerId === event.pointerId) {
+            const deltaX = event.clientX - drag.x;
+            const deltaY = event.clientY - drag.y;
+            drag.x = event.clientX;
+            drag.y = event.clientY;
+            viewRotation.y += deltaX * .009;
+            viewRotation.x = Math.max(-1.05, Math.min(1.05, viewRotation.x + deltaY * .008));
+            sculpture.rotation.set(viewRotation.x, viewRotation.y, viewRotation.z);
+            sculpture.position.y = 0;
+            renderer.render(scene, camera);
+            return;
+          }
+          if (finePointer && !reducedMotion) {
+            const rect = stage.getBoundingClientRect();
+            pointer.targetX = ((event.clientX - rect.left) / rect.width - .5) * 2;
+            pointer.targetY = ((event.clientY - rect.top) / rect.height - .5) * 2;
+          }
+        }, { passive: true });
+
+        const finishDrag = event => {
+          if (!drag.active || (event && event.pointerId !== drag.pointerId)) return;
+          drag.active = false;
+          drag.pointerId = null;
+          stage.classList.remove("is-dragging");
+          stage.style.cursor = "grab";
+          if (stage.hasPointerCapture && stage.hasPointerCapture(event.pointerId)) {
+            stage.releasePointerCapture(event.pointerId);
+          }
+          renderer.render(scene, camera);
+        };
+        stage.addEventListener("pointerup", finishDrag);
+        stage.addEventListener("pointercancel", finishDrag);
+        stage.addEventListener("lostpointercapture", finishDrag);
+        stage.addEventListener("pointerleave", () => {
+          if (!drag.active) {
+            pointer.targetX = 0;
+            pointer.targetY = 0;
+          }
+        }, { passive: true });
+      } else if (finePointer && !reducedMotion) {
         stage.addEventListener("pointermove", event => {
           const rect = stage.getBoundingClientRect();
           pointer.targetX = ((event.clientX - rect.left) / rect.width - .5) * 2;
