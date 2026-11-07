@@ -15,6 +15,11 @@ An independent creative practice exploring the intersection of digital design, w
 - `lab.html` — interactive material playground and visual field notes
 - `contact.html` — project brief builder (client-side only)
 
+## Design documentation
+
+- `docs/DESIGN_SYSTEM.md` — visual tokens and interaction principles
+- `docs/WORK_SERVICES_DESIGN.md` — detailed desktop/mobile design proposal for Travaux, case studies and Services; content, deliverables, limits, interactions and decisions to arbitrate
+
 ## Stack
 
 - Semantic HTML
