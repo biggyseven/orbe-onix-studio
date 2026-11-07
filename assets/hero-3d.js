@@ -18,6 +18,9 @@
   let scene;
   let camera;
   let sculpture;
+  let outerChromeLoop;
+  let middleGlassLoop;
+  let innerChromeLoop;
   let pearl;
   const pointer = { x: 0, y: 0, targetX: 0, targetY: 0 };
   const resources = [];
@@ -146,6 +149,25 @@
     return geometry;
   };
 
+  // Shared, gently irregular ellipse paths keep all three loops nested.
+  // Matching the wave profile and scaling the radii ensures they never cross.
+  const makeNestedEllipsePath = (THREE, radiusX, radiusY) => {
+    const points = [];
+    const samples = 40;
+    for (let i = 0; i < samples; i += 1) {
+      const angle = (i / samples) * Math.PI * 2;
+      const wave = 1
+        + .012 * Math.sin(angle * 3 + .35)
+        + .006 * Math.cos(angle * 5 - .2);
+      points.push(new THREE.Vector3(
+        Math.cos(angle) * radiusX * wave,
+        Math.sin(angle) * radiusY * wave,
+        0
+      ));
+    }
+    return new THREE.CatmullRomCurve3(points, true, "centripetal", .35);
+  };
+
   const start = async () => {
     try {
       const THREE = await import(CDN);
@@ -205,50 +227,93 @@
       });
       resources.push(pearlMaterial);
 
-      // One continuous ribbon forms the sculpture. Its centerline never crosses
-      // itself, and its opening stays clear around the floating pearl.
-      const ribbonPath = new THREE.CatmullRomCurve3([
-        new THREE.Vector3(-.96, .04, -.02),
-        new THREE.Vector3(-.82, .58, .12),
-        new THREE.Vector3(-.28, .86, .22),
-        new THREE.Vector3(.38, .82, .08),
-        new THREE.Vector3(.91, .42, -.14),
-        new THREE.Vector3(.98, -.18, -.08),
-        new THREE.Vector3(.54, -.75, .16),
-        new THREE.Vector3(-.14, -.88, .24),
-        new THREE.Vector3(-.78, -.58, .08)
-      ], true, "catmullrom", .42);
-
-      const ribbonGeometry = makeSculpturalTubeGeometry(THREE, ribbonPath, {
-        tubularSegments: 480,
-        radialSegments: 64,
-        radius: .148,
-        depthRatio: .56,
-        phase: .55,
-        swell: .12,
-        twist: 0
+      // Three independent, nested sculptural loops:
+      // outer polished chrome, central lavender glass, inner satin silver.
+      // They share a center and orientation, with deliberately generous gaps.
+      const outerChromeMaterial = new THREE.MeshPhysicalMaterial({
+        color: 0xcac6d4,
+        metalness: .98,
+        roughness: .145,
+        clearcoat: 1,
+        clearcoatRoughness: .045,
+        envMapIntensity: 2.05
       });
-      const ribbonMaterial = new THREE.MeshPhysicalMaterial({
+      resources.push(outerChromeMaterial);
+
+      const middleGlassMaterial = new THREE.MeshPhysicalMaterial({
         color: 0xa995ec,
-        metalness: .16,
-        roughness: .105,
-        transmission: .76,
-        thickness: .92,
+        metalness: .12,
+        roughness: .075,
+        transmission: .84,
+        thickness: .72,
         ior: 1.49,
         clearcoat: 1,
         clearcoatRoughness: .045,
         attenuationColor: new THREE.Color(0xb3a0f5),
-        attenuationDistance: 1.18,
-        envMapIntensity: 1.95
+        attenuationDistance: 1.25,
+        envMapIntensity: 1.9
       });
-      resources.push(ribbonGeometry, ribbonMaterial);
-      const ribbon = new THREE.Mesh(ribbonGeometry, ribbonMaterial);
-      ribbon.rotation.set(-.18, .12, -.12);
-      sculpture.add(ribbon);
+      resources.push(middleGlassMaterial);
 
-      const pearlGeometry = new THREE.SphereGeometry(.17, 96, 72);
+      const innerChromeMaterial = new THREE.MeshPhysicalMaterial({
+        color: 0xe4e0ec,
+        metalness: .9,
+        roughness: .12,
+        clearcoat: 1,
+        clearcoatRoughness: .05,
+        envMapIntensity: 2
+      });
+      resources.push(innerChromeMaterial);
+
+      const outerPath = makeNestedEllipsePath(THREE, 1.48, 1.12);
+      const middlePath = makeNestedEllipsePath(THREE, 1.02, .75);
+      const innerPath = makeNestedEllipsePath(THREE, .58, .41);
+
+      const outerGeometry = makeSculpturalTubeGeometry(THREE, outerPath, {
+        tubularSegments: 480,
+        radialSegments: 64,
+        radius: .125,
+        depthRatio: .72,
+        phase: .35,
+        swell: .045,
+        twist: .28
+      });
+      outerChromeLoop = new THREE.Mesh(outerGeometry, outerChromeMaterial);
+      outerChromeLoop.position.z = -.13;
+      sculpture.add(outerChromeLoop);
+      resources.push(outerGeometry);
+
+      const middleGeometry = makeSculpturalTubeGeometry(THREE, middlePath, {
+        tubularSegments: 480,
+        radialSegments: 64,
+        radius: .108,
+        depthRatio: .58,
+        phase: .9,
+        swell: .085,
+        twist: Math.PI * .35
+      });
+      middleGlassLoop = new THREE.Mesh(middleGeometry, middleGlassMaterial);
+      middleGlassLoop.position.z = 0;
+      sculpture.add(middleGlassLoop);
+      resources.push(middleGeometry);
+
+      const innerGeometry = makeSculpturalTubeGeometry(THREE, innerPath, {
+        tubularSegments: 384,
+        radialSegments: 56,
+        radius: .073,
+        depthRatio: .82,
+        phase: 1.4,
+        swell: .055,
+        twist: -Math.PI * .2
+      });
+      innerChromeLoop = new THREE.Mesh(innerGeometry, innerChromeMaterial);
+      innerChromeLoop.position.z = .13;
+      sculpture.add(innerChromeLoop);
+      resources.push(innerGeometry);
+
+      const pearlGeometry = new THREE.SphereGeometry(.16, 128, 96);
       pearl = new THREE.Mesh(pearlGeometry, pearlMaterial);
-      pearl.position.set(.02, -.015, .02);
+      pearl.position.set(0, 0, .04);
       sculpture.add(pearl);
       resources.push(pearlGeometry);
 
@@ -283,7 +348,7 @@
           sculpture.rotation.y = .12 + pointer.x * .16 + Math.sin(elapsed * .18) * .022;
           sculpture.rotation.x = -.08 - pointer.y * .12 + Math.cos(elapsed * .16) * .016;
           sculpture.rotation.z = -.12 + Math.sin(elapsed * .12) * .014;
-          pearl.position.y = -.015 + Math.sin(elapsed * .7) * .022;
+          pearl.position.y = Math.sin(elapsed * .7) * .018;
         }
 
         renderer.render(scene, camera);
