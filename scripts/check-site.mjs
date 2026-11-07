@@ -75,6 +75,33 @@ if (exists(homePath)) {
   }
 }
 
+const responsiveCssPath = join(root, 'assets', 'site.css');
+if (exists(responsiveCssPath)) {
+  const responsiveCss = readFileSync(responsiveCssPath, 'utf8');
+  for (const [label, token] of [
+    ['fluid home lab teaser', '.home-lab-teaser{'],
+    ['tablet navigation collapse', '.header-inner{height:72px;gap:16px}'],
+    ['tablet studio principles grid', '.principle-grid{grid-template-columns:repeat(2,minmax(0,1fr))}'],
+    ['tablet lab material stack', '.material-lab{grid-template-columns:minmax(0,1fr)}'],
+    ['coarse-pointer touch target system', '@media(hover:none) and (pointer:coarse)']
+  ]) {
+    if (!responsiveCss.includes(token)) errors.push('assets/site.css: missing responsive audit rule ' + label);
+  }
+  if ((responsiveCss.match(/{/g) || []).length !== (responsiveCss.match(/}/g) || []).length) {
+    errors.push('assets/site.css: unbalanced CSS braces');
+  }
+}
+const homeResponsivePath = join(root, 'index.html');
+if (exists(homeResponsivePath)) {
+  const homeResponsiveHtml = readFileSync(homeResponsivePath, 'utf8');
+  if (!homeResponsiveHtml.includes('class="glass-panel home-lab-teaser"')) {
+    errors.push('index.html: home lab teaser must use the responsive layout class');
+  }
+  if (homeResponsiveHtml.includes('grid-template-columns:1fr 1.1fr')) {
+    errors.push('index.html: home lab teaser must not define a fixed inline grid');
+  }
+}
+
 const studyPath = join(root, 'etude-de-forme.html');
 if (exists(studyPath)) {
   const studyHtml = readFileSync(studyPath, 'utf8');
