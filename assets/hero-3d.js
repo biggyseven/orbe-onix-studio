@@ -18,10 +18,7 @@
   let scene;
   let camera;
   let sculpture;
-  let chromeRing;
-  let glassRing;
   let pearl;
-  let orbit;
   let envTexture;
   const pointer = { x: 0, y: 0, targetX: 0, targetY: 0 };
   const resources = [];
@@ -111,24 +108,38 @@
 
   // Custom swept sections make the interlocking forms feel sculpted,
   // not like three generic torus primitives.
-  const makeWovenLoopPath = (THREE, radius, depth, phase, irregularity) => {
+  // Three true interlocking loops. Their centre-lines are designed as a
+  // spatial chain, not three overlapping rings. The middle link passes
+  // through the holes of the two outer links with a measured surface gap.
+  const makeInterlockedLoopPath = (THREE, radius, plane, center, samples = 160) => {
     const points = [];
-    const samples = 96;
     for (let i = 0; i < samples; i += 1) {
       const angle = (i / samples) * Math.PI * 2;
-      const radial = 1
-        + irregularity * Math.sin(angle * 3 + phase)
-        + irregularity * .34 * Math.cos(angle * 5 - phase);
-      const z = depth * Math.sin(angle * 2 + phase)
-        + depth * .24 * Math.sin(angle * 3 - phase * .7);
-      points.push(new THREE.Vector3(
-        Math.cos(angle) * radius * radial,
-        Math.sin(angle) * radius * radial,
-        z
-      ));
+      const cosine = Math.cos(angle) * radius;
+      const sine = Math.sin(angle) * radius;
+      if (plane === "xz") {
+        points.push(new THREE.Vector3(center.x + cosine, center.y, center.z + sine));
+      } else {
+        points.push(new THREE.Vector3(center.x + cosine, center.y + sine, center.z));
+      }
     }
-    return new THREE.CatmullRomCurve3(points, true, "centripetal", .36);
+    return new THREE.CatmullRomCurve3(points, true, "centripetal", .5);
   };
+
+  const measureLoopClearance = (curveA, curveB) => {
+    const pointsA = curveA.getSpacedPoints(192);
+    const pointsB = curveB.getSpacedPoints(192);
+    let minimum = Infinity;
+    for (const pointA of pointsA) {
+      for (const pointB of pointsB) {
+        minimum = Math.min(minimum, pointA.distanceTo(pointB));
+      }
+    }
+    return minimum;
+  };
+
+  const tubeEnvelope = (radius, depthRatio, swell) =>
+    radius * Math.hypot(1 + swell * 1.28, depthRatio * (1 + swell * .42));
 
   const makeSculpturalTubeGeometry = (THREE, curve, options = {}) => {
     const tubularSegments = options.tubularSegments || 512;
@@ -267,7 +278,8 @@
       scene.add(acid);
 
       sculpture = new THREE.Group();
-      sculpture.rotation.set(-.12, .08, -.08);
+      sculpture.rotation.set(.54, .06, -.04);
+      sculpture.scale.setScalar(.76);
       scene.add(sculpture);
 
       const chromeMaterial = new THREE.MeshPhysicalMaterial({
@@ -307,50 +319,66 @@
       });
       resources.push(pearlMaterial);
 
-      // The paths deliberately weave in depth. They cross in the camera view,
-      // but their high/low passes are shaped into each loop rather than cut apart.
-      const outerPath = makeWovenLoopPath(THREE, 1.32, .27, -.3, .018);
-      const outerGeometry = makeSculpturalTubeGeometry(THREE, outerPath, {
-        tubularSegments: 640,
+      // The three links are real spatial neighbours:
+      // left chrome <-> central violet and central violet <-> right silver.
+      // The outside links stay apart, so no two swept surfaces can slice through.
+      const chromePath = makeInterlockedLoopPath(
+        THREE, .98, "xy", new THREE.Vector3(-1.18, 0, 0)
+      );
+      const glassPath = makeInterlockedLoopPath(
+        THREE, 1.16, "xz", new THREE.Vector3(0, 0, 0)
+      );
+      const bridgePath = makeInterlockedLoopPath(
+        THREE, .82, "xy", new THREE.Vector3(1.18, 0, 0)
+      );
+
+      const chromeRadius = .17;
+      const glassRadius = .205;
+      const bridgeRadius = .13;
+      const chromeDepth = .56;
+      const glassDepth = .38;
+      const bridgeDepth = .65;
+      const chromeSwell = .035;
+      const glassSwell = .04;
+      const bridgeSwell = .03;
+      const clearanceChecks = [
+        [chromePath, glassPath, tubeEnvelope(chromeRadius, chromeDepth, chromeSwell), tubeEnvelope(glassRadius, glassDepth, glassSwell)],
+        [glassPath, bridgePath, tubeEnvelope(glassRadius, glassDepth, glassSwell), tubeEnvelope(bridgeRadius, bridgeDepth, bridgeSwell)],
+        [chromePath, bridgePath, tubeEnvelope(chromeRadius, chromeDepth, chromeSwell), tubeEnvelope(bridgeRadius, bridgeDepth, bridgeSwell)]
+      ];
+      clearanceChecks.forEach(([pathA, pathB, envelopeA, envelopeB]) => {
+        const gap = measureLoopClearance(pathA, pathB) - envelopeA - envelopeB;
+        if (gap < .05) {
+          throw new Error(`Interlocked sculpture clearance too small: ${gap.toFixed(3)}`);
+        }
+      });
+
+      const chromeGeometry = makeSculpturalTubeGeometry(THREE, chromePath, {
+        tubularSegments: 768,
         radialSegments: 88,
-        radius: .158,
-        depthRatio: .68,
-        phase: .4,
-        swell: .065,
-        sectionExponent: 1.38
-      });
-      chromeRing = new THREE.Mesh(outerGeometry, chromeMaterial);
-      chromeRing.rotation.set(1.02, .26, -.24);
-      chromeRing.position.z = -.11;
-      sculpture.add(chromeRing);
-      resources.push(outerGeometry);
-
-      const glassPath = makeWovenLoopPath(THREE, 1.14, .35, 1.35, .024);
-      const glassGeometry = makeSculpturalTubeGeometry(THREE, glassPath, {
-        tubularSegments: 640,
-        radialSegments: 96,
-        radius: .215,
-        depthRatio: .34,
-        phase: 1.1,
-        swell: .105,
-        sectionExponent: 1.72
-      });
-      glassRing = new THREE.Mesh(glassGeometry, glassMaterial);
-      glassRing.rotation.set(-.68, .7, .48);
-      glassRing.position.z = .10;
-      sculpture.add(glassRing);
-      resources.push(glassGeometry);
-
-      const bridgePath = makeWovenLoopPath(THREE, .86, .22, .75, .018);
-      const bridgeGeometry = makeSculpturalTubeGeometry(THREE, bridgePath, {
-        tubularSegments: 512,
-        radialSegments: 72,
-        radius: .069,
-        depthRatio: .78,
-        phase: .7,
-        swell: .055,
+        radius: chromeRadius,
+        depthRatio: chromeDepth,
+        phase: .42,
+        swell: chromeSwell,
         sectionExponent: 1.42
       });
+      const chromeLink = new THREE.Mesh(chromeGeometry, chromeMaterial);
+      sculpture.add(chromeLink);
+      resources.push(chromeGeometry);
+
+      const glassGeometry = makeSculpturalTubeGeometry(THREE, glassPath, {
+        tubularSegments: 768,
+        radialSegments: 96,
+        radius: glassRadius,
+        depthRatio: glassDepth,
+        phase: 1.08,
+        swell: glassSwell,
+        sectionExponent: 1.72
+      });
+      const glassLink = new THREE.Mesh(glassGeometry, glassMaterial);
+      sculpture.add(glassLink);
+      resources.push(glassGeometry);
+
       const bridgeMaterial = new THREE.MeshPhysicalMaterial({
         color: 0xf0edf6,
         metalness: .98,
@@ -359,36 +387,25 @@
         clearcoatRoughness: .025,
         envMapIntensity: 2.3
       });
-      resources.push(bridgeGeometry, bridgeMaterial);
-      const bridge = new THREE.Mesh(bridgeGeometry, bridgeMaterial);
-      bridge.rotation.set(.38, -.88, .22);
-      bridge.position.z = .18;
-      bridge.scale.set(1.12, .78, 1);
-      sculpture.add(bridge);
+      resources.push(bridgeMaterial);
+      const bridgeGeometry = makeSculpturalTubeGeometry(THREE, bridgePath, {
+        tubularSegments: 768,
+        radialSegments: 80,
+        radius: bridgeRadius,
+        depthRatio: bridgeDepth,
+        phase: .72,
+        swell: bridgeSwell,
+        sectionExponent: 1.42
+      });
+      const bridgeLink = new THREE.Mesh(bridgeGeometry, bridgeMaterial);
+      sculpture.add(bridgeLink);
+      resources.push(bridgeGeometry);
 
       const pearlGeometry = new THREE.SphereGeometry(.195, 112, 80);
       pearl = new THREE.Mesh(pearlGeometry, pearlMaterial);
-      pearl.position.set(-.08, .08, .34);
+      pearl.position.set(0, .025, .12);
       sculpture.add(pearl);
       resources.push(pearlGeometry);
-
-      const orbitGeometry = new THREE.TorusGeometry(1.78, .009, 16, 320);
-      const orbitMaterial = new THREE.MeshBasicMaterial({
-        color: 0xc9b8ff,
-        transparent: true,
-        opacity: .26
-      });
-      resources.push(orbitGeometry, orbitMaterial);
-      orbit = new THREE.Mesh(orbitGeometry, orbitMaterial);
-      orbit.rotation.set(1.27, .3, -.48);
-      sculpture.add(orbit);
-
-      const markerGeometry = new THREE.SphereGeometry(.04, 40, 32);
-      const markerMaterial = new THREE.MeshBasicMaterial({ color: 0xd9e9a0 });
-      resources.push(markerGeometry, markerMaterial);
-      const marker = new THREE.Mesh(markerGeometry, markerMaterial);
-      marker.position.set(1.53, -.62, .14);
-      sculpture.add(marker);
 
       const resize = () => {
         if (!renderer || disposed) return;
@@ -418,11 +435,10 @@
         if (!reducedMotion) {
           pointer.x += (pointer.targetX - pointer.x) * .035;
           pointer.y += (pointer.targetY - pointer.y) * .035;
-          sculpture.rotation.y = .08 + pointer.x * .12 + Math.sin(elapsed * .2) * .016;
-          sculpture.rotation.x = -.12 - pointer.y * .09 + Math.cos(elapsed * .17) * .012;
-          sculpture.rotation.z = -.08 + Math.sin(elapsed * .13) * .008;
-          orbit.rotation.z = -.48 + elapsed * .035;
-          pearl.position.y = .08 + Math.sin(elapsed * .85) * .025;
+          sculpture.rotation.y = .06 + pointer.x * .055 + Math.sin(elapsed * .2) * .009;
+          sculpture.rotation.x = .54 - pointer.y * .045 + Math.cos(elapsed * .17) * .008;
+          sculpture.rotation.z = -.04 + Math.sin(elapsed * .13) * .006;
+          pearl.position.y = .025 + Math.sin(elapsed * .85) * .018;
         }
 
         renderer.render(scene, camera);
