@@ -9,6 +9,9 @@ const exists = path => { try { return statSync(path).isFile(); } catch { return 
 for (const file of htmlFiles) {
   const source = readFileSync(join(root, file), 'utf8');
   if (!/<html\s+lang=["']fr["']/i.test(source)) errors.push(file + ': missing French document language');
+  if (!/<meta[^>]+name=["']viewport["'][^>]+content=["'][^"']*width=device-width/i.test(source)) {
+    errors.push(file + ': missing responsive viewport meta');
+  }
   if (!/<title>\s*[^<]+\s*<\/title>/i.test(source)) errors.push(file + ': missing title');
   if (!/<h1\b/i.test(source)) errors.push(file + ': missing primary heading');
   if (!/<main\b[^>]*id=["']main["']/i.test(source)) errors.push(file + ': missing main landmark or skip-link target');
