@@ -3883,3 +3883,35 @@ body.door-reveal-active .site-header,body.door-reveal-active main,body.door-reve
 @media(prefers-reduced-motion:reduce){
   .services-text-link span,.services-faq-list summary:after{transition:none}
 }
+
+
+/* HEADER CTA — high-contrast project entry */
+.site-header .header-actions>a.button.ghost{
+  min-height:46px;
+  padding:13px 20px;
+  gap:12px;
+  border:1px solid #d8ceff;
+  background:#d8ceff;
+  color:#17151e;
+  font-size:11px;
+  font-weight:600;
+  letter-spacing:.015em;
+  box-shadow:0 7px 24px rgba(185,167,239,.2);
+  opacity:1;
+  text-shadow:none;
+  -webkit-text-fill-color:#17151e;
+}
+.site-header .header-actions>a.button.ghost .arrow{
+  color:#17151e;
+  opacity:1;
+}
+.site-header .header-actions>a.button.ghost:hover{
+  background:#d3ef79;
+  border-color:#d3ef79;
+  color:#111116;
+  box-shadow:0 9px 28px rgba(211,239,121,.18);
+}
+.site-header .header-actions>a.button.ghost:focus-visible{
+  outline:2px solid #d3ef79;
+  outline-offset:4px;
+}
