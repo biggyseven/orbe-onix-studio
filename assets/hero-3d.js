@@ -20,6 +20,7 @@
   let sculpture;
   let chromeRing;
   let glassRing;
+  let bridge;
   let pearl;
   let orbit;
   let envTexture;
@@ -83,6 +84,73 @@
     return texture;
   };
 
+
+  // A hand-shaped, variable-section sweep. Unlike a TorusGeometry, the
+  // silhouette can swell, flatten and twist along its path.
+  const makeSculpturalTubeGeometry = (THREE, curve, options = {}) => {
+    const tubularSegments = options.tubularSegments || 288;
+    const radialSegments = options.radialSegments || 40;
+    const radius = options.radius || .18;
+    const depthRatio = options.depthRatio || .62;
+    const phase = options.phase || 0;
+    const swell = options.swell ?? .15;
+    const twist = options.twist || 0;
+    const closed = options.closed !== false;
+    const frames = curve.computeFrenetFrames(tubularSegments, closed);
+    const positions = [];
+    const uvs = [];
+    const indices = [];
+    const tau = Math.PI * 2;
+
+    for (let i = 0; i <= tubularSegments; i += 1) {
+      const u = i / tubularSegments;
+      const point = curve.getPointAt(u);
+      const normal = frames.normals[i];
+      const binormal = frames.binormals[i];
+      const swellProfile = 1
+        + swell * Math.sin(tau * 2 * u + phase)
+        + swell * .34 * Math.cos(tau * 5 * u - phase * .7);
+      const depthProfile = 1 + .075 * Math.cos(tau * 3 * u + phase);
+      const taper = closed ? 1 : .62 + .38 * Math.sin(Math.PI * u);
+      const halfWidth = radius * swellProfile * taper;
+      const halfDepth = radius * depthRatio * depthProfile * taper;
+
+      for (let j = 0; j <= radialSegments; j += 1) {
+        const v = j / radialSegments;
+        const angle = tau * v + twist * u;
+        const cosine = Math.cos(angle);
+        const sine = Math.sin(angle);
+        // A softly rounded rectangular section gives the glass a ribbon-like edge.
+        const sectionX = Math.sign(cosine) * Math.pow(Math.abs(cosine), .86) * halfWidth;
+        const sectionY = Math.sign(sine) * Math.pow(Math.abs(sine), .86) * halfDepth;
+        const vertex = point.clone()
+          .addScaledVector(normal, sectionX)
+          .addScaledVector(binormal, sectionY);
+
+        positions.push(vertex.x, vertex.y, vertex.z);
+        uvs.push(u, v);
+      }
+    }
+
+    for (let i = 0; i < tubularSegments; i += 1) {
+      for (let j = 0; j < radialSegments; j += 1) {
+        const a = (radialSegments + 1) * i + j;
+        const b = (radialSegments + 1) * (i + 1) + j;
+        const c = b + 1;
+        const d = a + 1;
+        indices.push(a, b, d, b, c, d);
+      }
+    }
+
+    const geometry = new THREE.BufferGeometry();
+    geometry.setAttribute("position", new THREE.Float32BufferAttribute(positions, 3));
+    geometry.setAttribute("uv", new THREE.Float32BufferAttribute(uvs, 2));
+    geometry.setIndex(indices);
+    geometry.computeVertexNormals();
+    geometry.computeBoundingSphere();
+    return geometry;
+  };
+
   const start = async () => {
     try {
       const THREE = await import(CDN);
@@ -104,7 +172,7 @@
       renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, window.innerWidth < 760 ? 1.25 : 1.6));
       renderer.outputColorSpace = THREE.SRGBColorSpace;
       renderer.toneMapping = THREE.ACESFilmicToneMapping;
-      renderer.toneMappingExposure = 1.22;
+      renderer.toneMappingExposure = 1.16;
       renderer.setClearColor(0x000000, 0);
 
       scene.add(new THREE.HemisphereLight(0xded5ff, 0x17131e, 1.4));
@@ -132,25 +200,25 @@
       const chromeMaterial = new THREE.MeshPhysicalMaterial({
         color: 0xd7d3e0,
         metalness: .96,
-        roughness: .16,
+        roughness: .135,
         clearcoat: 1,
-        clearcoatRoughness: .08,
-        envMapIntensity: 2.05
+        clearcoatRoughness: .055,
+        envMapIntensity: 1.95
       });
       resources.push(chromeMaterial);
 
       const glassMaterial = new THREE.MeshPhysicalMaterial({
         color: 0xa995ec,
         metalness: .12,
-        roughness: .09,
-        transmission: .88,
-        thickness: .72,
-        ior: 1.47,
+        roughness: .065,
+        transmission: .82,
+        thickness: .88,
+        ior: 1.49,
         clearcoat: 1,
         clearcoatRoughness: .055,
         attenuationColor: new THREE.Color(0xb3a0f5),
-        attenuationDistance: 1.4,
-        envMapIntensity: 1.65
+        attenuationDistance: 1.05,
+        envMapIntensity: 1.8
       });
       resources.push(glassMaterial);
 
@@ -166,30 +234,79 @@
       });
       resources.push(pearlMaterial);
 
-      const chromeGeometry = new THREE.TorusGeometry(1.32, .18, 40, 192);
+      const glassPath = new THREE.CatmullRomCurve3([
+        new THREE.Vector3(-1.05, .12, .16),
+        new THREE.Vector3(-.88, .82, -.12),
+        new THREE.Vector3(-.24, 1.12, .18),
+        new THREE.Vector3(.52, .9, -.2),
+        new THREE.Vector3(1.02, .28, .3),
+        new THREE.Vector3(.78, -.48, .14),
+        new THREE.Vector3(.1, -1.02, -.2),
+        new THREE.Vector3(-.66, -.72, .24),
+        new THREE.Vector3(-1.16, -.2, -.08)
+      ], true, "catmullrom", .48);
+
+      const chromePath = new THREE.CatmullRomCurve3([
+        new THREE.Vector3(-1.28, .48, -.08),
+        new THREE.Vector3(-.78, 1.02, .22),
+        new THREE.Vector3(-.02, 1.02, -.22),
+        new THREE.Vector3(.76, .66, .2),
+        new THREE.Vector3(1.2, -.04, -.18),
+        new THREE.Vector3(.66, -.78, .26),
+        new THREE.Vector3(-.18, -.98, -.14),
+        new THREE.Vector3(-.94, -.54, .18)
+      ], true, "catmullrom", .48);
+
+      const chromeGeometry = makeSculpturalTubeGeometry(THREE, chromePath, {
+        radius: .178,
+        depthRatio: .82,
+        phase: .8,
+        swell: .13,
+        twist: Math.PI * 2
+      });
       chromeRing = new THREE.Mesh(chromeGeometry, chromeMaterial);
-      chromeRing.rotation.set(1.02, .26, -.24);
+      chromeRing.rotation.set(.92, .22, -.28);
       sculpture.add(chromeRing);
       resources.push(chromeGeometry);
 
-      const glassGeometry = new THREE.TorusGeometry(1.14, .225, 48, 192);
+      const glassGeometry = makeSculpturalTubeGeometry(THREE, glassPath, {
+        radius: .235,
+        depthRatio: .52,
+        phase: 1.35,
+        swell: .19,
+        twist: Math.PI * 2
+      });
       glassRing = new THREE.Mesh(glassGeometry, glassMaterial);
-      glassRing.rotation.set(-.68, .7, .48);
+      glassRing.rotation.set(-.58, .62, .42);
       sculpture.add(glassRing);
       resources.push(glassGeometry);
 
-      const bridgeGeometry = new THREE.TorusGeometry(.86, .075, 24, 160);
+      const bridgePath = new THREE.CatmullRomCurve3([
+        new THREE.Vector3(-.92, -.24, .52),
+        new THREE.Vector3(-.62, .28, .68),
+        new THREE.Vector3(-.04, .48, .58),
+        new THREE.Vector3(.52, .2, .7),
+        new THREE.Vector3(.9, -.2, .44)
+      ], false, "catmullrom", .5);
+      const bridgeGeometry = makeSculpturalTubeGeometry(THREE, bridgePath, {
+        tubularSegments: 156,
+        radialSegments: 28,
+        radius: .078,
+        depthRatio: .86,
+        phase: .4,
+        swell: .1,
+        closed: false
+      });
       const bridgeMaterial = new THREE.MeshPhysicalMaterial({
-        color: 0xf2edff,
-        metalness: .82,
-        roughness: .19,
+        color: 0xf1edfa,
+        metalness: .88,
+        roughness: .145,
         clearcoat: 1,
+        clearcoatRoughness: .055,
         envMapIntensity: 1.9
       });
       resources.push(bridgeGeometry, bridgeMaterial);
-      const bridge = new THREE.Mesh(bridgeGeometry, bridgeMaterial);
-      bridge.rotation.set(.38, -.88, .22);
-      bridge.scale.set(1.12, .78, 1);
+      bridge = new THREE.Mesh(bridgeGeometry, bridgeMaterial);
       sculpture.add(bridge);
 
       const pearlGeometry = new THREE.SphereGeometry(.235, 64, 48);
@@ -255,7 +372,8 @@
           sculpture.rotation.x = -.12 - pointer.y * .16 + Math.cos(elapsed * .18) * .025;
           sculpture.rotation.z = -.08 + Math.sin(elapsed * .14) * .025;
           glassRing.rotation.z = .48 + Math.sin(elapsed * .18) * .07;
-          chromeRing.rotation.y = .26 + Math.cos(elapsed * .15) * .045;
+          chromeRing.rotation.y = .22 + Math.cos(elapsed * .15) * .045;
+          bridge.rotation.y = Math.sin(elapsed * .18) * .025;
           orbit.rotation.z = -.48 + elapsed * .035;
           pearl.position.y = .08 + Math.sin(elapsed * .85) * .045;
         }
