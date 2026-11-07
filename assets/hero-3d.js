@@ -69,6 +69,32 @@
     });
     ctx.globalAlpha = 1;
 
+    // Broad studio softboxes create long, readable highlights on polished metal.
+    const softboxes = [
+      { x: 110, y: 42, w: 250, h: 770, color: "#fff", alpha: .56 },
+      { x: 770, y: 30, w: 180, h: 520, color: "#e6dcff", alpha: .42 },
+      { x: 1250, y: 90, w: 310, h: 760, color: "#fff", alpha: .48 },
+      { x: 1710, y: 70, w: 92, h: 640, color: "#d4c5ff", alpha: .36 }
+    ];
+    softboxes.forEach(({ x, y, w, h, color, alpha }) => {
+      const gradient = ctx.createLinearGradient(x, y, x + w, y + h);
+      gradient.addColorStop(0, "rgba(255,255,255,0)");
+      gradient.addColorStop(.2, color);
+      gradient.addColorStop(.78, color);
+      gradient.addColorStop(1, "rgba(255,255,255,0)");
+      ctx.globalAlpha = alpha;
+      ctx.fillStyle = gradient;
+      ctx.fillRect(x, y, w, h);
+    });
+    ctx.globalAlpha = 1;
+
+    const overhead = ctx.createRadialGradient(1024, 70, 10, 1024, 70, 650);
+    overhead.addColorStop(0, "rgba(255,255,255,.42)");
+    overhead.addColorStop(.34, "rgba(220,208,255,.16)");
+    overhead.addColorStop(1, "rgba(220,208,255,0)");
+    ctx.fillStyle = overhead;
+    ctx.fillRect(330, 0, 1388, 650);
+
     const floor = ctx.createLinearGradient(0, 660, 0, 1024);
     floor.addColorStop(0, "rgba(212,198,255,0)");
     floor.addColorStop(1, "rgba(216,206,240,.34)");
@@ -111,6 +137,7 @@
     const depthRatio = options.depthRatio || .7;
     const phase = options.phase || 0;
     const swell = options.swell ?? .07;
+    const sectionExponent = options.sectionExponent ?? .82;
     const frames = curve.computeFrenetFrames(tubularSegments, true);
     const positions = [];
     const uvs = [];
@@ -135,8 +162,8 @@
         const cosine = Math.cos(angle);
         const sine = Math.sin(angle);
         // Softly squared bevel: broad reflective face, rounded edge transitions.
-        const sectionX = Math.sign(cosine) * Math.pow(Math.abs(cosine), .9) * halfWidth;
-        const sectionY = Math.sign(sine) * Math.pow(Math.abs(sine), .9) * halfDepth;
+        const sectionX = Math.sign(cosine) * Math.pow(Math.abs(cosine), sectionExponent) * halfWidth;
+        const sectionY = Math.sign(sine) * Math.pow(Math.abs(sine), sectionExponent) * halfDepth;
         const vertex = point.clone()
           .addScaledVector(normal, sectionX)
           .addScaledVector(binormal, sectionY);
@@ -182,7 +209,7 @@
         antialias: true,
         powerPreference: "high-performance"
       });
-      renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, window.innerWidth < 760 ? 1.5 : 2));
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, window.innerWidth < 760 ? 1.35 : 1.85));
       renderer.outputColorSpace = THREE.SRGBColorSpace;
       renderer.toneMapping = THREE.ACESFilmicToneMapping;
       renderer.toneMappingExposure = 1.12;
@@ -190,13 +217,17 @@
 
       scene.add(new THREE.HemisphereLight(0xded5ff, 0x17131e, 1.4));
 
-      const key = new THREE.DirectionalLight(0xffffff, 4.5);
+      const key = new THREE.DirectionalLight(0xffffff, 4.1);
       key.position.set(-3.5, 4.5, 5);
       scene.add(key);
 
-      const fill = new THREE.DirectionalLight(0xc4a9ff, 3.2);
+      const fill = new THREE.DirectionalLight(0xc4a9ff, 2.2);
       fill.position.set(4, 1, 3);
       scene.add(fill);
+
+      const strip = new THREE.DirectionalLight(0xffffff, 2.6);
+      strip.position.set(1.5, -3.5, 4.5);
+      scene.add(strip);
 
       const rim = new THREE.DirectionalLight(0xf6f1ff, 4.2);
       rim.position.set(0, 2, -4);
@@ -211,27 +242,27 @@
       scene.add(sculpture);
 
       const chromeMaterial = new THREE.MeshPhysicalMaterial({
-        color: 0xdcd9e6,
-        metalness: .98,
-        roughness: .105,
+        color: 0xe2dfeb,
+        metalness: 1,
+        roughness: .095,
         clearcoat: 1,
-        clearcoatRoughness: .025,
-        envMapIntensity: 2.2
+        clearcoatRoughness: .02,
+        envMapIntensity: 2.35
       });
       resources.push(chromeMaterial);
 
       const glassMaterial = new THREE.MeshPhysicalMaterial({
         color: 0xa995ec,
-        metalness: .08,
-        roughness: .045,
-        transmission: .88,
-        thickness: 1.05,
+        metalness: .035,
+        roughness: .035,
+        transmission: .9,
+        thickness: 1.15,
         ior: 1.49,
         clearcoat: 1,
-        clearcoatRoughness: .055,
-        attenuationColor: new THREE.Color(0xb3a0f5),
-        attenuationDistance: .98,
-        envMapIntensity: 1.95
+        clearcoatRoughness: .025,
+        attenuationColor: new THREE.Color(0xa58be8),
+        attenuationDistance: .82,
+        envMapIntensity: 2.1
       });
       resources.push(glassMaterial);
 
@@ -249,50 +280,53 @@
 
       // The paths deliberately weave in depth. They cross in the camera view,
       // but their high/low passes are shaped into each loop rather than cut apart.
-      const outerPath = makeWovenLoopPath(THREE, 1.32, .22, -.3, .018);
+      const outerPath = makeWovenLoopPath(THREE, 1.32, .24, -.3, .028);
       const outerGeometry = makeSculpturalTubeGeometry(THREE, outerPath, {
         tubularSegments: 640,
         radialSegments: 72,
-        radius: .178,
-        depthRatio: .76,
+        radius: .188,
+        depthRatio: .68,
         phase: .4,
-        swell: .055
+        swell: .065,
+        sectionExponent: .78
       });
       chromeRing = new THREE.Mesh(outerGeometry, chromeMaterial);
       chromeRing.rotation.set(1.02, .26, -.24);
       sculpture.add(chromeRing);
       resources.push(outerGeometry);
 
-      const glassPath = makeWovenLoopPath(THREE, 1.14, .27, 1.35, .03);
+      const glassPath = makeWovenLoopPath(THREE, 1.14, .31, 1.35, .042);
       const glassGeometry = makeSculpturalTubeGeometry(THREE, glassPath, {
         tubularSegments: 640,
         radialSegments: 80,
-        radius: .215,
-        depthRatio: .57,
+        radius: .255,
+        depthRatio: .34,
         phase: 1.1,
-        swell: .09
+        swell: .105,
+        sectionExponent: .68
       });
       glassRing = new THREE.Mesh(glassGeometry, glassMaterial);
       glassRing.rotation.set(-.68, .7, .48);
       sculpture.add(glassRing);
       resources.push(glassGeometry);
 
-      const bridgePath = makeWovenLoopPath(THREE, .86, .15, .75, .022);
+      const bridgePath = makeWovenLoopPath(THREE, .86, .19, .75, .03);
       const bridgeGeometry = makeSculpturalTubeGeometry(THREE, bridgePath, {
         tubularSegments: 512,
         radialSegments: 64,
-        radius: .078,
-        depthRatio: .9,
+        radius: .086,
+        depthRatio: .78,
         phase: .7,
-        swell: .045
+        swell: .055,
+        sectionExponent: .82
       });
       const bridgeMaterial = new THREE.MeshPhysicalMaterial({
-        color: 0xece8f5,
-        metalness: .92,
-        roughness: .105,
+        color: 0xf0edf6,
+        metalness: .98,
+        roughness: .085,
         clearcoat: 1,
-        clearcoatRoughness: .035,
-        envMapIntensity: 2.05
+        clearcoatRoughness: .025,
+        envMapIntensity: 2.3
       });
       resources.push(bridgeGeometry, bridgeMaterial);
       const bridge = new THREE.Mesh(bridgeGeometry, bridgeMaterial);
@@ -359,11 +393,11 @@
         if (!reducedMotion) {
           pointer.x += (pointer.targetX - pointer.x) * .035;
           pointer.y += (pointer.targetY - pointer.y) * .035;
-          sculpture.rotation.y = .08 + pointer.x * .22 + Math.sin(elapsed * .22) * .035;
-          sculpture.rotation.x = -.12 - pointer.y * .16 + Math.cos(elapsed * .18) * .025;
-          sculpture.rotation.z = -.08 + Math.sin(elapsed * .14) * .025;
-          glassRing.rotation.z = .48 + Math.sin(elapsed * .16) * .018;
-          chromeRing.rotation.y = .26 + Math.cos(elapsed * .14) * .014;
+          sculpture.rotation.y = .08 + pointer.x * .16 + Math.sin(elapsed * .2) * .022;
+          sculpture.rotation.x = -.12 - pointer.y * .12 + Math.cos(elapsed * .17) * .016;
+          sculpture.rotation.z = -.08 + Math.sin(elapsed * .13) * .012;
+          glassRing.rotation.z = .48 + Math.sin(elapsed * .14) * .012;
+          chromeRing.rotation.y = .26 + Math.cos(elapsed * .12) * .01;
           orbit.rotation.z = -.48 + elapsed * .035;
           pearl.position.y = .08 + Math.sin(elapsed * .85) * .045;
         }
