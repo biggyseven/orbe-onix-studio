@@ -2802,3 +2802,6 @@ body.door-reveal-active .site-header,body.door-reveal-active main,body.door-reve
     transition:none!important;
   }
 }
+
+.lab-study-link{margin-top:18px}
+.form-study-page .nav a[aria-current="page"]{color:#d4caff}
