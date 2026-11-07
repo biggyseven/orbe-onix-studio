@@ -43,6 +43,25 @@ if (exists(buttonCssPath)) {
   }
 }
 
+const responsiveChecks = [
+  ['tablet header breakpoint', '@media (min-width:761px) and (max-width:940px)'],
+  ['tablet menu open state', '.nav.is-open{display:flex}'],
+  ['work archive tablet columns', '.portfolio-page .portfolio-grid{grid-template-columns:repeat(2,minmax(0,1fr))'],
+  ['work archive mobile column', '.portfolio-page .portfolio-grid{grid-template-columns:1fr'],
+  ['services mobile hero stack', '.services-hero-grid{grid-template-columns:1fr;gap:30px'],
+  ['services mobile boundaries stack', '.services-boundaries-grid{grid-template-columns:1fr}'],
+  ['contact mobile layout stack', '.studio-manifesto-grid,.contact-layout{grid-template-columns:1fr;gap:35px}'],
+  ['contact mobile form stack', '.form-grid{grid-template-columns:1fr;gap:17px}'],
+  ['lab mobile workspace stack', '.material-lab{grid-template-columns:1fr}'],
+  ['lab mobile notes stack', '.lab-note-grid{grid-template-columns:1fr}'],
+  ['case story mobile stack', '.case-story-grid{grid-template-columns:1fr;gap:28px}'],
+  ['prototype mobile layout', '.naya-demo-grid{grid-template-columns:1fr}'],
+  ['3D study mobile controls', '.study-controls{grid-template-columns:1fr;gap:18px']
+];
+for (const [label, token] of responsiveChecks) {
+  if (!buttonCss.includes(token)) errors.push('assets/site.css: missing responsive rule ' + label);
+}
+
 const homePath = join(root, 'index.html');
 if (exists(homePath)) {
   const homeHtml = readFileSync(homePath, 'utf8');
