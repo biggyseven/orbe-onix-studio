@@ -433,12 +433,15 @@
 
         const elapsed = clock.getElapsedTime();
         if (!reducedMotion) {
-          pointer.x += (pointer.targetX - pointer.x) * .035;
-          pointer.y += (pointer.targetY - pointer.y) * .035;
-          sculpture.rotation.y = .08 + pointer.x * .06 + Math.sin(elapsed * .2) * .012;
-          sculpture.rotation.x = -.12 - pointer.y * .045 + Math.cos(elapsed * .17) * .008;
-          sculpture.rotation.z = -.08 + Math.sin(elapsed * .13) * .006;
-          pearl.position.y = .08 + Math.sin(elapsed * .85) * .02;
+          pointer.x += (pointer.targetX - pointer.x) * .025;
+          pointer.y += (pointer.targetY - pointer.y) * .025;
+
+          // One unified sculpture motion: a slow full turn, gentle lift,
+          // and tiny breathing tilt. All three sculptural parts stay locked.
+          sculpture.rotation.y = .08 + elapsed * .16 + pointer.x * .045;
+          sculpture.rotation.x = -.12 + Math.sin(elapsed * .34) * .028 - pointer.y * .035;
+          sculpture.rotation.z = -.08 + Math.sin(elapsed * .23) * .018;
+          sculpture.position.y = Math.sin(elapsed * .58) * .045;
         }
 
         renderer.render(scene, camera);
