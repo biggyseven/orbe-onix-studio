@@ -54,6 +54,17 @@
     if (filterStatus) filterStatus.textContent = visible + (visible > 1 ? ' projets affichés' : ' projet affiché');
   }));
 
+  // Approved homepage hero: reveal content once without hiding it when JavaScript is unavailable.
+  const homeHero = one('[data-hero-intro]');
+  if (homeHero) {
+    if (reduceMotion) {
+      homeHero.classList.add('hero-motion-in');
+    } else {
+      homeHero.classList.add('hero-motion-ready');
+      requestAnimationFrame(() => requestAnimationFrame(() => homeHero.classList.add('hero-motion-in')));
+    }
+  }
+
   // Scroll reveal: visible by default if IntersectionObserver is unavailable.
   const revealItems = all('.reveal');
   if ('IntersectionObserver' in window && !reduceMotion) {
@@ -68,7 +79,7 @@
 
   // Pointer parallax is limited to the hero sculpture and fine pointers.
   const stage = one('[data-parallax]');
-  const stageObject = one('.hero-stage-object');
+  const stageObject = one('.hero-stage-object-wrap') || one('.hero-stage-object');
   if (stage && stageObject && finePointer && !reduceMotion) {
     let frame = 0;
     let x = 0, y = 0;
@@ -77,11 +88,15 @@
       x = (event.clientX - rect.left) / rect.width - 0.5;
       y = (event.clientY - rect.top) / rect.height - 0.5;
       if (!frame) frame = requestAnimationFrame(() => {
-        stageObject.style.transform = 'rotate(' + (-6 + x * 4) + 'deg) translate3d(' + (x * 13) + 'px,' + (y * 13) + 'px,0) scale(1.015)';
+        stageObject.style.setProperty('--hero-pointer-x', (x * 14).toFixed(1) + 'px');
+        stageObject.style.setProperty('--hero-pointer-y', (y * 14).toFixed(1) + 'px');
         frame = 0;
       });
     }, { passive: true });
-    stage.addEventListener('pointerleave', () => { stageObject.style.transform = ''; });
+    stage.addEventListener('pointerleave', () => {
+      stageObject.style.setProperty('--hero-pointer-x', '0px');
+      stageObject.style.setProperty('--hero-pointer-y', '0px');
+    });
   }
 
   // Magnetic micro-interactions, plural selector bug fixed.
