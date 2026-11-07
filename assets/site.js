@@ -170,7 +170,7 @@
   // Dynamic editorial case studies: each project has its own narrative and visual language.
   const projectData = {
     'naya-house': {
-      name:'NAYA HOUSE', number:'001', type:'HOSPITALITY / WEBSITE CONCEPT',
+      name:'NAYA HOUSE', number:'001', type:'HOSPITALITÉ / CONCEPT DE SITE WEB',
       lede:'Une adresse à ressentir avant même d’y arriver.',
       discipline:'Hospitalité / Expérience numérique',
       scopeShort:'Direction artistique · UX · UI responsive',
@@ -186,11 +186,11 @@
       scopeIntro:'Le concept explore le parcours d’un visiteur, de la découverte de l’adresse à la préparation d’un séjour.',
       scope:['Architecture éditoriale et hiérarchie','Direction artistique & UI','Parcours responsive','Principes de réservation et contact'],
       honesty:'Concept indépendant. Aucun établissement réel, système de réservation opérationnel ou résultat commercial n’est revendiqué.',
-      art:'assets/project-naya.svg', next:'forme', nextName:'FORME', nextType:'Commerce / E-commerce concept', nextNumber:'002',
+      art:'assets/project-naya.svg', next:'forme', nextName:'FORME', nextType:'Commerce / Concept e-commerce', nextNumber:'002',
       artKicker:'NAYA HOUSE / COASTAL RETREAT'
     },
     'forme': {
-      name:'FORME', number:'002', type:'COMMERCE / E-COMMERCE CONCEPT',
+      name:'FORME', number:'002', type:'COMMERCE / CONCEPT E-COMMERCE',
       lede:'Des objets du quotidien, traités comme des pièces de collection.',
       discipline:'Commerce / Expérience e-commerce',
       scopeShort:'Catalogue · Fiches produit · Panier',
@@ -206,11 +206,11 @@
       scopeIntro:'L’étude se concentre sur les premières étapes d’une expérience e-commerce, de la vitrine à la compréhension du produit.',
       scope:['Structure de catalogue et catégories','Direction artistique & UI produit','Parcours de découverte responsive','Principes de panier et conversion'],
       honesty:'Concept indépendant. Les produits, la marque et le parcours d’achat sont fictifs : aucune boutique ou transaction réelle n’est proposée.',
-      art:'assets/project-forme.svg', next:'flowstate', nextName:'FLOWSTATE', nextType:'Digital product / Application concept', nextNumber:'003',
+      art:'assets/project-forme.svg', next:'flowstate', nextName:'FLOWSTATE', nextType:'Produit numérique / Concept d’application', nextNumber:'003',
       artKicker:'FORME / OBJECTS FOR LIVING'
     },
     'flowstate': {
-      name:'FLOWSTATE', number:'003', type:'DIGITAL PRODUCT / APPLICATION CONCEPT',
+      name:'FLOWSTATE', number:'003', type:'PRODUIT NUMÉRIQUE / CONCEPT D’APPLICATION',
       lede:'Moins de bruit. Une meilleure lecture du travail.',
       discipline:'Produit numérique / Interface de productivité',
       scopeShort:'Architecture · Tableau de bord · États UI',
@@ -226,7 +226,7 @@
       scopeIntro:'L’exploration couvre la structure d’un tableau de bord et les composants nécessaires à une lecture rapide des activités.',
       scope:['Architecture de l’information','Système de composants UI','Vue synthétique responsive','États, indicateurs et priorités'],
       honesty:'Concept indépendant. Les données affichées sont fictives et l’interface ne correspond pas à un logiciel commercial ou déployé.',
-      art:'assets/project-flowstate.svg', next:'naya-house', nextName:'NAYA HOUSE', nextType:'Hospitality / Website concept', nextNumber:'001',
+      art:'assets/project-flowstate.svg', next:'naya-house', nextName:'NAYA HOUSE', nextType:'Hospitalité / Concept de site web', nextNumber:'001',
       artKicker:'FLOWSTATE / WORKSPACE STUDY'
     }
   };
@@ -241,8 +241,6 @@
       'naya-house': ['03 / PARCOURS INVITÉ','Retrouver le','temps juste.','Une expérience d’hospitalité qui commence par une atmosphère, puis accompagne la préparation du séjour.','ÉTUDE D’EXPÉRIENCE IMMERSIVE'],
       'forme': ['03 / COLLECTION','Des objets avec','présence.','Une vitrine éditoriale pensée comme une galerie : les objets prennent la place, le récit accompagne.','ÉTUDE DE COMMERCE ÉDITORIAL'],
       'flowstate': ['03 / ESPACE DE TRAVAIL','La clarté au','quotidien.','Un espace produit dense et fonctionnel, conçu pour faire émerger les priorités et rapprocher les actions du contexte.','ÉTUDE D’INTERFACE PRODUIT'],
-      'forme': ['03 / THE COLLECTION','Objects with','presence.','Une vitrine éditoriale pensée comme une galerie : les objets prennent la place, le récit accompagne.','EDITORIAL COMMERCE STUDY'],
-      'flowstate': ['03 / THE WORKSPACE','Clarity at','work.','Un espace produit dense et fonctionnel, conçu pour faire émerger les priorités et rapprocher les actions du contexte.','PRODUCT INTERFACE STUDY']
     }[key];
     const put = (selector, value) => { const node = one(selector); if (node) node.textContent = value; };
     const prototypeFields = {
@@ -318,13 +316,13 @@
     const localDate = date => [date.getFullYear(),String(date.getMonth()+1).padStart(2,'0'),String(date.getDate()).padStart(2,'0')].join('-');
     const updateStay = () => {
       if (!summary || !guests || !nights) return;
-      const guestLabel = String(guests.value).padStart(2,'0') + (Number(guests.value) > 1 ? ' guests' : ' guest');
-      let stayLabel = String(nights.value).padStart(2,'0') + ' nights';
+      const guestLabel = String(guests.value).padStart(2,'0') + (Number(guests.value) > 1 ? ' voyageurs' : ' voyageur');
+      let stayLabel = String(nights.value).padStart(2,'0') + ' nuits';
       if (arrival && arrival.value) {
         const start = new Date(arrival.value + 'T12:00:00');
         const end = new Date(start);
         end.setDate(end.getDate() + Number(nights.value));
-        const formatter = new Intl.DateTimeFormat('en-GB',{day:'2-digit',month:'short'});
+        const formatter = new Intl.DateTimeFormat('fr-FR',{day:'2-digit',month:'short'});
         stayLabel += ' / ' + formatter.format(start) + ' → ' + formatter.format(end);
       }
       summary.textContent = guestLabel + ' · ' + stayLabel;
