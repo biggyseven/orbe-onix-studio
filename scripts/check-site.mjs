@@ -66,6 +66,7 @@ if (exists(studyPath)) {
       errors.push('etude-de-forme.html: missing ' + view + ' gallery action');
     }
   }
+}
 
 if (errors.length) {
   console.error('Site validation failed:\n' + errors.map(error => ' - ' + error).join('\n'));
