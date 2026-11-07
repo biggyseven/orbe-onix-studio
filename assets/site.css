@@ -3103,3 +3103,113 @@ body.door-reveal-active .site-header,body.door-reveal-active main,body.door-reve
     transform:none;filter:none;
   }
 }
+
+
+/* FINAL EXHIBITION PASS — immersive viewport and material emphasis. */
+.study-exhibition-viewer{position:relative}
+.study-fullscreen-toggle{
+  display:inline-flex;align-items:center;gap:8px;
+  min-height:32px;padding:0 11px;
+  border:1px solid #d0c4ff55;border-radius:2px;
+  background:#c9c0ff0c;color:#e8e1ff;
+  font:8px var(--mono,"IBM Plex Mono",monospace);
+  letter-spacing:.08em;text-transform:uppercase;
+  cursor:pointer;white-space:nowrap;
+  transition:background .2s,border-color .2s,color .2s;
+}
+.study-fullscreen-toggle>span:first-child{font:17px/1 Arial,sans-serif}
+.study-fullscreen-toggle:hover,
+.study-fullscreen-toggle[aria-pressed="true"]{
+  background:#c9c0ff;color:#18161f;border-color:#c9c0ff;
+}
+.study-fullscreen-toggle:focus-visible{
+  outline:2px solid #d3ef79;outline-offset:3px;
+}
+.study-fullscreen-toggle[hidden]{display:none}
+.study-exhibition-viewer:fullscreen{
+  width:100vw;height:100vh;max-width:none;
+  overflow-y:auto;overflow-x:hidden;
+  display:flex;flex-direction:column;gap:10px;
+  padding:clamp(12px,2vh,26px) clamp(14px,3vw,48px);
+  background:
+    radial-gradient(ellipse at 50% 42%,#8b78c21a,transparent 46%),
+    #101015;color:#efeee9;
+}
+.study-exhibition-viewer:fullscreen::backdrop{background:#09090e}
+.study-exhibition-viewer:fullscreen .study-scene-frame{
+  flex:1 0 min(58vh,680px);
+  min-height:min(58vh,680px);
+  max-height:calc(100vh - 270px);
+}
+.study-exhibition-viewer:fullscreen .study-3d-stage{
+  inset:32px 5% 32px;width:90%;
+}
+.study-exhibition-viewer:fullscreen .study-controls{
+  flex:0 0 auto;gap:18px;padding:12px 18px;
+}
+.study-exhibition-viewer:fullscreen .study-control-status{
+  padding-top:9px;
+}
+.study-exhibition-viewer:fullscreen .study-selected-detail{
+  flex:0 0 auto;margin-top:0;padding:15px 20px;gap:22px;
+}
+.study-exhibition-viewer:fullscreen .study-selected-main h3{
+  margin:5px 0;font-size:24px;
+}
+.study-exhibition-viewer:fullscreen .study-selected-main p{
+  font-size:10px;line-height:1.6;
+}
+.study-exhibition-viewer:fullscreen .study-detail-facts{gap:12px}
+.study-exhibition-viewer:fullscreen .study-interaction-note{
+  flex:0 0 auto;margin:0;font-size:7px;
+}
+.study-exhibition-viewer:fullscreen .study-scene-atmosphere{
+  opacity:.92;
+}
+@media(max-width:980px){
+  .study-exhibition-viewer:fullscreen .study-scene-frame{
+    flex-basis:min(52vh,540px);min-height:min(52vh,540px);
+    max-height:none;
+  }
+  .study-exhibition-viewer:fullscreen .study-controls{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media(max-width:760px){
+  .study-fullscreen-toggle{justify-content:center}
+  .study-exhibition-viewer:fullscreen{
+    gap:8px;padding:9px;
+  }
+  .study-exhibition-viewer:fullscreen .study-scene-frame{
+    flex-basis:min(48vh,470px);min-height:min(48vh,470px);
+  }
+  .study-exhibition-viewer:fullscreen .study-controls{
+    grid-template-columns:1fr;padding:11px;gap:9px;
+  }
+  .study-exhibition-viewer:fullscreen .study-control-group{gap:9px}
+  .study-exhibition-viewer:fullscreen .study-control-status{
+    display:flex;flex-wrap:wrap;gap:8px;
+  }
+  .study-exhibition-viewer:fullscreen .study-selected-detail{
+    grid-template-columns:1fr;padding:13px;gap:10px;
+  }
+  .study-exhibition-viewer:fullscreen .study-detail-facts{
+    grid-template-columns:repeat(3,minmax(0,1fr));
+  }
+  .study-exhibition-viewer:fullscreen .study-detail-facts>div{padding-left:8px}
+  .study-exhibition-viewer:fullscreen .study-detail-facts b{font-size:8px}
+  .study-exhibition-viewer:fullscreen .study-interaction-note{display:none}
+}
+@media(max-width:480px){
+  .study-exhibition-viewer:fullscreen .study-scene-frame{
+    flex-basis:min(42vh,390px);min-height:min(42vh,390px);
+  }
+  .study-exhibition-viewer:fullscreen .study-scene-topline{font-size:5px}
+  .study-exhibition-viewer:fullscreen .study-scene-bottomline{font-size:5px}
+  .study-exhibition-viewer:fullscreen .study-control-label{font-size:7px}
+  .study-exhibition-viewer:fullscreen .study-control-buttons button{min-height:29px;font-size:7px}
+  .study-exhibition-viewer:fullscreen .study-fullscreen-toggle{min-height:29px;font-size:7px}
+  .study-exhibition-viewer:fullscreen .study-selected-main h3{font-size:20px}
+  .study-exhibition-viewer:fullscreen .study-detail-facts b{font-size:7px}
+}
+@media(prefers-reduced-motion:reduce){
+  .study-fullscreen-toggle{transition:none}
+}
