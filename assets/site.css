@@ -2030,8 +2030,63 @@ body.door-reveal-active .site-header,body.door-reveal-active main,body.door-reve
 .hero-stage-card.card-a{right:2%;top:13%}
 .hero-stage-card.card-b{left:2%;bottom:10%}
 .hero-stage-coordinate{right:3%;bottom:3%}
-.hero-stage-orbit{opacity:.28}
-.hero-stage-orbit.orbit-two{opacity:.2}
+/* Two concentric guide orbits frame the sculpture without crossing it. */
+.hero-stage-orbit{
+  width:84%;
+  height:84%;
+  border:1px solid #e5dcff78;
+  border-radius:50%;
+  opacity:.68;
+  box-shadow:0 0 26px #b8a7fa20,inset 0 0 20px #fff1;
+  animation-duration:38s;
+}
+.hero-stage-orbit:after{
+  content:"";
+  position:absolute;
+  top:-3px;
+  left:50%;
+  width:6px;
+  height:6px;
+  border-radius:50%;
+  background:#dce7b2;
+  box-shadow:0 0 12px #dce7b2a0;
+  transform:translateX(-50%);
+}
+.hero-stage-orbit.orbit-two{
+  width:96%;
+  height:96%;
+  border:1px dashed #c9b9f66a;
+  opacity:.46;
+  box-shadow:0 0 34px #a48ae61c;
+  animation-duration:58s;
+}
+.hero-stage-orbit.orbit-two:after{
+  top:auto;
+  bottom:-2px;
+  width:4px;
+  height:4px;
+  background:#d3c5ff;
+  box-shadow:0 0 10px #c3b2ff9c;
+}
+
+/* Reduced fallback: one continuous loop and one isolated pearl. */
+.hero-stage-fallback{perspective:1000px}
+.fallback-ring--chrome{
+  width:76%;
+  height:66%;
+  border:22px solid #b6a8e7;
+  transform:translate(-50%,-50%) rotate(-12deg) rotateX(42deg);
+  box-shadow:inset 0 0 0 2px #fff9,0 14px 26px #05040c66,0 0 28px #e9e3ff36;
+  background:linear-gradient(135deg,#fff6,#8f7aca55 38%,#d8d0f8 54%,#66558e 78%,#fff5);
+}
+.fallback-ring--glass,.fallback-ring--bridge{display:none}
+.fallback-pearl{
+  left:43%;
+  top:41%;
+  width:12%;
+  background:radial-gradient(circle at 30% 24%,#fff 0 8%,#f1eaff 18%,#b9a4f4 43%,#5b477e 82%);
+  box-shadow:0 0 18px #c8b8ff88,0 0 42px #ad98ed55;
+}
 
 @media(max-width:940px){
   .hero-v07{min-height:unset;padding-top:16px}
