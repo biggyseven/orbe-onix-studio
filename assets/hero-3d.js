@@ -18,7 +18,11 @@
   let scene;
   let camera;
   let sculpture;
+  let chromeRing;
+  let glassRing;
   let pearl;
+  let orbit;
+  let envTexture;
   const pointer = { x: 0, y: 0, targetX: 0, targetY: 0 };
   const resources = [];
 
@@ -79,92 +83,6 @@
     return texture;
   };
 
-
-  // A hand-shaped, variable-section sweep. Unlike a TorusGeometry, the
-  // silhouette can swell, flatten and twist along its path.
-  const makeSculpturalTubeGeometry = (THREE, curve, options = {}) => {
-    const tubularSegments = options.tubularSegments || 288;
-    const radialSegments = options.radialSegments || 40;
-    const radius = options.radius || .18;
-    const depthRatio = options.depthRatio || .62;
-    const phase = options.phase || 0;
-    const swell = options.swell ?? .15;
-    const twist = options.twist || 0;
-    const closed = options.closed !== false;
-    const frames = curve.computeFrenetFrames(tubularSegments, closed);
-    const positions = [];
-    const uvs = [];
-    const indices = [];
-    const tau = Math.PI * 2;
-
-    for (let i = 0; i <= tubularSegments; i += 1) {
-      const u = i / tubularSegments;
-      const point = curve.getPointAt(u);
-      const normal = frames.normals[i];
-      const binormal = frames.binormals[i];
-      const swellProfile = 1
-        + swell * Math.sin(tau * 2 * u + phase)
-        + swell * .34 * Math.cos(tau * 5 * u - phase * .7);
-      const depthProfile = 1 + .075 * Math.cos(tau * 3 * u + phase);
-      const taper = closed ? 1 : .62 + .38 * Math.sin(Math.PI * u);
-      const halfWidth = radius * swellProfile * taper;
-      const halfDepth = radius * depthRatio * depthProfile * taper;
-
-      for (let j = 0; j <= radialSegments; j += 1) {
-        const v = j / radialSegments;
-        const angle = tau * v + twist * u;
-        const cosine = Math.cos(angle);
-        const sine = Math.sin(angle);
-        // A softly rounded rectangular section gives the glass a ribbon-like edge.
-        const sectionX = Math.sign(cosine) * Math.pow(Math.abs(cosine), .86) * halfWidth;
-        const sectionY = Math.sign(sine) * Math.pow(Math.abs(sine), .86) * halfDepth;
-        const vertex = point.clone()
-          .addScaledVector(normal, sectionX)
-          .addScaledVector(binormal, sectionY);
-
-        positions.push(vertex.x, vertex.y, vertex.z);
-        uvs.push(u, v);
-      }
-    }
-
-    for (let i = 0; i < tubularSegments; i += 1) {
-      for (let j = 0; j < radialSegments; j += 1) {
-        const a = (radialSegments + 1) * i + j;
-        const b = (radialSegments + 1) * (i + 1) + j;
-        const c = b + 1;
-        const d = a + 1;
-        indices.push(a, b, d, b, c, d);
-      }
-    }
-
-    const geometry = new THREE.BufferGeometry();
-    geometry.setAttribute("position", new THREE.Float32BufferAttribute(positions, 3));
-    geometry.setAttribute("uv", new THREE.Float32BufferAttribute(uvs, 2));
-    geometry.setIndex(indices);
-    geometry.computeVertexNormals();
-    geometry.computeBoundingSphere();
-    return geometry;
-  };
-
-  // One signature centerline, scaled uniformly for every sculptural loop.
-  // All pieces therefore share identical curvature, section and surface rhythm.
-  const makeSignatureLoopPath = THREE => {
-    const points = [];
-    const samples = 48;
-    for (let i = 0; i < samples; i += 1) {
-      const angle = (i / samples) * Math.PI * 2;
-      const wave = 1
-        + .012 * Math.sin(angle * 3 + .35)
-        + .006 * Math.cos(angle * 5 - .2);
-      points.push(new THREE.Vector3(
-        Math.cos(angle) * 1.38 * wave,
-        Math.sin(angle) * 1.04 * wave,
-        0
-      ));
-    }
-    return new THREE.CatmullRomCurve3(points, true, "centripetal", .35);
-  };
-
   const start = async () => {
     try {
       const THREE = await import(CDN);
@@ -174,7 +92,7 @@
       scene.environment = makeEnvironment(THREE);
 
       camera = new THREE.PerspectiveCamera(33, 1, .1, 40);
-      camera.position.set(0, 0, 6.7);
+      camera.position.set(0, 0, 6.25);
       camera.lookAt(0, 0, 0);
 
       renderer = new THREE.WebGLRenderer({
@@ -186,7 +104,7 @@
       renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, window.innerWidth < 760 ? 1.5 : 2));
       renderer.outputColorSpace = THREE.SRGBColorSpace;
       renderer.toneMapping = THREE.ACESFilmicToneMapping;
-      renderer.toneMappingExposure = 1.08;
+      renderer.toneMappingExposure = 1.12;
       renderer.setClearColor(0x000000, 0);
 
       scene.add(new THREE.HemisphereLight(0xded5ff, 0x17131e, 1.4));
@@ -208,9 +126,33 @@
       scene.add(acid);
 
       sculpture = new THREE.Group();
-      sculpture.rotation.set(-.075, .10, -.10);
-      sculpture.scale.setScalar(.96);
+      sculpture.rotation.set(-.12, .08, -.08);
       scene.add(sculpture);
+
+      const chromeMaterial = new THREE.MeshPhysicalMaterial({
+        color: 0xdcd9e6,
+        metalness: .98,
+        roughness: .115,
+        clearcoat: 1,
+        clearcoatRoughness: .035,
+        envMapIntensity: 2.15
+      });
+      resources.push(chromeMaterial);
+
+      const glassMaterial = new THREE.MeshPhysicalMaterial({
+        color: 0xa995ec,
+        metalness: .08,
+        roughness: .055,
+        transmission: .9,
+        thickness: .95,
+        ior: 1.49,
+        clearcoat: 1,
+        clearcoatRoughness: .055,
+        attenuationColor: new THREE.Color(0xb3a0f5),
+        attenuationDistance: 1.18,
+        envMapIntensity: 1.85
+      });
+      resources.push(glassMaterial);
 
       const pearlMaterial = new THREE.MeshPhysicalMaterial({
         color: 0xe4dcff,
@@ -224,52 +166,63 @@
       });
       resources.push(pearlMaterial);
 
-      // Three homogeneous sculptural loops. Every loop is a scaled copy
-      // of the same high-resolution geometry and uses the same material.
-      const signatureMaterial = new THREE.MeshPhysicalMaterial({
-        color: 0xcac2df,
-        metalness: .88,
-        roughness: .145,
+      const chromeGeometry = new THREE.TorusGeometry(1.32, .185, 72, 384);
+      chromeRing = new THREE.Mesh(chromeGeometry, chromeMaterial);
+      chromeRing.rotation.set(1.02, .26, -.24);
+      sculpture.add(chromeRing);
+      resources.push(chromeGeometry);
+
+      const glassGeometry = new THREE.TorusGeometry(1.14, .22, 80, 384);
+      glassRing = new THREE.Mesh(glassGeometry, glassMaterial);
+      glassRing.rotation.set(-.68, .7, .48);
+      sculpture.add(glassRing);
+      resources.push(glassGeometry);
+
+      const bridgeGeometry = new THREE.TorusGeometry(.86, .075, 56, 288);
+      const bridgeMaterial = new THREE.MeshPhysicalMaterial({
+        color: 0xece8f5,
+        metalness: .9,
+        roughness: .125,
         clearcoat: 1,
-        clearcoatRoughness: .045,
-        envMapIntensity: 2.05
+        clearcoatRoughness: .04,
+        envMapIntensity: 2
       });
-      resources.push(signatureMaterial);
+      resources.push(bridgeGeometry, bridgeMaterial);
+      const bridge = new THREE.Mesh(bridgeGeometry, bridgeMaterial);
+      bridge.rotation.set(.38, -.88, .22);
+      bridge.scale.set(1.12, .78, 1);
+      sculpture.add(bridge);
 
-      const signaturePath = makeSignatureLoopPath(THREE);
-      const signatureGeometry = makeSculpturalTubeGeometry(THREE, signaturePath, {
-        tubularSegments: 512,
-        radialSegments: 72,
-        radius: .118,
-        depthRatio: .72,
-        phase: .55,
-        swell: .055,
-        twist: .22
-      });
-      resources.push(signatureGeometry);
-
-      const loopSpecs = [
-        { name: "outer", scale: 1, z: -.075 },
-        { name: "middle", scale: .735, z: 0 },
-        { name: "inner", scale: .47, z: .075 }
-      ];
-
-      loopSpecs.forEach(spec => {
-        const geometry = signatureGeometry.clone();
-        const loop = new THREE.Mesh(geometry, signatureMaterial);
-        loop.name = "ORBE signature loop " + spec.name;
-        loop.scale.setScalar(spec.scale);
-        loop.position.z = spec.z;
-        sculpture.add(loop);
-        resources.push(geometry);
-
-      });
-
-      const pearlGeometry = new THREE.SphereGeometry(.16, 128, 96);
+      const pearlGeometry = new THREE.SphereGeometry(.235, 112, 80);
       pearl = new THREE.Mesh(pearlGeometry, pearlMaterial);
-      pearl.position.set(0, 0, .04);
+      pearl.position.set(-.08, .08, .34);
       sculpture.add(pearl);
       resources.push(pearlGeometry);
+
+      const coreGeometry = new THREE.SphereGeometry(.075, 40, 32);
+      const coreMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff });
+      resources.push(coreGeometry, coreMaterial);
+      const core = new THREE.Mesh(coreGeometry, coreMaterial);
+      core.position.set(-.08, .08, .56);
+      sculpture.add(core);
+
+      const orbitGeometry = new THREE.TorusGeometry(1.78, .009, 16, 320);
+      const orbitMaterial = new THREE.MeshBasicMaterial({
+        color: 0xc9b8ff,
+        transparent: true,
+        opacity: .26
+      });
+      resources.push(orbitGeometry, orbitMaterial);
+      orbit = new THREE.Mesh(orbitGeometry, orbitMaterial);
+      orbit.rotation.set(1.27, .3, -.48);
+      sculpture.add(orbit);
+
+      const markerGeometry = new THREE.SphereGeometry(.04, 40, 32);
+      const markerMaterial = new THREE.MeshBasicMaterial({ color: 0xd9e9a0 });
+      resources.push(markerGeometry, markerMaterial);
+      const marker = new THREE.Mesh(markerGeometry, markerMaterial);
+      marker.position.set(1.53, -.62, .14);
+      sculpture.add(marker);
 
       const resize = () => {
         if (!renderer || disposed) return;
@@ -299,10 +252,13 @@
         if (!reducedMotion) {
           pointer.x += (pointer.targetX - pointer.x) * .035;
           pointer.y += (pointer.targetY - pointer.y) * .035;
-          sculpture.rotation.y = .12 + pointer.x * .16 + Math.sin(elapsed * .18) * .022;
-          sculpture.rotation.x = -.08 - pointer.y * .12 + Math.cos(elapsed * .16) * .016;
-          sculpture.rotation.z = -.12 + Math.sin(elapsed * .12) * .014;
-          pearl.position.y = Math.sin(elapsed * .7) * .018;
+          sculpture.rotation.y = .08 + pointer.x * .22 + Math.sin(elapsed * .22) * .035;
+          sculpture.rotation.x = -.12 - pointer.y * .16 + Math.cos(elapsed * .18) * .025;
+          sculpture.rotation.z = -.08 + Math.sin(elapsed * .14) * .025;
+          glassRing.rotation.z = .48 + Math.sin(elapsed * .18) * .07;
+          chromeRing.rotation.y = .26 + Math.cos(elapsed * .15) * .045;
+          orbit.rotation.z = -.48 + elapsed * .035;
+          pearl.position.y = .08 + Math.sin(elapsed * .85) * .045;
         }
 
         renderer.render(scene, camera);
