@@ -4022,3 +4022,32 @@ body.door-reveal-active .site-header,body.door-reveal-active main,body.door-reve
   .button,.button .arrow,.text-link,.services-text-link{transition:none}
   .button:hover,.button:hover .arrow{transform:none}
 }
+
+/* TABLET HEADER — compact navigation band */
+@media (min-width:761px) and (max-width:940px){
+  .header-inner{height:70px}
+  .nav{
+    display:none;
+    position:absolute;
+    top:70px;
+    left:0;
+    right:0;
+    padding:22px 26px 26px;
+    background:rgba(15,14,20,.97);
+    -webkit-backdrop-filter:blur(28px);
+    backdrop-filter:blur(28px);
+    border-bottom:1px solid rgba(255,255,255,.12);
+    flex-direction:column;
+    align-items:stretch;
+    gap:6px;
+  }
+  .nav.is-open{display:flex}
+  .nav a{
+    padding:13px 4px;
+    border-bottom:1px solid rgba(255,255,255,.08);
+    font-size:13px;
+  }
+  .nav a:after{display:none}
+  .header-actions>.button{display:none}
+  .menu-toggle{display:grid;place-items:center}
+}
