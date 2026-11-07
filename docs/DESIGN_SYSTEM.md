@@ -27,16 +27,12 @@
 Les illustrations de marque et de projets sont dessinées en SVG et CSS. Aucun visuel raster généré n'est nécessaire.
 
 ## Responsive
-- Navigation compacte dès 940 px : le menu horizontal cède la place au menu accessible pour préserver l'espace de l'en-tête sur tablette.
-- Repères de composition : 1040 px pour la grille Travaux, 900/850 px pour les études de cas et prototypes, 820 px pour les colonnes Services, 760/680 px pour l'empilement mobile, 480/420 px pour les ajustements compacts.
+- Navigation compacte dès 900 px : le menu horizontal cède la place au menu accessible pour préserver l'espace de l'en-tête sur tablette.
+- Repères de composition : 1040 px pour la grille Travaux, 980 px pour les principes du Studio et la matière du Lab, 900/850 px pour les études de cas et prototypes, 820 px pour les colonnes Services, 760/680 px pour l'empilement mobile, 480/420 px pour les ajustements compacts.
 - Les colonnes doivent utiliser `minmax(0, 1fr)` ou `min-width:0` lorsque leur contenu peut pousser la grille.
-- Les commandes de prototype restent tactiles, lisibles et utilisables au clavier.
-- Vérifier les pages sur clavier, tactile et pointeur fin, ainsi que les états `prefers-reduced-motion`.
-
-
-- Navigation mobile dédiée.
-- Grilles adaptées aux largeurs intermédiaires et mobiles.
-- Éviter le débordement horizontal.
+- Les mises en page de grille restent déclarées dans le CSS, jamais en styles inline lorsqu'elles doivent se reconfigurer au mobile.
+- Les commandes tactiles visent au moins 44 px de hauteur, y compris les filtres, contrôles de prototype et actions compactes.
+- Vérifier les pages à 320, 390, 768, 900 et 1024 px, sur clavier, tactile et pointeur fin, ainsi que les états `prefers-reduced-motion`.
 
 ## Système de boutons V2
 Le système de boutons suit une géométrie éditoriale, avec des angles de 5 px plutôt que des pilules systématiques. La hauteur standard est de 46 px (45 px au plus petit breakpoint).
