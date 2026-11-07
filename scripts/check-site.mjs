@@ -42,11 +42,30 @@ if (exists(studyPath)) {
 
   for (const [label, token] of [
     ['transparent PNG capture pipeline', 'readRenderTargetPixels'],
-    ['keyboard interaction handler', 'document.addEventListener("keydown"']
+    ['keyboard interaction handler', 'document.addEventListener("keydown"'],
+    ['three-view gallery renderer', 'const renderStudyGallery'],
+    ['gallery render-target readback', 'renderer.readRenderTargetPixels(target, 0, 0, width, height, pixels)'],
+    ['gallery view activation', 'data-study-gallery-view']
   ]) {
     if (!sculptureScript.includes(token)) errors.push('assets/hero-3d.js: missing ' + label);
   }
-}
+
+  const galleryStart = studyHtml.indexOf('<section class="study-gallery"');
+  const galleryEnd = studyHtml.indexOf('<section class="study-materials"', galleryStart);
+  const galleryHtml = galleryStart >= 0 && galleryEnd > galleryStart
+    ? studyHtml.slice(galleryStart, galleryEnd)
+    : '';
+
+  const galleryCards = galleryHtml.match(/class="study-gallery-card /g) || [];
+  if (galleryCards.length !== 3) errors.push('etude-de-forme.html: expected exactly three composition cards');
+  for (const view of ['front', 'three-quarter', 'side']) {
+    if (!galleryHtml.includes('data-study-render="' + view + '"')) {
+      errors.push('etude-de-forme.html: missing ' + view + ' gallery render slot');
+    }
+    if (!galleryHtml.includes('data-study-gallery-view="' + view + '"')) {
+      errors.push('etude-de-forme.html: missing ' + view + ' gallery action');
+    }
+  }
 
 if (errors.length) {
   console.error('Site validation failed:\n' + errors.map(error => ' - ' + error).join('\n'));
