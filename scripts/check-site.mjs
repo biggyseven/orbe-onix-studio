@@ -26,6 +26,28 @@ for (const file of htmlFiles) {
   }
 }
 
+const studyPath = join(root, 'etude-de-forme.html');
+if (exists(studyPath)) {
+  const studyHtml = readFileSync(studyPath, 'utf8');
+  const sculptureScriptPath = join(root, 'assets', 'hero-3d.js');
+  const sculptureScript = exists(sculptureScriptPath) ? readFileSync(sculptureScriptPath, 'utf8') : '';
+
+  for (const [label, token] of [
+    ['3D PNG export control', 'data-sculpture-capture'],
+    ['live export status', 'data-capture-status'],
+    ['keyboard shortcut declaration', 'aria-keyshortcuts="Space 1 2 3 C F"']
+  ]) {
+    if (!studyHtml.includes(token)) errors.push('etude-de-forme.html: missing ' + label);
+  }
+
+  for (const [label, token] of [
+    ['transparent PNG capture pipeline', 'readRenderTargetPixels'],
+    ['keyboard interaction handler', 'document.addEventListener("keydown"']
+  ]) {
+    if (!sculptureScript.includes(token)) errors.push('assets/hero-3d.js: missing ' + label);
+  }
+}
+
 if (errors.length) {
   console.error('Site validation failed:\n' + errors.map(error => ' - ' + error).join('\n'));
   process.exit(1);
