@@ -82,6 +82,11 @@
               <span class="fallback-pearl"></span>
             </div>
           </div>
+          <div class="study-hotspots" role="group" aria-label="Explorer les éléments de la sculpture">
+            <button type="button" class="study-hotspot study-hotspot--chrome" data-study-part="chrome" aria-pressed="true"><span>01</span> Chrome <i>↗</i></button>
+            <button type="button" class="study-hotspot study-hotspot--glass" data-study-part="glass" aria-pressed="false"><span>02</span> Verre lavande <i>↗</i></button>
+            <button type="button" class="study-hotspot study-hotspot--silver" data-study-part="silver" aria-pressed="false"><span>03</span> Argent satiné <i>↗</i></button>
+          </div>
           <span class="study-crosshair" aria-hidden="true"></span>
           <span class="study-stage-coordinate study-stage-coordinate--a" aria-hidden="true">X 00.81 / Y 04.12</span>
           <span class="study-stage-coordinate study-stage-coordinate--b" aria-hidden="true">FORM / 001</span>
@@ -109,7 +114,19 @@
         </div>
         <div class="study-control-status"><i class="signal-dot"></i><span data-motion-status aria-live="polite">Mouvement actif</span><button type="button" data-sculpture-reset>Réinitialiser ↺</button></div>
       </div>
-      <p class="study-interaction-note">Sur ordinateur, déplacez le pointeur dans la scène pour incliner légèrement l’objet. Les commandes restent accessibles au clavier et au toucher.</p>
+      <div class="study-selected-detail" data-study-detail aria-live="polite">
+        <div class="study-selected-main">
+          <span class="study-detail-index" data-part-index>01 / MATIÈRE SÉLECTIONNÉE</span>
+          <h3 data-part-title>Chrome poli</h3>
+          <p data-part-copy>Une surface miroir qui capte l’environnement et révèle les contours de la sculpture.</p>
+        </div>
+        <div class="study-detail-facts">
+          <div><span>FINITION</span><b data-part-finish>Mirror polish</b></div>
+          <div><span>RÔLE</span><b data-part-role>Structure extérieure</b></div>
+          <div><span>LECTURE</span><b data-part-reading>Reflet & contraste</b></div>
+        </div>
+      </div>
+      <p class="study-interaction-note">Faites glisser la sculpture pour l’examiner librement. Les vues, les repères et les commandes restent accessibles au clavier et au toucher.</p>
     </div>
   </section>
 
@@ -125,18 +142,21 @@
           <div class="study-material-meta"><span>CHROME / POLISHED METAL</span><span>01 — 03</span></div>
           <h3>Chrome poli</h3>
           <p>Une surface miroir qui capte l’environnement et dessine les contours de la forme par le reflet.</p>
+          <button type="button" class="study-material-focus" data-study-part="chrome" aria-pressed="true">Observer cette matière <span>↗</span></button>
         </article>
         <article class="study-material-card study-material-card--glass">
           <div class="study-material-art"><span></span><small>02</small></div>
           <div class="study-material-meta"><span>OPTICAL GLASS / LAVENDER</span><span>02 — 03</span></div>
           <h3>Verre lavande</h3>
           <p>Un ruban translucide aux bords adoucis. La teinte apparaît lorsque la lumière traverse son volume.</p>
+          <button type="button" class="study-material-focus" data-study-part="glass" aria-pressed="false">Observer cette matière <span>↗</span></button>
         </article>
         <article class="study-material-card study-material-card--silver">
           <div class="study-material-art"><span></span><small>03</small></div>
           <div class="study-material-meta"><span>SILVER / SOFT REFLECTION</span><span>03 — 03</span></div>
           <h3>Argent satiné</h3>
           <p>Une boucle plus fine qui guide le regard vers le centre et apporte un contraste de précision.</p>
+          <button type="button" class="study-material-focus" data-study-part="silver" aria-pressed="false">Observer cette matière <span>↗</span></button>
         </article>
       </div>
     </div>
