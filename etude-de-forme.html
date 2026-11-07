@@ -62,7 +62,7 @@
     <div class="shell">
       <div class="study-scene-header">
         <div><span class="eyebrow">01 / Interactive object</span><h2 id="study-scene-title">Observer la <em>forme.</em></h2></div>
-        <p>La sculpture tourne lentement. Changez son angle, suspendez le mouvement ou faites varier sa vitesse pour observer les reflets et les volumes.</p>
+        <p>Explorez la sculpture sous différents angles. Les transitions accompagnent chaque changement de vue, tandis que trois éclairages révèlent des lectures différentes de ses matières.</p>
       </div>
 
       <div class="study-scene-frame">
@@ -112,7 +112,15 @@
           </div>
           <button type="button" class="study-motion-toggle" data-motion-toggle aria-pressed="true"><span class="study-pause-icon" aria-hidden="true"></span><span data-motion-label>Mettre en pause</span></button>
         </div>
-        <div class="study-control-status"><i class="signal-dot"></i><span data-motion-status aria-live="polite">Mouvement actif</span><button type="button" data-sculpture-reset>Réinitialiser ↺</button></div>
+        <div class="study-control-group study-lighting">
+          <span class="study-control-label">Éclairage studio</span>
+          <div class="study-control-buttons" role="group" aria-label="Choisir l’éclairage de la scène">
+            <button type="button" data-light-preset="studio" aria-pressed="true">Studio</button>
+            <button type="button" data-light-preset="soft" aria-pressed="false">Doux</button>
+            <button type="button" data-light-preset="contrast" aria-pressed="false">Contraste</button>
+          </div>
+        </div>
+        <div class="study-control-status"><i class="signal-dot"></i><span data-motion-status aria-live="polite">Mouvement actif</span><span class="study-light-status" data-light-status>STUDIO / 01</span><button type="button" data-sculpture-reset>Réinitialiser ↺</button></div>
       </div>
       <div class="study-selected-detail" data-study-detail aria-live="polite">
         <div class="study-selected-main">
