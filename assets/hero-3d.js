@@ -149,19 +149,19 @@
     return geometry;
   };
 
-  // Shared, gently irregular ellipse paths keep all three loops nested.
-  // Matching the wave profile and scaling the radii ensures they never cross.
-  const makeNestedEllipsePath = (THREE, radiusX, radiusY) => {
+  // One signature centerline, scaled uniformly for every sculptural loop.
+  // All pieces therefore share identical curvature, section and surface rhythm.
+  const makeSignatureLoopPath = THREE => {
     const points = [];
-    const samples = 40;
+    const samples = 48;
     for (let i = 0; i < samples; i += 1) {
       const angle = (i / samples) * Math.PI * 2;
       const wave = 1
         + .012 * Math.sin(angle * 3 + .35)
         + .006 * Math.cos(angle * 5 - .2);
       points.push(new THREE.Vector3(
-        Math.cos(angle) * radiusX * wave,
-        Math.sin(angle) * radiusY * wave,
+        Math.cos(angle) * 1.38 * wave,
+        Math.sin(angle) * 1.04 * wave,
         0
       ));
     }
@@ -211,8 +211,8 @@
       scene.add(acid);
 
       sculpture = new THREE.Group();
-      sculpture.rotation.set(-.08, .12, -.12);
-      sculpture.scale.setScalar(.94);
+      sculpture.rotation.set(-.075, .10, -.10);
+      sculpture.scale.setScalar(.96);
       scene.add(sculpture);
 
       const pearlMaterial = new THREE.MeshPhysicalMaterial({
@@ -227,89 +227,49 @@
       });
       resources.push(pearlMaterial);
 
-      // Three independent, nested sculptural loops:
-      // outer polished chrome, central lavender glass, inner satin silver.
-      // They share a center and orientation, with deliberately generous gaps.
-      const outerChromeMaterial = new THREE.MeshPhysicalMaterial({
-        color: 0xcac6d4,
-        metalness: .98,
+      // Three homogeneous sculptural loops. Every loop is a scaled copy
+      // of the same high-resolution geometry and uses the same material.
+      const signatureMaterial = new THREE.MeshPhysicalMaterial({
+        color: 0xcac2df,
+        metalness: .88,
         roughness: .145,
         clearcoat: 1,
         clearcoatRoughness: .045,
         envMapIntensity: 2.05
       });
-      resources.push(outerChromeMaterial);
+      resources.push(signatureMaterial);
 
-      const middleGlassMaterial = new THREE.MeshPhysicalMaterial({
-        color: 0xa995ec,
-        metalness: .12,
-        roughness: .075,
-        transmission: .84,
-        thickness: .72,
-        ior: 1.49,
-        clearcoat: 1,
-        clearcoatRoughness: .045,
-        attenuationColor: new THREE.Color(0xb3a0f5),
-        attenuationDistance: 1.25,
-        envMapIntensity: 1.9
-      });
-      resources.push(middleGlassMaterial);
-
-      const innerChromeMaterial = new THREE.MeshPhysicalMaterial({
-        color: 0xe4e0ec,
-        metalness: .9,
-        roughness: .12,
-        clearcoat: 1,
-        clearcoatRoughness: .05,
-        envMapIntensity: 2
-      });
-      resources.push(innerChromeMaterial);
-
-      const outerPath = makeNestedEllipsePath(THREE, 1.48, 1.12);
-      const middlePath = makeNestedEllipsePath(THREE, 1.02, .75);
-      const innerPath = makeNestedEllipsePath(THREE, .58, .41);
-
-      const outerGeometry = makeSculpturalTubeGeometry(THREE, outerPath, {
-        tubularSegments: 480,
-        radialSegments: 64,
-        radius: .125,
+      const signaturePath = makeSignatureLoopPath(THREE);
+      const signatureGeometry = makeSculpturalTubeGeometry(THREE, signaturePath, {
+        tubularSegments: 512,
+        radialSegments: 72,
+        radius: .118,
         depthRatio: .72,
-        phase: .35,
-        swell: .045,
-        twist: .28
-      });
-      outerChromeLoop = new THREE.Mesh(outerGeometry, outerChromeMaterial);
-      outerChromeLoop.position.z = -.13;
-      sculpture.add(outerChromeLoop);
-      resources.push(outerGeometry);
-
-      const middleGeometry = makeSculpturalTubeGeometry(THREE, middlePath, {
-        tubularSegments: 480,
-        radialSegments: 64,
-        radius: .108,
-        depthRatio: .58,
-        phase: .9,
-        swell: .085,
-        twist: Math.PI * .35
-      });
-      middleGlassLoop = new THREE.Mesh(middleGeometry, middleGlassMaterial);
-      middleGlassLoop.position.z = 0;
-      sculpture.add(middleGlassLoop);
-      resources.push(middleGeometry);
-
-      const innerGeometry = makeSculpturalTubeGeometry(THREE, innerPath, {
-        tubularSegments: 384,
-        radialSegments: 56,
-        radius: .073,
-        depthRatio: .82,
-        phase: 1.4,
+        phase: .55,
         swell: .055,
-        twist: -Math.PI * .2
+        twist: .22
       });
-      innerChromeLoop = new THREE.Mesh(innerGeometry, innerChromeMaterial);
-      innerChromeLoop.position.z = .13;
-      sculpture.add(innerChromeLoop);
-      resources.push(innerGeometry);
+      resources.push(signatureGeometry);
+
+      const loopSpecs = [
+        { name: "outer", scale: 1, z: -.075 },
+        { name: "middle", scale: .735, z: 0 },
+        { name: "inner", scale: .47, z: .075 }
+      ];
+
+      loopSpecs.forEach(spec => {
+        const geometry = signatureGeometry.clone();
+        const loop = new THREE.Mesh(geometry, signatureMaterial);
+        loop.name = "ORBE signature loop " + spec.name;
+        loop.scale.setScalar(spec.scale);
+        loop.position.z = spec.z;
+        sculpture.add(loop);
+        resources.push(geometry);
+
+        if (spec.name === "outer") outerChromeLoop = loop;
+        if (spec.name === "middle") middleGlassLoop = loop;
+        if (spec.name === "inner") innerChromeLoop = loop;
+      });
 
       const pearlGeometry = new THREE.SphereGeometry(.16, 128, 96);
       pearl = new THREE.Mesh(pearlGeometry, pearlMaterial);
