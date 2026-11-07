@@ -172,7 +172,8 @@
     'naya-house': {
       name:'NAYA HOUSE', number:'001', type:'HOSPITALITY / WEBSITE CONCEPT',
       lede:'Une adresse à ressentir avant même d’y arriver.',
-      discipline:'Hospitality / Digital experience',
+      discipline:'Hospitalité / Expérience numérique',
+      scopeShort:'Direction artistique · UX · UI responsive',
       intro:'NAYA HOUSE imagine l’expérience numérique d’un refuge côtier contemporain. Le concept place l’atmosphère au premier plan : lumière chaude, horizons ouverts et rythme éditorial apaisé.',
       headline:'Concevoir une première impression qui donne envie de ralentir.',
       questionTitle:'Comment faire ressentir un lieu à travers un écran ?',
@@ -191,7 +192,8 @@
     'forme': {
       name:'FORME', number:'002', type:'COMMERCE / E-COMMERCE CONCEPT',
       lede:'Des objets du quotidien, traités comme des pièces de collection.',
-      discipline:'Commerce / E-commerce experience',
+      discipline:'Commerce / Expérience e-commerce',
+      scopeShort:'Catalogue · Fiches produit · Panier',
       intro:'FORME est une boutique conceptuelle dédiée aux objets et à la décoration. L’exploration cherche l’équilibre entre une direction artistique affirmée, une découverte produit tactile et un parcours d’achat sans friction.',
       headline:'Donner au produit l’espace qu’il mérite.',
       questionTitle:'Comment rendre une boutique mémorable sans ralentir l’achat ?',
@@ -210,7 +212,8 @@
     'flowstate': {
       name:'FLOWSTATE', number:'003', type:'DIGITAL PRODUCT / APPLICATION CONCEPT',
       lede:'Moins de bruit. Une meilleure lecture du travail.',
-      discipline:'Digital product / Productivity interface',
+      discipline:'Produit numérique / Interface de productivité',
+      scopeShort:'Architecture · Tableau de bord · États UI',
       intro:'FLOWSTATE imagine un espace de travail pour suivre projets, tâches et priorités. Le concept s’intéresse à la densité d’information : rendre un système riche compréhensible dès le premier regard.',
       headline:'Transformer la complexité en clarté opérationnelle.',
       questionTitle:'Comment donner une vue d’ensemble sans surcharger le tableau de bord ?',
@@ -235,7 +238,9 @@
     const data = projectData[key];
     document.body.dataset.caseLayout = key;
     const prototypeCopy = {
-      'naya-house': ['03 / THE GUEST JOURNEY','Enter the','slower side.','Une expérience d’hospitalité qui commence par une atmosphère, puis glisse naturellement vers la préparation du séjour.','IMMERSIVE WEB EXPERIENCE'],
+      'naya-house': ['03 / PARCOURS INVITÉ','Retrouver le','temps juste.','Une expérience d’hospitalité qui commence par une atmosphère, puis accompagne la préparation du séjour.','ÉTUDE D’EXPÉRIENCE IMMERSIVE'],
+      'forme': ['03 / COLLECTION','Des objets avec','présence.','Une vitrine éditoriale pensée comme une galerie : les objets prennent la place, le récit accompagne.','ÉTUDE DE COMMERCE ÉDITORIAL'],
+      'flowstate': ['03 / ESPACE DE TRAVAIL','La clarté au','quotidien.','Un espace produit dense et fonctionnel, conçu pour faire émerger les priorités et rapprocher les actions du contexte.','ÉTUDE D’INTERFACE PRODUIT'],
       'forme': ['03 / THE COLLECTION','Objects with','presence.','Une vitrine éditoriale pensée comme une galerie : les objets prennent la place, le récit accompagne.','EDITORIAL COMMERCE STUDY'],
       'flowstate': ['03 / THE WORKSPACE','Clarity at','work.','Un espace produit dense et fonctionnel, conçu pour faire émerger les priorités et rapprocher les actions du contexte.','PRODUCT INTERFACE STUDY']
     }[key];
@@ -251,14 +256,15 @@
     if(prototypeTitle) prototypeTitle.innerHTML=prototypeCopy[1]+' <em>'+prototypeCopy[2]+'</em>';
     const fields = {
       '#case-name':data.name,'#case-type':data.type,'#case-lede':data.lede,
-      '#case-discipline':data.discipline,'#case-intro':data.intro,'#case-headline':data.headline,
+      '#case-discipline':data.discipline,'#case-scope':data.scopeShort,'#case-intro':data.intro,'#case-headline':data.headline,
       '#case-question-title':data.questionTitle,'#case-question':data.question,
       '#case-response-title':data.responseTitle,'#case-response':data.response,
       '#case-principle-one-title':data.p1t,'#case-principle-one':data.p1,
       '#case-principle-two-title':data.p2t,'#case-principle-two':data.p2,
       '#case-principle-three-title':data.p3t,'#case-principle-three':data.p3,
       '#case-scope-intro':data.scopeIntro,'#case-scope-a':data.scope[0],
-      '#case-scope-b':data.scope[1],'#case-scope-c':data.scope[2],'#case-scope-d':data.scope[3]
+      '#case-scope-b':data.scope[1],'#case-scope-c':data.scope[2],'#case-scope-d':data.scope[3],
+      '#case-honesty':data.honesty
     };
     Object.entries(fields).forEach(([selector,value])=>put(selector,value));
     put('[data-case-number]',data.number);
@@ -272,7 +278,7 @@
     if(next) next.href='project.html?ref='+data.next;
     const art=one('#case-art');
     if(art){art.src=data.art;art.alt='Étude visuelle du concept '+data.name;}
-    document.title=data.name+' — Project study — ORBE & ONIX';
+    document.title=data.name+' — Étude de cas — ORBE & ONIX';
   }
 
   // Interactive concept prototypes. All state is local to this browser session.
@@ -285,9 +291,9 @@
   const nayaDemo = one('[data-project-demo="naya-house"]');
   if (nayaDemo) {
     const scenes = {
-      stay: { title:'A place to<br><em>slow down.</em>', copy:'Un refuge pensé pour retrouver le rythme du paysage, entre lumière douce, matières naturelles et horizons ouverts.', caption:'COASTAL LIVING / CAMEROON' },
-      spaces: { title:'Space to<br><em>feel at home.</em>', copy:'Des espaces ouverts, des matières tactiles et des perspectives cadrées sur le paysage. Chaque détail invite à prendre son temps.', caption:'SPACES / MATERIAL / LIGHT' },
-      rituals: { title:'Find your own<br><em>rhythm.</em>', copy:'Un café face à la lumière, une marche au bord de l’eau, une fin de journée sans programme. Le séjour se compose à votre rythme.', caption:'SLOW MOMENTS / DAILY RITUALS' }
+      stay: { title:'Un lieu pour<br><em>ralentir.</em>', copy:'Un refuge pensé pour retrouver le rythme du paysage, entre lumière douce, matières naturelles et horizons ouverts.', caption:'SÉJOUR CÔTIER / CAMEROUN' },
+      spaces: { title:'De l’espace pour<br><em>respirer.</em>', copy:'Des espaces ouverts, des matières tactiles et des perspectives cadrées sur le paysage. Chaque détail invite à prendre son temps.', caption:'ESPACES / MATIÈRE / LUMIÈRE' },
+      rituals: { title:'Trouver votre<br><em>rythme.</em>', copy:'Un café face à la lumière, une marche au bord de l’eau, une fin de journée sans programme. Le séjour se compose à votre rythme.', caption:'INSTANTS CALMES / RITUELS DU JOUR' }
     };
     all('[data-naya-scene]').filter(node => node.tagName === 'BUTTON').forEach(button => {
       button.addEventListener('click', () => {
@@ -342,11 +348,11 @@
     const clear = one('[data-forme-clear]');
     const renderBag = () => {
       if (count) count.textContent = String(bag.length).padStart(2,'0');
-      if (summary) summary.textContent = bag.length ? bag.join(' · ') : 'Your bag is empty. Select an object to begin.';
+      if (summary) summary.textContent = bag.length ? bag.join(' · ') : 'Votre panier est vide. Choisissez un objet pour commencer.';
       if (clear) clear.disabled = bag.length === 0;
       all('[data-forme-add]').forEach(button => {
         const selected = bag.includes(button.dataset.formeAdd);
-        button.textContent = selected ? 'Added ✓' : 'Add to bag +';
+        button.textContent = selected ? 'Ajouté ✓' : 'Ajouter au panier +';
         button.setAttribute('aria-pressed',String(selected));
       });
     };
