@@ -3213,3 +3213,28 @@ body.door-reveal-active .site-header,body.door-reveal-active main,body.door-reve
 @media(prefers-reduced-motion:reduce){
   .study-fullscreen-toggle{transition:none}
 }
+
+
+/* Object-study capture and keyboard focus refinements. */
+.study-capture-button:disabled{opacity:.55;cursor:progress}
+.study-capture-status{
+  flex:1 0 100%;
+  min-width:0;
+  color:#d8d0f3;
+  font:7px var(--mono,"IBM Plex Mono",monospace);
+  letter-spacing:.045em;
+  line-height:1.5;
+  text-align:right;
+  overflow-wrap:anywhere;
+}
+.study-capture-status:empty{display:none}
+.study-3d-stage:focus-visible{
+  outline:1px solid #c9c0ff88;
+  outline-offset:4px;
+}
+@media(max-width:760px){
+  .study-capture-status{text-align:left}
+}
+@media(prefers-reduced-motion:reduce){
+  .study-capture-button{transition:none}
+}
