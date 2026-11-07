@@ -22,6 +22,7 @@ jobs:
       - name: Validate site
         run: |
           node --check assets/site.js
+          node --check assets/hero-3d.js
           node scripts/check-site.mjs
       - name: Configure Pages
         uses: actions/configure-pages@v5
