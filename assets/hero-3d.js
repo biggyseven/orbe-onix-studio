@@ -700,12 +700,18 @@
         const nextView = button.dataset.sculptureView;
         const preset = viewPresets[nextView];
         if (!preset) return;
+        // Start the transition from the exact pose currently visible on screen.
+        viewRotation = {
+          x: sculpture.rotation.x,
+          y: sculpture.rotation.y,
+          z: sculpture.rotation.z
+        };
+        rotationPhase = 0;
         activeView = nextView;
         targetViewRotation = { x: preset.x, y: preset.y, z: preset.z };
         targetCameraZ = preset.cameraZ;
         viewTransitionActive = !reducedMotion;
         stage.classList.toggle("is-view-transitioning", viewTransitionActive);
-        rotationPhase = 0;
         if (reducedMotion) {
           viewRotation = { ...targetViewRotation };
           camera.position.z = targetCameraZ;
@@ -724,6 +730,12 @@
 
       if (resetButton) {
         resetButton.addEventListener("click", () => {
+          viewRotation = {
+            x: sculpture.rotation.x,
+            y: sculpture.rotation.y,
+            z: sculpture.rotation.z
+          };
+          rotationPhase = 0;
           activeView = "front";
           targetViewRotation = { ...viewPresets.front };
           targetCameraZ = viewPresets.front.cameraZ;
@@ -770,7 +782,7 @@
 
           viewRotation = {
             x: sculpture.rotation.x,
-            y: sculpture.rotation.y - rotationPhase,
+            y: sculpture.rotation.y,
             z: sculpture.rotation.z
           };
           targetViewRotation = { ...viewRotation };
