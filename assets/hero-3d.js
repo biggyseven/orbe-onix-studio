@@ -457,6 +457,63 @@
       bridge.position.z = 0;
       sculpture.add(bridge);
 
+      const materialFocusMaterials = {
+        chrome: chromeMaterial,
+        glass: glassMaterial,
+        silver: bridgeMaterial
+      };
+      const materialFocusTargets = {
+        chrome: {
+          chrome: { env: 2.72, roughness: .082 },
+          glass: { env: 1.62, roughness: .09, transmission: .7 },
+          silver: { env: 1.82, roughness: .125 }
+        },
+        glass: {
+          chrome: { env: 1.78, roughness: .135 },
+          glass: { env: 2.55, roughness: .042, transmission: .87 },
+          silver: { env: 1.82, roughness: .125 }
+        },
+        silver: {
+          chrome: { env: 1.78, roughness: .135 },
+          glass: { env: 1.58, roughness: .095, transmission: .69 },
+          silver: { env: 2.86, roughness: .064 }
+        }
+      };
+      let activeMaterialKey = "chrome";
+      let materialFocusActive = !reducedMotion;
+
+      const applyMaterialFocus = alpha => {
+        const targets = materialFocusTargets[activeMaterialKey];
+        let remaining = false;
+        Object.entries(materialFocusMaterials).forEach(([key, material]) => {
+          const target = targets[key];
+          material.envMapIntensity += (target.env - material.envMapIntensity) * alpha;
+          material.roughness += (target.roughness - material.roughness) * alpha;
+          if (key === "glass" && target.transmission !== undefined) {
+            material.transmission += (target.transmission - material.transmission) * alpha;
+          }
+          const transmissionRemaining = key === "glass" && target.transmission !== undefined
+            ? Math.abs(target.transmission - material.transmission) > .003
+            : false;
+          if (
+            Math.abs(target.env - material.envMapIntensity) > .008 ||
+            Math.abs(target.roughness - material.roughness) > .0015 ||
+            transmissionRemaining
+          ) remaining = true;
+        });
+        materialFocusActive = remaining;
+        if (!remaining) {
+          Object.entries(materialFocusMaterials).forEach(([key, material]) => {
+            const target = targets[key];
+            material.envMapIntensity = target.env;
+            material.roughness = target.roughness;
+            if (key === "glass" && target.transmission !== undefined) {
+              material.transmission = target.transmission;
+            }
+          });
+        }
+      };
+
       const pearlGeometry = new THREE.SphereGeometry(.205, 112, 80);
       pearl = new THREE.Mesh(pearlGeometry, pearlMaterial);
       pearl.position.set(-.08, .08, .08);
@@ -499,6 +556,31 @@
       let viewTransitionActive = false;
       let targetCameraZ = camera.position.z;
       const motionControls = document.querySelector("[data-sculpture-controls]");
+      const exhibitionViewer = document.querySelector("[data-exhibition-viewer]");
+      const fullscreenButton = document.querySelector("[data-exhibition-fullscreen]");
+      const fullscreenLabel = fullscreenButton?.querySelector("[data-fullscreen-label]");
+      const syncFullscreenState = () => {
+        const active = Boolean(exhibitionViewer && document.fullscreenElement === exhibitionViewer);
+        if (fullscreenButton) fullscreenButton.setAttribute("aria-pressed", String(active));
+        if (fullscreenLabel) fullscreenLabel.textContent = active ? "Quitter le plein écran" : "Mode exposition";
+        if (exhibitionViewer) exhibitionViewer.classList.toggle("is-fullscreen", active);
+      };
+      if (fullscreenButton && exhibitionViewer?.requestFullscreen) {
+        fullscreenButton.addEventListener("click", async () => {
+          try {
+            if (document.fullscreenElement === exhibitionViewer) {
+              await document.exitFullscreen();
+            } else if (!document.fullscreenElement) {
+              await exhibitionViewer.requestFullscreen();
+            }
+          } catch (error) {
+            if (fullscreenLabel) fullscreenLabel.textContent = "Plein écran indisponible";
+          }
+        });
+        document.addEventListener("fullscreenchange", syncFullscreenState);
+      } else if (fullscreenButton) {
+        fullscreenButton.hidden = true;
+      }
       const motionToggle = motionControls?.querySelector("[data-motion-toggle]");
       const motionLabel = motionControls?.querySelector("[data-motion-label]");
       const motionStatus = motionControls?.querySelector("[data-motion-status]");
@@ -512,7 +594,7 @@
         side: { x: -.04, y: 1.48, z: -.035, cameraZ: camera.position.z + .28 }
       };
 
-      const hasActiveAnimation = () => motionPlaying || viewTransitionActive || lightTransitionActive;
+      const hasActiveAnimation = () => motionPlaying || viewTransitionActive || lightTransitionActive || materialFocusActive;
       const approachAngle = (current, target, amount) => {
         const difference = Math.atan2(Math.sin(target - current), Math.cos(target - current));
         return current + difference * amount;
@@ -585,6 +667,9 @@
       const selectStudyPart = keyName => {
         const detail = partDetails[keyName];
         if (!detail) return;
+        activeMaterialKey = keyName;
+        materialFocusActive = !reducedMotion;
+        if (reducedMotion) applyMaterialFocus(1);
         partTriggers.forEach(button => {
           const selected = button.dataset.studyPart === keyName;
           button.setAttribute("aria-pressed", String(selected));
@@ -608,7 +693,14 @@
         });
       };
       partTriggers.forEach(button => {
-        button.addEventListener("click", () => selectStudyPart(button.dataset.studyPart));
+        button.addEventListener("click", () => {
+          selectStudyPart(button.dataset.studyPart);
+          if (reducedMotion) {
+            renderer.render(scene, camera);
+          } else {
+            startLoop();
+          }
+        });
       });
       if (partTriggers.length) selectStudyPart("chrome");
 
@@ -641,6 +733,7 @@
         }
 
         if (lightTransitionActive) applyLighting(1 - Math.exp(-delta * 3.1));
+        if (materialFocusActive) applyMaterialFocus(1 - Math.exp(-delta * 3.8));
 
         if (motionPlaying) {
           pointer.x += (pointer.targetX - pointer.x) * .025;
@@ -744,6 +837,7 @@
           rotationSpeed = .16;
           rotationPhase = 0;
           motionPlaying = !reducedMotion;
+          selectStudyPart("chrome");
           setLightingPreset("studio");
           if (reducedMotion) {
             viewRotation = { ...targetViewRotation };
