@@ -262,38 +262,14 @@
         antialias: !compactDevice,
         powerPreference: compactDevice ? "default" : "high-performance"
       });
-      let canvasVisibilityChecked = false;
+      // A successful Three.js render is the reliable readiness signal.
+      // Reading pixels from the default framebuffer is not reliable on every
+      // mobile browser when preserveDrawingBuffer is disabled: Safari may
+      // return transparent pixels after presentation even when the scene drew.
       const revealCanvasWhenDrawn = () => {
-        if (canvasVisibilityChecked || !renderer || !canvas.width || !canvas.height) return;
-        canvasVisibilityChecked = true;
-        try {
-          const gl = renderer.getContext();
-          const pixel = new Uint8Array(4);
-          const samples = [.24, .36, .5, .64, .76];
-          let visiblePixelFound = false;
-          for (const xRatio of samples) {
-            for (const yRatio of samples) {
-              gl.readPixels(
-                Math.min(canvas.width - 1, Math.floor(canvas.width * xRatio)),
-                Math.min(canvas.height - 1, Math.floor(canvas.height * yRatio)),
-                1, 1, gl.RGBA, gl.UNSIGNED_BYTE, pixel
-              );
-              if (pixel[3] > 12 && pixel[0] + pixel[1] + pixel[2] > 75) {
-                visiblePixelFound = true;
-                break;
-              }
-            }
-            if (visiblePixelFound) break;
-          }
-          if (visiblePixelFound) {
-            host.classList.add("is-ready");
-            host.classList.remove("is-fallback");
-            return;
-          }
-        } catch (error) {
-          console.warn("ORBE & ONIX canvas visibility check unavailable.", error);
-        }
-        host.classList.add("is-fallback");
+        if (!renderer || disposed) return;
+        host.classList.add("is-ready");
+        host.classList.remove("is-fallback");
       };
       canvas.addEventListener("webglcontextlost", () => {
         host.classList.remove("is-ready");
