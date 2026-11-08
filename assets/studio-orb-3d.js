@@ -138,7 +138,7 @@
   };
 
   const buildPlanetMaps = THREE => {
-    const width = window.innerWidth < 680 ? 768 : 1024;
+    const width = window.innerWidth < 680 ? 512 : 768;
     const height = width / 2;
     const colorCanvas = document.createElement("canvas");
     colorCanvas.width = width;
@@ -299,10 +299,10 @@
         const wx = nx + (warpA - .5) * .16;
         const wy = sy + (warpB - .5) * .12;
         const wz = nz + (warpA - .5) * .14;
-        const broad = fbm3(wx * 5.2 + 2, wy * 5.2 - 4, wz * 5.2 + 6, 5, 7123);
-        const medium = fbm3(wx * 12.5 - 7, wy * 12.5 + 2, wz * 12.5 + 4, 4, 6143);
-        const fine = fbm3(wx * 34 + 5, wy * 34 - 8, wz * 34 + 1, 3, 5189);
-        const filaments = 1 - Math.abs(fbm3(wx * 19 + 3, wy * 19 + 1, wz * 19 - 5, 3, 4177) * 2 - 1);
+        const broad = fbm3(wx * 5.2 + 2, wy * 5.2 - 4, wz * 5.2 + 6, 3, 7123);
+        const medium = fbm3(wx * 12.5 - 7, wy * 12.5 + 2, wz * 12.5 + 4, 3, 6143);
+        const fine = fbm3(wx * 34 + 5, wy * 34 - 8, wz * 34 + 1, 2, 5189);
+        const filaments = 1 - Math.abs(fbm3(wx * 19 + 3, wy * 19 + 1, wz * 19 - 5, 2, 4177) * 2 - 1);
         const cloudField = broad * .56 + medium * .27 + fine * .11 + filaments * .06;
         const coverage = smoothstep(.585, .735, cloudField);
         const wisps = smoothstep(.54, .68, cloudField + (fine - .5) * .045);
