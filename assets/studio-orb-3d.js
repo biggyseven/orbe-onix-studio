@@ -91,15 +91,18 @@ void main(){
 const CLOUD_FRAG = /* glsl */ `
 uniform sampler2D uClouds;
 uniform vec3 uSun; uniform mat3 uCloudInv; uniform float uSunPower;
+uniform vec2 uCloudUvScale; uniform vec2 uCloudUvOffset; uniform float uLayerOpacity;
 varying vec3 vObj; varying vec3 vWorld;
 ${COMMON}
 void main(){
   vec3 P = normalize(vObj);
   vec2 uv = lonlat(P);
+  vec2 sampleUv = uv * uCloudUvScale + uCloudUvOffset;
   vec2 gx, gy; seamGrad(uv, gx, gy);
-  float d0 = texG(uClouds, uv, gx, gy).r;
-  // fine internal texture: same map re-sampled at 4x, low weight (breaks flat white sheets)
-  float det = texG(uClouds, uv*4.0 + vec2(0.37, 0.11), gx*4.0, gy*4.0).r;
+  gx *= uCloudUvScale; gy *= uCloudUvScale;
+  float d0 = texG(uClouds, sampleUv, gx, gy).r;
+  // Fine internal structure is re-sampled from the same map, without another texture.
+  float det = texG(uClouds, sampleUv*4.0 + vec2(0.37, 0.11), gx*4.0, gy*4.0).r;
   d0 = clamp(d0 * (0.90 + 0.28*det), 0.0, 1.0);
 
   vec3 Lc = normalize(uCloudInv * normalize(uSun));
@@ -108,8 +111,9 @@ void main(){
   vec3 Nn = vec3(-sin(lat)*cos(lon), cos(lat), -sin(lat)*sin(lon));
   float du = dot(Ec, Lc) / (2.0*PI*max(cos(lat), 0.2)) * 0.010;
   float dv = -dot(Nn, Lc) / PI * 0.010;
-  float d1 = texG(uClouds, uv + vec2(du, dv), gx, gy).r;
-  float d2 = texG(uClouds, uv + 2.2*vec2(du, dv), gx, gy).r;
+  vec2 lightShift = vec2(du, dv) * uCloudUvScale;
+  float d1 = texG(uClouds, sampleUv + lightShift, gx, gy).r;
+  float d2 = texG(uClouds, sampleUv + 2.2*lightShift, gx, gy).r;
   float selfShadow = clamp((max(d1, d2) - d0) * 3.2, 0.0, 1.0);
 
   float ndl = dot(P, Lc);
@@ -123,7 +127,7 @@ void main(){
   vec3 cld = albc * sunCol * (lit * shade * uSunPower * 0.70) + albc * amb * 2.2;
   float edge = (1.0 - d0)*(1.0 - d0) * d0 * 4.0 * lit;
   cld += edge * vec3(0.75, 0.78, 1.0) * 0.5;
-  float a = clamp(pow(d0, 0.78) * 1.05, 0.0, 1.0);
+  float a = clamp(pow(d0, 0.78) * 1.05 * uLayerOpacity, 0.0, 1.0);
   gl_FragColor = vec4(display(cld), a);
 }`;
 
@@ -163,10 +167,20 @@ void main(){
 export const SHADERS = { COMMON, VERT, PLANET_FRAG, CLOUD_FRAG, ATMO_FRAG };
 
 /* ------------------------------------------------------------------ app */
+export const CONFIG = Object.freeze({
+  clouds2: true,
+  ozone: false,
+  sunGlare: false,
+  moon: false,
+  satellites: false,
+  ships: false
+});
+
 const SUN_DIR = [-0.85, 0.30, 0.45];
 const TILT = 14 * Math.PI / 180;
 const SPIN = 0.0105;          // rad/s planet (~10 min / turn)
-const CLOUD_DRIFT = 0.0062;   // extra rad/s for the cloud layer
+const CLOUD_DRIFT = 0.0062;   // extra rad/s for the lower cloud layer
+const CLOUDS2_DRIFT = 0.0038; // independent, slower drift for high cirrus
 const PARALLAX = 0.075;       // max camera swing (rad)
 
 function hasWebGL2() {
@@ -220,6 +234,7 @@ export async function mountVespera(container) {
 
   const sun = new THREE.Vector3(...SUN_DIR).normalize();
   const uCloudInv = { value: new THREE.Matrix3() };
+  const uCloudInv2 = { value: new THREE.Matrix3() };
   const uModel = { value: new THREE.Matrix3() };
   const uSunPower = { value: 2.0 };
   const placeholder = new THREE.Texture();
@@ -233,8 +248,22 @@ export async function mountVespera(container) {
   });
   const cloudMat = new THREE.ShaderMaterial({
     vertexShader: VERT, fragmentShader: CLOUD_FRAG, transparent: true, depthWrite: false,
-    uniforms: { uClouds: { value: placeholder }, uSun: { value: sun }, uCloudInv, uSunPower }
+    uniforms: {
+      uClouds: { value: placeholder }, uSun: { value: sun }, uCloudInv, uSunPower,
+      uCloudUvScale: { value: new THREE.Vector2(1, 1) },
+      uCloudUvOffset: { value: new THREE.Vector2(0, 0) },
+      uLayerOpacity: { value: 1.0 }
+    }
   });
+  const clouds2Mat = CONFIG.clouds2 ? new THREE.ShaderMaterial({
+    vertexShader: VERT, fragmentShader: CLOUD_FRAG, transparent: true, depthWrite: false,
+    uniforms: {
+      uClouds: { value: placeholder }, uSun: { value: sun }, uCloudInv: uCloudInv2, uSunPower,
+      uCloudUvScale: { value: new THREE.Vector2(2.05, 2.2) },
+      uCloudUvOffset: { value: new THREE.Vector2(0.23, 0.37) },
+      uLayerOpacity: { value: 0.16 }
+    }
+  }) : null;
   const atmoMat = new THREE.ShaderMaterial({
     vertexShader: VERT, fragmentShader: ATMO_FRAG, transparent: true, depthWrite: false,
     blending: THREE.AdditiveBlending, uniforms: { uSun: { value: sun } }
@@ -245,10 +274,21 @@ export async function mountVespera(container) {
   system.rotation.z = TILT;
   const planet = new THREE.Mesh(new THREE.SphereGeometry(1.0, ...seg), planetMat);
   const clouds = new THREE.Mesh(new THREE.SphereGeometry(1.014, ...seg), cloudMat);
+  const clouds2 = CONFIG.clouds2
+    ? new THREE.Mesh(new THREE.SphereGeometry(1.03, ...seg), clouds2Mat)
+    : null;
   const atmo = new THREE.Mesh(new THREE.SphereGeometry(1.14, 96, 64), atmoMat);
-  clouds.renderOrder = 1; atmo.renderOrder = 2;
+  clouds.renderOrder = 1;
+  if (clouds2) {
+    clouds2.renderOrder = 2;
+    clouds2.rotation.y = -0.22;
+    clouds2.rotation.x = 0.012;
+  }
+  atmo.renderOrder = clouds2 ? 3 : 2;
   planet.rotation.y = 0.35;
-  system.add(planet, clouds); scene.add(system, atmo);
+  system.add(planet, clouds);
+  if (clouds2) system.add(clouds2);
+  scene.add(system, atmo);
 
   /* --- textures (1024 first for a fast reveal, then the final tier) --- */
   const loader = new THREE.TextureLoader();
@@ -269,6 +309,7 @@ export async function mountVespera(container) {
     planetMat.uniforms.uColor.value = set.color; planetMat.uniforms.uNormal.value = set.normal;
     planetMat.uniforms.uOrm.value = set.orm; planetMat.uniforms.uClouds.value = set.clouds;
     cloudMat.uniforms.uClouds.value = set.clouds;
+    if (clouds2Mat) clouds2Mat.uniforms.uClouds.value = set.clouds;
     if (current) Object.values(current).forEach((t) => t.dispose());
     current = set;
   };
@@ -292,6 +333,7 @@ export async function mountVespera(container) {
     if (!reduced.matches) {
       planet.rotation.y += SPIN * dt;
       clouds.rotation.y += (SPIN + CLOUD_DRIFT) * dt;
+      if (clouds2) clouds2.rotation.y += (SPIN + CLOUDS2_DRIFT) * dt;
       cx += (tx - cx) * Math.min(1, dt * 2.2); cy += (ty - cy) * Math.min(1, dt * 2.2);
     }
     camera.position.set(Math.sin(cx) * dist * Math.cos(cy), Math.sin(cy) * dist, Math.cos(cx) * dist * Math.cos(cy));
@@ -299,6 +341,7 @@ export async function mountVespera(container) {
     system.updateMatrixWorld(true);
     uModel.value.setFromMatrix4(planet.matrixWorld);
     uCloudInv.value.setFromMatrix4(clouds.matrixWorld).invert();
+    if (clouds2) uCloudInv2.value.setFromMatrix4(clouds2.matrixWorld).invert();
     renderer.render(scene, camera);
   };
   const tick = (now) => {
