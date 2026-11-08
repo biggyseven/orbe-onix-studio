@@ -1120,7 +1120,7 @@
       if (motionToggle) {
         motionToggle.addEventListener("click", () => {
           motionPlaying = !motionPlaying;
-          lastElapsed = clock.getElapsedTime();
+          timer.reset();
           if (hasActiveAnimation()) startLoop();
           else {
             stopLoop();
@@ -1192,7 +1192,7 @@
             viewRotation = { ...targetViewRotation };
             camera.position.z = targetCameraZ * cameraFramingScale;
           }
-          lastElapsed = clock.getElapsedTime();
+          timer.reset();
           updateMotionControls();
           stopLoop();
           startLoop();
