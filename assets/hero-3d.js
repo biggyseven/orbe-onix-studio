@@ -7,6 +7,50 @@
   const stage = host.closest(".hero-v07-stage");
   if (!canvas || !stage) return;
 
+  // Opt-in browser diagnostics. Nothing is displayed unless ?debug3d=1 is present.
+  const debug3DEnabled = new URLSearchParams(window.location.search).get("debug3d") === "1";
+  let debug3DPanel = null;
+  const debug3DLog = [];
+  const debug3D = (label, details = null) => {
+    const entry = { time: new Date().toLocaleTimeString(), label, details };
+    debug3DLog.push(entry);
+    if (debug3DLog.length > 12) debug3DLog.shift();
+    if (!debug3DEnabled) return;
+    if (!debug3DPanel) {
+      debug3DPanel = document.createElement("pre");
+      debug3DPanel.setAttribute("role", "status");
+      debug3DPanel.style.cssText = [
+        "position:fixed", "top:8px", "left:8px", "right:8px",
+        "z-index:2147483647", "max-height:48vh", "overflow:auto",
+        "margin:0", "padding:12px", "border:1px solid #a995ec",
+        "border-radius:8px", "background:rgba(10,9,16,.96)",
+        "color:#f0edff", "font:11px/1.5 ui-monospace,monospace",
+        "white-space:pre-wrap", "overflow-wrap:anywhere",
+        "pointer-events:none", "box-shadow:0 8px 32px #0009"
+      ].join(";");
+      document.body.appendChild(debug3DPanel);
+    }
+    debug3DPanel.textContent = "ORBE & ONIX · 3D DIAGNOSTIC\n"
+      + debug3DLog.map(item => item.time + " · " + item.label
+        + (item.details ? "\n" + JSON.stringify(item.details) : "")).join("\n\n");
+  };
+  const errorText = error => error && (error.stack || error.message)
+    ? String(error.stack || error.message)
+    : String(error);
+
+  debug3D("script-start", {
+    viewport: [window.innerWidth, window.innerHeight],
+    devicePixelRatio: window.devicePixelRatio,
+    stage: [Math.round(stage.getBoundingClientRect().width), Math.round(stage.getBoundingClientRect().height)],
+    host: [Math.round(host.getBoundingClientRect().width), Math.round(host.getBoundingClientRect().height)]
+  });
+  window.addEventListener("error", event => debug3D("window-error", {
+    message: event.message, file: event.filename, line: event.lineno, column: event.colno
+  }));
+  window.addEventListener("unhandledrejection", event => debug3D("unhandled-rejection", {
+    reason: errorText(event.reason)
+  }));
+
   const CDN = "https://cdn.jsdelivr.net/npm/three@0.187.0/build/three.module.js";
   const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   const finePointer = window.matchMedia("(pointer: fine)").matches;
@@ -26,7 +70,8 @@
   const pointer = { x: 0, y: 0, targetX: 0, targetY: 0 };
   const resources = [];
 
-  const fallback = () => {
+  const fallback = error => {
+    debug3D("fallback", error ? { error: errorText(error) } : null);
     host.classList.remove("is-ready");
     host.classList.add("is-fallback");
     if (renderer) {
@@ -213,7 +258,9 @@
 
   const start = async () => {
     try {
+      debug3D("three-import-start", { url: CDN });
       const THREE = await import(CDN);
+      debug3D("three-import-ok", { revision: THREE.REVISION });
       if (disposed || !canvas.isConnected) return;
 
       scene = new THREE.Scene();
@@ -255,6 +302,13 @@
         alpha: true,
         antialias: true,
         powerPreference: "high-performance"
+      });
+      const diagnosticGL = renderer.getContext();
+      debug3D("webgl-context-created", {
+        version: diagnosticGL.getParameter(diagnosticGL.VERSION),
+        shadingLanguage: diagnosticGL.getParameter(diagnosticGL.SHADING_LANGUAGE_VERSION),
+        maxTextureSize: diagnosticGL.getParameter(diagnosticGL.MAX_TEXTURE_SIZE),
+        contextLost: diagnosticGL.isContextLost()
       });
       // A successful Three.js render is the reliable readiness signal.
       // Reading pixels from the default framebuffer is not reliable on every
@@ -462,6 +516,11 @@
       if (clearances.some(gap => gap < .035)) {
         throw new Error("Hero sculpture links are too close: " + clearances.map(value => value.toFixed(3)).join(", "));
       }
+      debug3D("sculpture-built", {
+        children: sculpture.children.length,
+        clearances: clearances.map(value => Number(value.toFixed(3))),
+        tubeSegments
+      });
       const bridgeGeometry = makeSculpturalTubeGeometry(THREE, bridgePath, {
         tubularSegments: tubeSegments,
         radialSegments: 80,
@@ -585,6 +644,18 @@
         renderer.setSize(width, height, false);
         renderer.render(scene, camera);
         revealCanvasWhenDrawn();
+        debug3D("resize-render", {
+          viewport: [window.innerWidth, window.innerHeight],
+          stage: [Math.round(stageRect.width), Math.round(stageRect.height)],
+          host: [Math.round(hostRect.width), Math.round(hostRect.height)],
+          canvas: [canvas.width, canvas.height],
+          cssCanvas: [Math.round(canvas.getBoundingClientRect().width), Math.round(canvas.getBoundingClientRect().height)],
+          objectScale: Number(sculpture.scale.x.toFixed(3)),
+          cameraZ: Number(camera.position.z.toFixed(3)),
+          drawCalls: renderer.info.render.calls,
+          triangles: renderer.info.render.triangles,
+          contextLost: renderer.getContext().isContextLost()
+        });
       };
 
       if ("ResizeObserver" in window) {
@@ -1290,9 +1361,16 @@
         else startLoop();
       });
       startLoop();
+      debug3D("start-complete", {
+        hostClasses: host.className,
+        canvas: [canvas.width, canvas.height],
+        drawCalls: renderer.info.render.calls,
+        triangles: renderer.info.render.triangles
+      });
     } catch (error) {
       console.warn("ORBE & ONIX 3D hero unavailable; CSS fallback enabled.", error);
-      fallback();
+      debug3D("start-error", { error: errorText(error) });
+      fallback(error);
     }
   };
 
