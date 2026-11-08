@@ -10,7 +10,7 @@
   const CDN = "https://cdn.jsdelivr.net/npm/three@0.187.0/build/three.module.js";
   const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   const finePointer = window.matchMedia("(pointer: fine)").matches;
-  const compactDevice = window.matchMedia("(max-width: 760px)").matches
+  const compactDevice = window.matchMedia("(max-width: 820px)").matches
     || (typeof navigator.deviceMemory === "number" && navigator.deviceMemory <= 4);
   let renderer;
   let resizeObserver;
@@ -260,7 +260,7 @@
         canvas,
         alpha: true,
         antialias: !compactDevice,
-        powerPreference: compactDevice ? "low-power" : "high-performance"
+        powerPreference: compactDevice ? "default" : "high-performance"
       });
       let canvasVisibilityChecked = false;
       const revealCanvasWhenDrawn = () => {
@@ -587,7 +587,7 @@
         // study object, proportionally to the real 3D frame dimensions.
         // 520 × 420 px is the reference frame; small screens scale down smoothly.
         if (isStudyScene) {
-          const responsiveScale = Math.max(.45, Math.min(1, width / 520, height / 420));
+          const responsiveScale = Math.max(.42, Math.min(1, width / 520, height / 420));
           sculpture.scale.setScalar(responsiveScale);
         } else {
           sculpture.scale.setScalar(1);
@@ -599,7 +599,7 @@
 
         renderer.setPixelRatio(Math.min(
           window.devicePixelRatio || 1,
-          window.innerWidth < 760 ? 1.25 : 1.65
+          compactDevice ? 1 : 1.65
         ));
         renderer.setSize(width, height, false);
         renderer.render(scene, camera);
@@ -858,8 +858,8 @@
         // Gallery thumbnails are secondary to the live sculpture. Keep their
         // GPU cost modest on compact screens and avoid multisample buffers there.
         const compactViewport = window.matchMedia("(max-width: 760px)").matches;
-        const width = compactViewport ? 420 : 720;
-        const height = compactViewport ? 315 : 540;
+        const width = compactViewport ? 360 : 720;
+        const height = compactViewport ? 270 : 540;
         const ratio = renderer.getPixelRatio();
         const target = new THREE.WebGLRenderTarget(width, height, {
           format: THREE.RGBAFormat,
