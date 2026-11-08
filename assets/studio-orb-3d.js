@@ -1,700 +1,355 @@
-// ORBE & ONIX — VESPERA / 001, a procedural exoplanet and synchronized orbital system.
-(() => {
-  const host = document.querySelector("[data-studio-orb3d]");
-  if (!host) return;
-  const canvas = host.querySelector("canvas");
-  if (!canvas) return;
+/* VESPERA — ORBE & ONIX Studio
+ * Three.js r187 · 3 shader layers (surface, clouds, atmosphere) · one directional sun.
+ * Load with: <script type="module" src="assets/studio-orb-3d.js"></script>
+ * Textures: assets/vespera/{1024,2048,4096}/{color,normal,orm,clouds}.webp
+ *           (made by scripts/make_vespera_textures.py)
+ */
+const THREE_URL = 'https://cdn.jsdelivr.net/npm/three@0.187.0/build/three.module.js';
+const BASE = new URL('./vespera/', import.meta.url).href;
 
-  const THREE_CDN = "https://cdn.jsdelivr.net/npm/three@0.187.0/build/three.module.js";
-  const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-  const finePointer = window.matchMedia("(pointer: fine)").matches;
-  let renderer = null;
-  let scene = null;
-  let camera = null;
-  let systemRig = null;
-  let planetRig = null;
-  let cloudLayer = null;
-  let atmosphereMaterial = null;
-  let orbitalRig = null;
-  let resizeObserver = null;
-  let intersectionObserver = null;
-  let animationFrame = 0;
-  let started = false;
-  let visible = true;
-  let disposed = false;
-  let elapsed = 0;
-  let lastTime = 0;
-  const pointer = { x: 0, y: 0, targetX: 0, targetY: 0 };
-  const resources = [];
+/* ------------------------------------------------------------------ GLSL */
+const COMMON = /* glsl */ `
+const float PI = 3.14159265359;
+vec3 acesFilm(vec3 x){ return clamp((x*(2.51*x+0.03))/(x*(2.43*x+0.59)+0.14), 0.0, 1.0); }
+vec3 toSRGB(vec3 c){ c = clamp(c, 0.0, 1.0);
+  return mix(c*12.92, 1.055*pow(c, vec3(1.0/2.4)) - 0.055, step(0.0031308, c)); }
+vec3 display(vec3 c){ return toSRGB(acesFilm(c)); }
+// image-space coords: u east 0..1, v 0 (north) .. 1 (south)
+vec2 lonlat(vec3 p){ return vec2(atan(p.z, p.x)/(2.0*PI) + 0.5, 0.5 - asin(clamp(p.y,-1.0,1.0))/PI); }
+// seam-safe derivatives (atan jumps at lon = +-PI would otherwise break mip selection)
+void seamGrad(vec2 uv, out vec2 gx, out vec2 gy){
+  vec2 uvB = vec2(fract(uv.x + 0.5) - 0.5, uv.y);
+  gx = dFdx(uv); gy = dFdy(uv);
+  vec2 bx = dFdx(uvB), by = dFdy(uvB);
+  if (dot(bx,bx) + dot(by,by) < dot(gx,gx) + dot(gy,gy)) { gx = bx; gy = by; }
+}
+// textures are flipY = true -> sample with 1 - v
+vec4 texG(sampler2D s, vec2 uv, vec2 gx, vec2 gy){
+  return textureGrad(s, vec2(uv.x, 1.0 - uv.y), vec2(gx.x, -gx.y), vec2(gy.x, -gy.y));
+}
+`;
 
-  const clamp = (value, low, high) => Math.max(low, Math.min(high, value));
-  const mix = (a, b, t) => a + (b - a) * t;
-  const smoothstep = (a, b, value) => {
-    const t = clamp((value - a) / (b - a), 0, 1);
-    return t * t * (3 - 2 * t);
-  };
-  const hash3 = (x, y, z, seed) => {
-    let h = Math.imul(x | 0, 374761393);
-    h = (h + Math.imul(y | 0, 668265263)) | 0;
-    h = (h + Math.imul(z | 0, 2147483647) + (seed | 0)) | 0;
-    h = Math.imul(h ^ (h >>> 13), 1274126177);
-    h ^= h >>> 16;
-    return (h >>> 0) / 4294967295;
-  };
-  const valueNoise3 = (x, y, z, seed) => {
-    const ix = Math.floor(x);
-    const iy = Math.floor(y);
-    const iz = Math.floor(z);
-    const fx0 = x - ix;
-    const fy0 = y - iy;
-    const fz0 = z - iz;
-    const fx = fx0 * fx0 * (3 - 2 * fx0);
-    const fy = fy0 * fy0 * (3 - 2 * fy0);
-    const fz = fz0 * fz0 * (3 - 2 * fz0);
-    const x00 = mix(hash3(ix, iy, iz, seed), hash3(ix + 1, iy, iz, seed), fx);
-    const x10 = mix(hash3(ix, iy + 1, iz, seed), hash3(ix + 1, iy + 1, iz, seed), fx);
-    const x01 = mix(hash3(ix, iy, iz + 1, seed), hash3(ix + 1, iy, iz + 1, seed), fx);
-    const x11 = mix(hash3(ix, iy + 1, iz + 1, seed), hash3(ix + 1, iy + 1, iz + 1, seed), fx);
-    return mix(mix(x00, x10, fy), mix(x01, x11, fy), fz);
-  };
-  const fbm3 = (x, y, z, octaves, seed) => {
-    let value = 0;
-    let amplitude = .5;
-    let total = 0;
-    let frequency = 1;
-    for (let octave = 0; octave < octaves; octave += 1) {
-      value += valueNoise3(x * frequency, y * frequency, z * frequency, seed + octave * 97) * amplitude;
-      total += amplitude;
-      amplitude *= .5;
-      frequency *= 2.03;
+const VERT = /* glsl */ `
+varying vec3 vObj;
+varying vec3 vWorld;
+void main(){
+  vObj = position;
+  vec4 wp = modelMatrix * vec4(position, 1.0);
+  vWorld = wp.xyz;
+  gl_Position = projectionMatrix * viewMatrix * wp;
+}`;
+
+const PLANET_FRAG = /* glsl */ `
+uniform sampler2D uColor; uniform sampler2D uNormal; uniform sampler2D uOrm; uniform sampler2D uClouds;
+uniform vec3 uSun; uniform mat3 uModel; uniform mat3 uCloudInv; uniform float uSunPower;
+varying vec3 vObj; varying vec3 vWorld;
+${COMMON}
+void main(){
+  vec3 N = normalize(vObj);
+  vec2 uv = lonlat(N);
+  vec2 gx, gy; seamGrad(uv, gx, gy);
+  vec3 alb = texG(uColor, uv, gx, gy).rgb;
+  vec3 nm  = texG(uNormal, uv, gx, gy).xyz * 2.0 - 1.0;
+  vec3 orm = texG(uOrm, uv, gx, gy).rgb;
+
+  float lon = (uv.x - 0.5) * 2.0 * PI, lat = (0.5 - uv.y) * PI;
+  vec3 east  = vec3(-sin(lon), 0.0, cos(lon));
+  vec3 north = vec3(-sin(lat)*cos(lon), cos(lat), -sin(lat)*sin(lon));
+  vec3 nLoc = normalize(nm.x*east + nm.y*north + nm.z*N);
+  vec3 Nw = normalize(uModel * N);
+  vec3 nW = normalize(uModel * nLoc);
+  vec3 V = normalize(cameraPosition - vWorld);
+  vec3 L = normalize(uSun);
+
+  // soft shadow of the cloud layer, cast away from the sun
+  vec3 Lt = L - Nw * dot(L, Nw);
+  vec3 pc = normalize(uCloudInv * normalize(Nw - 0.020 * Lt));
+  vec2 uvc = lonlat(pc);
+  float shadow = textureLod(uClouds, vec2(uvc.x, 1.0 - uvc.y), 2.5).r;
+
+  float ndl = dot(nW, L), ndlS = dot(Nw, L);
+  float diff = clamp(ndl, 0.0, 1.0);
+  float term = smoothstep(-0.02, 0.18, ndlS);
+  vec3 H = normalize(L + V);
+  float rough = clamp(orm.g, 0.25, 1.0);
+  float a2 = pow(rough*rough, 2.0);
+  float ndh = clamp(dot(nW, H), 0.0, 1.0);
+  float dd = ndh*ndh*(a2 - 1.0) + 1.0;
+  float spec = a2/(PI*dd*dd) * 0.04 * pow(1.0 - rough, 1.5) * clamp(ndl, 0.0, 1.0) * 1.2;
+
+  vec3 sunc = vec3(1.0, 0.95, 0.92);
+  vec3 amb = vec3(0.020, 0.024, 0.060);
+  float cav = orm.r;
+  vec3 col = alb * (1.0 - 0.62*shadow) * (diff*term) * sunc * uSunPower * (0.55 + 0.9*cav)
+           + spec * uSunPower * sunc * term
+           + alb * amb * (0.4 + 0.8*cav);
+  float fres = pow(1.0 - clamp(dot(Nw, V), 0.0, 1.0), 3.0);
+  col += fres * vec3(0.10, 0.09, 0.22) * smoothstep(-0.1, 0.5, ndlS) * 0.4;
+  gl_FragColor = vec4(display(col), 1.0);
+}`;
+
+const CLOUD_FRAG = /* glsl */ `
+uniform sampler2D uClouds;
+uniform vec3 uSun; uniform mat3 uCloudInv; uniform float uSunPower;
+varying vec3 vObj; varying vec3 vWorld;
+${COMMON}
+void main(){
+  vec3 P = normalize(vObj);
+  vec2 uv = lonlat(P);
+  vec2 gx, gy; seamGrad(uv, gx, gy);
+  float d0 = texG(uClouds, uv, gx, gy).r;
+  // fine internal texture: same map re-sampled at 4x, low weight (breaks flat white sheets)
+  float det = texG(uClouds, uv*4.0 + vec2(0.37, 0.11), gx*4.0, gy*4.0).r;
+  d0 = clamp(d0 * (0.90 + 0.28*det), 0.0, 1.0);
+
+  vec3 Lc = normalize(uCloudInv * normalize(uSun));
+  float lon = (uv.x - 0.5) * 2.0 * PI, lat = (0.5 - uv.y) * PI;
+  vec3 Ec = vec3(-sin(lon), 0.0, cos(lon));
+  vec3 Nn = vec3(-sin(lat)*cos(lon), cos(lat), -sin(lat)*sin(lon));
+  float du = dot(Ec, Lc) / (2.0*PI*max(cos(lat), 0.2)) * 0.010;
+  float dv = -dot(Nn, Lc) / PI * 0.010;
+  float d1 = texG(uClouds, uv + vec2(du, dv), gx, gy).r;
+  float d2 = texG(uClouds, uv + 2.2*vec2(du, dv), gx, gy).r;
+  float selfShadow = clamp((max(d1, d2) - d0) * 3.2, 0.0, 1.0);
+
+  float ndl = dot(P, Lc);
+  float lit = smoothstep(-0.12, 0.45, ndl);
+  float warm = smoothstep(0.0, 0.5, ndl);
+  vec3 sunCol = mix(vec3(1.0, 0.70, 0.92), vec3(1.0, 0.985, 0.97), warm);
+  float body = pow(d0, 1.25);
+  vec3 albc = mix(vec3(0.93, 0.93, 0.98), vec3(0.80, 0.74, 1.0), 0.16*body);
+  float shade = (1.0 - 0.55*selfShadow) * (1.0 - 0.28*body);
+  vec3 amb = vec3(0.020, 0.024, 0.060);
+  vec3 cld = albc * sunCol * (lit * shade * uSunPower * 0.70) + albc * amb * 2.2;
+  float edge = (1.0 - d0)*(1.0 - d0) * d0 * 4.0 * lit;
+  cld += edge * vec3(0.75, 0.78, 1.0) * 0.5;
+  float a = clamp(pow(d0, 0.78) * 1.05, 0.0, 1.0);
+  gl_FragColor = vec4(display(cld), a);
+}`;
+
+const ATMO_FRAG = /* glsl */ `
+uniform vec3 uSun;
+varying vec3 vWorld;
+${COMMON}
+void main(){
+  vec3 c = cameraPosition;
+  vec3 d = normalize(vWorld - c);
+  float tc = -dot(c, d);
+  vec3 P = c + d*tc;                 // closest approach to the planet centre
+  float b = length(P);
+  const float Rp = 1.0; const float Hs = 0.024;
+  float mu = sqrt(clamp(1.0 - (b/Rp)*(b/Rp), 0.0, 1.0));
+  float graz = sqrt(2.0*PI*Hs*Rp);
+  float colIn = min(Hs / max(mu, 0.02), graz);
+  float colOut = sqrt(2.0*PI*max(b, 1e-3)*Hs) * exp(-(b - Rp)/Hs);
+  float colden = (b < Rp) ? colIn : colOut;
+  float opac = 1.0 - exp(-3.4*colden);
+  vec3 pt = P;
+  if (b < Rp) { vec3 Hh = c + d*(tc - sqrt(max(Rp*Rp - b*b, 0.0))); pt = P + 0.45*(Hh - P); }
+  vec3 L = normalize(uSun);
+  float s = dot(normalize(pt), L);
+  float day = smoothstep(-0.18, 0.55, s);
+  float twi = exp(-pow(s/0.20, 2.0));
+  float cosT = dot(d, L); const float g = 0.45;
+  float hg = (1.0 - g*g) / (4.0*PI*pow(1.0 + g*g - 2.0*g*cosT, 1.5));
+  float phase = 0.6 + 0.4*(0.75*(1.0 + cosT*cosT)) + 1.1*hg;
+  vec3 dayc = vec3(0.42, 0.52, 1.0), lavc = vec3(0.72, 0.58, 1.0), twic = vec3(1.0, 0.50, 0.80);
+  vec3 acol = (dayc*(1.0 - 0.35*day) + lavc*0.35*day) * day + twic * (twi*0.55);
+  float a = clamp(opac * (0.04 + 0.96*clamp(day + 0.45*twi, 0.0, 1.0)) * phase * 0.60, 0.0, 1.0);
+  if (a < 0.002) discard;
+  gl_FragColor = vec4(display(acol * 0.95), a);
+}`;
+
+export const SHADERS = { COMMON, VERT, PLANET_FRAG, CLOUD_FRAG, ATMO_FRAG };
+
+/* ------------------------------------------------------------------ app */
+const SUN_DIR = [-0.85, 0.30, 0.45];
+const TILT = 14 * Math.PI / 180;
+const SPIN = 0.0105;          // rad/s planet (~10 min / turn)
+const CLOUD_DRIFT = 0.0062;   // extra rad/s for the cloud layer
+const PARALLAX = 0.075;       // max camera swing (rad)
+
+function hasWebGL2() {
+  try { return !!document.createElement('canvas').getContext('webgl2'); } catch { return false; }
+}
+
+function showPoster(container) {
+  container.classList.add('is-fallback');
+  if (container.querySelector('.vespera-poster')) return;
+  const img = new Image();
+  img.className = 'vespera-poster';
+  img.alt = 'VESPERA, planète minérale lavande';
+  img.decoding = 'async';
+  img.src = BASE + 'vespera-poster.webp';
+  container.appendChild(img);
+}
+
+export async function mountVespera(container) {
+  if (container.dataset.vesperaMounted) return;
+  container.dataset.vesperaMounted = '1';
+  if (!hasWebGL2()) return showPoster(container);
+
+  let THREE;
+  try { THREE = await import(THREE_URL); } catch (e) { console.warn('[VESPERA] three.js unavailable', e); return showPoster(container); }
+
+  const coarse = matchMedia('(pointer: coarse)').matches || Math.min(innerWidth, innerHeight) < 700;
+  const reduced = matchMedia('(prefers-reduced-motion: reduce)');
+
+  // Reuse the canvas already present in #studio; do not stack a second blank canvas.
+  const canvas = container.querySelector('canvas') || document.createElement('canvas');
+  canvas.classList.add('vespera-canvas');
+  canvas.setAttribute('aria-hidden', 'true');
+  if (!canvas.isConnected) container.appendChild(canvas);
+
+  let renderer;
+  try {
+    renderer = new THREE.WebGLRenderer({ canvas, antialias: !coarse, alpha: true, powerPreference: 'high-performance' });
+  } catch (e) { canvas.remove(); return showPoster(container); }
+  renderer.setClearColor(0x000000, 0);
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, coarse ? 1.75 : 2));
+  renderer.debug.onShaderError = () => { stop(); canvas.remove(); showPoster(container); };
+
+  const maxTex = renderer.capabilities.maxTextureSize;
+  const mem = navigator.deviceMemory || 4;
+  const tier = (maxTex < 4096 || coarse) ? 2048 : 4096;
+  const finalTier = mem <= 2 ? 1024 : tier;
+  const aniso = Math.min(renderer.capabilities.getMaxAnisotropy(), 8);
+
+  const scene = new THREE.Scene();
+  const camera = new THREE.PerspectiveCamera(24, 1, 0.1, 50);
+
+  const sun = new THREE.Vector3(...SUN_DIR).normalize();
+  const uCloudInv = { value: new THREE.Matrix3() };
+  const uModel = { value: new THREE.Matrix3() };
+  const uSunPower = { value: 2.0 };
+  const placeholder = new THREE.Texture();
+
+  const planetMat = new THREE.ShaderMaterial({
+    vertexShader: VERT, fragmentShader: PLANET_FRAG,
+    uniforms: {
+      uColor: { value: placeholder }, uNormal: { value: placeholder }, uOrm: { value: placeholder }, uClouds: { value: placeholder },
+      uSun: { value: sun }, uModel, uCloudInv, uSunPower
     }
-    return value / total;
-  };
-
-  const makeCraterCatalog = () => {
-    let seed = 7401901;
-    const random = () => {
-      seed = (Math.imul(seed, 1664525) + 1013904223) >>> 0;
-      return seed / 4294967296;
-    };
-    const craters = [];
-    for (let index = 0; index < 31; index += 1) {
-      const y = random() * 1.72 - .86;
-      const angle = random() * Math.PI * 2;
-      const radial = Math.sqrt(1 - y * y);
-      craters.push({
-        x: Math.cos(angle) * radial,
-        y,
-        z: Math.sin(angle) * radial,
-        radius: .025 + Math.pow(random(), 1.7) * .075,
-        depth: .006 + random() * .012
-      });
-    }
-    return craters;
-  };
-  const craters = makeCraterCatalog();
-
-  const craterField = (x, y, z) => {
-    let displacement = 0;
-    let shade = 0;
-    for (let index = 0; index < craters.length; index += 1) {
-      const crater = craters[index];
-      const dot = clamp(x * crater.x + y * crater.y + z * crater.z, -1, 1);
-      if (dot < .986) continue;
-      const chord = Math.sqrt(Math.max(0, 2 - 2 * dot));
-      const q = chord / crater.radius;
-      if (q > 1.48) continue;
-      const bowl = 1 - smoothstep(.04, 1.03, q);
-      const rim = Math.exp(-Math.pow((q - 1.02) / .12, 2));
-      displacement += -crater.depth * bowl * .78 + crater.depth * rim * .38;
-      shade = Math.max(shade, bowl * .42 + rim * .1);
-    }
-    return { displacement, shade };
-  };
-
-  const terrainAt = (x, y, z) => {
-    const continentNoise = fbm3(x * 2.65 + 4.1, y * 2.65 - 1.7, z * 2.65 + 3.2, 4, 1301);
-    const regionalNoise = fbm3(x * 6.7 - 2.4, y * 6.7 + 5.2, z * 6.7 + 1.1, 3, 2711);
-    const detailNoise = fbm3(x * 18.5 + 3.1, y * 18.5, z * 18.5 - 4.2, 4, 3917);
-    const ridgeNoise = fbm3(x * 41 + 1.7, y * 41 - 3.6, z * 41 + 2.2, 3, 5113);
-    const continental = continentNoise * .72 + regionalNoise * .28;
-    const land = smoothstep(.465, .565, continental);
-    const highland = smoothstep(.55, .7, continental + regionalNoise * .12);
-    const ridges = Math.pow(1 - Math.abs(ridgeNoise * 2 - 1), 1.8);
-    const impact = craterField(x, y, z);
-    const elevation = land * (
-      .012 + (regionalNoise - .5) * .018 + detailNoise * .01 +
-      highland * (.012 + ridges * .014)
-    ) - (1 - land) * (.014 + detailNoise * .007) + impact.displacement;
-    return {
-      height: elevation,
-      land,
-      highland: clamp(highland + ridges * highland * .35, 0, 1),
-      detail: detailNoise,
-      ridge: ridges,
-      crater: impact.shade,
-      coast: smoothstep(.435, .535, continental)
-    };
-  };
-
-  const buildPlanetMaps = THREE => {
-    const width = window.innerWidth < 680 ? 512 : 768;
-    const height = width / 2;
-    const colorCanvas = document.createElement("canvas");
-    colorCanvas.width = width;
-    colorCanvas.height = height;
-    const colorContext = colorCanvas.getContext("2d", { alpha: false });
-    const colorPixels = colorContext.createImageData(width, height);
-    const bumpCanvas = document.createElement("canvas");
-    bumpCanvas.width = width;
-    bumpCanvas.height = height;
-    const bumpContext = bumpCanvas.getContext("2d", { alpha: false });
-    const bumpPixels = bumpContext.createImageData(width, height);
-    const roughCanvas = document.createElement("canvas");
-    roughCanvas.width = width;
-    roughCanvas.height = height;
-    const roughContext = roughCanvas.getContext("2d", { alpha: false });
-    const roughPixels = roughContext.createImageData(width, height);
-
-    for (let py = 0; py < height; py += 1) {
-      const latitude = Math.PI * (.5 - py / height);
-      const cosLatitude = Math.cos(latitude);
-      const sy = Math.sin(latitude);
-      for (let px = 0; px < width; px += 1) {
-        const longitude = (px / width) * Math.PI * 2;
-        const x = cosLatitude * Math.cos(longitude);
-        const z = cosLatitude * Math.sin(longitude);
-        const terrain = terrainAt(x, sy, z);
-        const polar = smoothstep(.72, .96, Math.abs(sy));
-        const fineGrain = fbm3(x * 94 + 7, sy * 94 - 2, z * 94 + 5, 2, 6203);
-        const oceanDepth = clamp((.52 - terrain.land) * 2.2 + .2, 0, 1);
-        const shallow = 1 - terrain.coast;
-        let red;
-        let green;
-        let blue;
-
-        const oceanColor = [
-          mix(31, 61, shallow),
-          mix(42, 67, shallow),
-          mix(91, 133, shallow)
-        ];
-        const basinColor = [
-          mix(18, 34, oceanDepth),
-          mix(24, 43, oceanDepth),
-          mix(57, 91, oceanDepth)
-        ];
-        const lowlandColor = [
-          mix(66, 109, terrain.detail),
-          mix(49, 83, terrain.detail),
-          mix(111, 159, terrain.detail)
-        ];
-        const highlandColor = [
-          mix(118, 194, terrain.highland),
-          mix(91, 157, terrain.highland),
-          mix(171, 224, terrain.highland)
-        ];
-        const landMix = smoothstep(.12, .82, terrain.highland);
-        const landR = mix(lowlandColor[0], highlandColor[0], landMix);
-        const landG = mix(lowlandColor[1], highlandColor[1], landMix);
-        const landB = mix(lowlandColor[2], highlandColor[2], landMix);
-        const ice = polar * (.25 + terrain.highland * .6);
-        const craterDarkening = 1 - terrain.crater * .32;
-        const mineralFleck = (fineGrain - .5) * 15;
-
-        red = mix(basinColor[0], oceanColor[0], smoothstep(.7, .98, terrain.coast));
-        green = mix(basinColor[1], oceanColor[1], smoothstep(.7, .98, terrain.coast));
-        blue = mix(basinColor[2], oceanColor[2], smoothstep(.7, .98, terrain.coast));
-        red = mix(red, landR, terrain.land);
-        green = mix(green, landG, terrain.land);
-        blue = mix(blue, landB, terrain.land);
-        red = mix(red, 207, ice);
-        green = mix(green, 205, ice);
-        blue = mix(blue, 232, ice);
-        red = red * craterDarkening + mineralFleck;
-        green = green * craterDarkening + mineralFleck;
-        blue = blue * craterDarkening + mineralFleck * 1.15;
-
-        const index = (py * width + px) * 4;
-        colorPixels.data[index] = clamp(Math.round(red), 0, 255);
-        colorPixels.data[index + 1] = clamp(Math.round(green), 0, 255);
-        colorPixels.data[index + 2] = clamp(Math.round(blue), 0, 255);
-        colorPixels.data[index + 3] = 255;
-
-        const elevationByte = clamp(Math.round(128 + terrain.height * 2350), 0, 255);
-        bumpPixels.data[index] = elevationByte;
-        bumpPixels.data[index + 1] = elevationByte;
-        bumpPixels.data[index + 2] = elevationByte;
-        bumpPixels.data[index + 3] = 255;
-
-        const roughness = mix(42, 208, terrain.land) + terrain.highland * 22 - terrain.coast * 12;
-        const roughByte = clamp(Math.round(roughness), 0, 255);
-        roughPixels.data[index] = roughByte;
-        roughPixels.data[index + 1] = roughByte;
-        roughPixels.data[index + 2] = roughByte;
-        roughPixels.data[index + 3] = 255;
-      }
-    }
-    colorContext.putImageData(colorPixels, 0, 0);
-    bumpContext.putImageData(bumpPixels, 0, 0);
-    roughContext.putImageData(roughPixels, 0, 0);
-
-    const anisotropy = Math.min(12, rendererMaxAnisotropy);
-    const map = new THREE.CanvasTexture(colorCanvas);
-    map.colorSpace = THREE.SRGBColorSpace;
-    map.wrapS = THREE.RepeatWrapping;
-    map.wrapT = THREE.ClampToEdgeWrapping;
-    map.anisotropy = anisotropy;
-    const bumpMap = new THREE.CanvasTexture(bumpCanvas);
-    bumpMap.wrapS = THREE.RepeatWrapping;
-    bumpMap.wrapT = THREE.ClampToEdgeWrapping;
-    bumpMap.anisotropy = anisotropy;
-    const roughnessMap = new THREE.CanvasTexture(roughCanvas);
-    roughnessMap.wrapS = THREE.RepeatWrapping;
-    roughnessMap.wrapT = THREE.ClampToEdgeWrapping;
-    roughnessMap.anisotropy = anisotropy;
-    resources.push(map, bumpMap, roughnessMap);
-    return { map, bumpMap, roughnessMap };
-  };
-
-  let rendererMaxAnisotropy = 8;
-
-  const createPlanetGeometry = THREE => {
-    const geometry = new THREE.SphereGeometry(1, 176, 128);
-    const positions = geometry.attributes.position;
-    for (let index = 0; index < positions.count; index += 1) {
-      const x = positions.getX(index);
-      const y = positions.getY(index);
-      const z = positions.getZ(index);
-      const length = Math.max(.000001, Math.hypot(x, y, z));
-      const nx = x / length;
-      const ny = y / length;
-      const nz = z / length;
-      const radius = 1 + terrainAt(nx, ny, nz).height * .035;
-      positions.setXYZ(index, nx * radius, ny * radius, nz * radius);
-    }
-    geometry.computeVertexNormals();
-    geometry.computeBoundingSphere();
-    return geometry;
-  };
-
-  const buildCloudTexture = THREE => {
-    const width = window.innerWidth < 680 ? 768 : 1024;
-    const height = width / 2;
-    const canvas = document.createElement("canvas");
-    canvas.width = width;
-    canvas.height = height;
-    const context = canvas.getContext("2d");
-    const image = context.createImageData(width, height);
-
-    for (let y = 0; y < height; y += 1) {
-      const latitude = Math.PI * (.5 - y / height);
-      const cosLatitude = Math.cos(latitude);
-      const sy = Math.sin(latitude);
-      for (let x = 0; x < width; x += 1) {
-        const longitude = (x / width) * Math.PI * 2;
-        const nx = cosLatitude * Math.cos(longitude);
-        const nz = cosLatitude * Math.sin(longitude);
-        const warpA = fbm3(nx * 3.8 + 8, sy * 3.8 - 2, nz * 3.8 + 5, 4, 8127);
-        const warpB = fbm3(nx * 4.6 - 3, sy * 4.6 + 7, nz * 4.6 + 1, 4, 9329);
-        const wx = nx + (warpA - .5) * .16;
-        const wy = sy + (warpB - .5) * .12;
-        const wz = nz + (warpA - .5) * .14;
-        const broad = fbm3(wx * 5.2 + 2, wy * 5.2 - 4, wz * 5.2 + 6, 3, 7123);
-        const medium = fbm3(wx * 12.5 - 7, wy * 12.5 + 2, wz * 12.5 + 4, 3, 6143);
-        const fine = fbm3(wx * 34 + 5, wy * 34 - 8, wz * 34 + 1, 2, 5189);
-        const filaments = 1 - Math.abs(fbm3(wx * 19 + 3, wy * 19 + 1, wz * 19 - 5, 2, 4177) * 2 - 1);
-        const cloudField = broad * .56 + medium * .27 + fine * .11 + filaments * .06;
-        const coverage = smoothstep(.585, .735, cloudField);
-        const wisps = smoothstep(.54, .68, cloudField + (fine - .5) * .045);
-        const alpha = Math.round(coverage * (28 + wisps * 94));
-        const index = (y * width + x) * 4;
-        const shade = 222 + fine * 28;
-        image.data[index] = Math.round(shade * .96);
-        image.data[index + 1] = Math.round(shade * .97);
-        image.data[index + 2] = 255;
-        image.data[index + 3] = alpha;
-      }
-    }
-    context.putImageData(image, 0, 0);
-    const texture = new THREE.CanvasTexture(canvas);
-    texture.colorSpace = THREE.SRGBColorSpace;
-    texture.wrapS = THREE.RepeatWrapping;
-    texture.wrapT = THREE.ClampToEdgeWrapping;
-    texture.anisotropy = Math.min(12, rendererMaxAnisotropy);
-    resources.push(texture);
-    return texture;
-  };
-
-  const makeAtmosphereMaterial = THREE => new THREE.ShaderMaterial({
-    transparent: true,
-    depthWrite: false,
-    blending: THREE.AdditiveBlending,
-    side: THREE.FrontSide,
-    uniforms: { uTime: { value: 0 } },
-    vertexShader: [
-      "varying vec3 vNormalView;",
-      "varying vec3 vViewDirection;",
-      "void main(){",
-      "  vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);",
-      "  vNormalView = normalize(normalMatrix * normal);",
-      "  vViewDirection = normalize(-mvPosition.xyz);",
-      "  gl_Position = projectionMatrix * mvPosition;",
-      "}"
-    ].join("\n"),
-    fragmentShader: [
-      "uniform float uTime;",
-      "varying vec3 vNormalView;",
-      "varying vec3 vViewDirection;",
-      "void main(){",
-      "  float facing = max(dot(normalize(vNormalView), normalize(vViewDirection)), 0.0);",
-      "  float rim = pow(1.0 - facing, 3.3);",
-      "  float fineRim = pow(1.0 - facing, 7.5);",
-      "  float flow = 0.92 + 0.08 * sin(uTime * 0.38 + facing * 7.0);",
-      "  vec3 violet = vec3(0.35, 0.28, 0.78);",
-      "  vec3 ice = vec3(0.78, 0.86, 1.0);",
-      "  vec3 atmosphere = mix(violet, ice, fineRim);",
-      "  gl_FragColor = vec4(atmosphere, (rim * 0.58 + fineRim * 0.28) * flow);",
-      "}"
-    ].join("\n")
+  });
+  const cloudMat = new THREE.ShaderMaterial({
+    vertexShader: VERT, fragmentShader: CLOUD_FRAG, transparent: true, depthWrite: false,
+    uniforms: { uClouds: { value: placeholder }, uSun: { value: sun }, uCloudInv, uSunPower }
+  });
+  const atmoMat = new THREE.ShaderMaterial({
+    vertexShader: VERT, fragmentShader: ATMO_FRAG, transparent: true, depthWrite: false,
+    blending: THREE.AdditiveBlending, uniforms: { uSun: { value: sun } }
   });
 
-  const addOrbitStrand = (THREE, parent, radius, tube, tint, opacity, tiltX, tiltZ) => {
-    const geometry = new THREE.TorusGeometry(radius, tube, 6, 520);
-    const material = new THREE.MeshBasicMaterial({
-      color: tint,
-      transparent: true,
-      opacity,
-      blending: THREE.AdditiveBlending,
-      depthWrite: false,
-      depthTest: true,
-      side: THREE.DoubleSide
-    });
-    const strand = new THREE.Mesh(geometry, material);
-    strand.rotation.set(tiltX, 0, tiltZ);
-    strand.renderOrder = 2;
-    parent.add(strand);
-    resources.push(geometry, material);
-    return strand;
+  const seg = coarse ? [128, 80] : [192, 112];
+  const system = new THREE.Group();
+  system.rotation.z = TILT;
+  const planet = new THREE.Mesh(new THREE.SphereGeometry(1.0, ...seg), planetMat);
+  const clouds = new THREE.Mesh(new THREE.SphereGeometry(1.014, ...seg), cloudMat);
+  const atmo = new THREE.Mesh(new THREE.SphereGeometry(1.14, 96, 64), atmoMat);
+  clouds.renderOrder = 1; atmo.renderOrder = 2;
+  planet.rotation.y = 0.35;
+  system.add(planet, clouds); scene.add(system, atmo);
+
+  /* --- textures (1024 first for a fast reveal, then the final tier) --- */
+  const loader = new THREE.TextureLoader();
+  const loadTex = (url, srgb) => new Promise((res, rej) => loader.load(url, (t) => {
+    t.colorSpace = srgb ? THREE.SRGBColorSpace : THREE.NoColorSpace;
+    t.wrapS = THREE.RepeatWrapping; t.wrapT = THREE.ClampToEdgeWrapping;
+    t.anisotropy = aniso; t.generateMipmaps = true; t.minFilter = THREE.LinearMipmapLinearFilter;
+    res(t);
+  }, undefined, rej));
+  const loadSet = async (size) => {
+    const u = (n) => `${BASE}${size}/${n}.webp`;
+    const [color, normal, orm, cl] = await Promise.all([loadTex(u('color'), true), loadTex(u('normal')), loadTex(u('orm')), loadTex(u('clouds'))]);
+    return { color, normal, orm, clouds: cl };
+  };
+  let current = null;
+  const applySet = (set) => {
+    Object.values(set).forEach((t) => renderer.initTexture(t));       // upload now, no hitch on swap
+    planetMat.uniforms.uColor.value = set.color; planetMat.uniforms.uNormal.value = set.normal;
+    planetMat.uniforms.uOrm.value = set.orm; planetMat.uniforms.uClouds.value = set.clouds;
+    cloudMat.uniforms.uClouds.value = set.clouds;
+    if (current) Object.values(current).forEach((t) => t.dispose());
+    current = set;
   };
 
-  const addStars = THREE => {
-    let seed = 119039;
-    const random = () => {
-      seed = (Math.imul(seed, 1664525) + 1013904223) >>> 0;
-      return seed / 4294967296;
-    };
-    const positions = [];
-    const colors = [];
-    for (let index = 0; index < 420; index += 1) {
-      const y = random() * 2 - 1;
-      const angle = random() * Math.PI * 2;
-      const radius = 2.5 + random() * 2.7;
-      const horizontal = Math.sqrt(1 - y * y);
-      positions.push(Math.cos(angle) * horizontal * radius, y * radius, Math.sin(angle) * horizontal * radius - 1.1);
-      const c = random();
-      colors.push(.6 + c * .38, .58 + c * .34, .78 + c * .22);
-    }
-    const geometry = new THREE.BufferGeometry();
-    geometry.setAttribute("position", new THREE.Float32BufferAttribute(positions, 3));
-    geometry.setAttribute("color", new THREE.Float32BufferAttribute(colors, 3));
-    const material = new THREE.PointsMaterial({
-      size: .019,
-      sizeAttenuation: true,
-      vertexColors: true,
-      transparent: true,
-      opacity: .72,
-      depthWrite: false
-    });
-    const stars = new THREE.Points(geometry, material);
-    scene.add(stars);
-    resources.push(geometry, material);
-    return stars;
-  };
-
-  const cleanup = () => {
-    if (disposed) return;
-    disposed = true;
-    if (animationFrame) cancelAnimationFrame(animationFrame);
-    animationFrame = 0;
-    if (resizeObserver) resizeObserver.disconnect();
-    if (intersectionObserver) intersectionObserver.disconnect();
-    window.removeEventListener("resize", resize);
-    document.removeEventListener("visibilitychange", onVisibilityChange);
-    window.removeEventListener("pagehide", cleanup);
-    host.removeEventListener("pointermove", onPointerMove);
-    host.removeEventListener("pointerleave", onPointerLeave);
-    resources.forEach(resource => {
-      if (resource && typeof resource.dispose === "function") resource.dispose();
-    });
-    if (renderer) {
-      renderer.dispose();
-      renderer = null;
-    }
-  };
-
-  const onPointerMove = event => {
-    if (!finePointer) return;
-    const rect = host.getBoundingClientRect();
-    if (!rect.width || !rect.height) return;
-    pointer.targetX = ((event.clientX - rect.left) / rect.width - .5) * 2;
-    pointer.targetY = ((event.clientY - rect.top) / rect.height - .5) * 2;
-  };
-  const onPointerLeave = () => {
-    pointer.targetX = 0;
-    pointer.targetY = 0;
-  };
-  const onVisibilityChange = () => {
-    visible = !document.hidden;
-    if (visible) drawOrResume();
-    else stop();
-  };
-  const stop = () => {
-    if (animationFrame) cancelAnimationFrame(animationFrame);
-    animationFrame = 0;
-  };
-
-  const resize = () => {
-    if (!renderer || !camera || disposed) return;
-    const rect = host.getBoundingClientRect();
-    const width = Math.max(1, Math.round(rect.width));
-    const height = Math.max(1, Math.round(rect.height));
-    camera.aspect = width / height;
+  /* --- sizing --- */
+  let dist = 6;
+  const fit = () => {
+    const w = container.clientWidth || 1, h = container.clientHeight || 1;
+    renderer.setSize(w, h, false);
+    camera.aspect = w / h; 
+    const half = Math.tan(THREE.MathUtils.degToRad(camera.fov / 2));
+    dist = 1.17 / Math.min(half, half * camera.aspect);
     camera.updateProjectionMatrix();
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, window.innerWidth < 680 ? 1.15 : 1.55));
-    renderer.setSize(width, height, false);
+    renderOnce();
+  };
+
+  /* --- loop --- */
+  let raf = 0, running = false, last = 0, tx = 0, ty = 0, cx = 0, cy = 0, visible = false, ready = false;
+  const m4 = new THREE.Matrix4();
+  const frame = (dt) => {
+    if (!reduced.matches) {
+      planet.rotation.y += SPIN * dt;
+      clouds.rotation.y += (SPIN + CLOUD_DRIFT) * dt;
+      cx += (tx - cx) * Math.min(1, dt * 2.2); cy += (ty - cy) * Math.min(1, dt * 2.2);
+    }
+    camera.position.set(Math.sin(cx) * dist * Math.cos(cy), Math.sin(cy) * dist, Math.cos(cx) * dist * Math.cos(cy));
+    camera.lookAt(0, 0, 0);
+    system.updateMatrixWorld(true);
+    uModel.value.setFromMatrix4(planet.matrixWorld);
+    uCloudInv.value.setFromMatrix4(clouds.matrixWorld).invert();
     renderer.render(scene, camera);
-    host.classList.add("is-ready");
-    host.classList.remove("is-fallback");
   };
-
-  const renderFrame = timestamp => {
-    animationFrame = 0;
-    if (disposed || !visible || document.hidden || !renderer || !systemRig) return;
-    const delta = lastTime ? Math.min(.045, (timestamp - lastTime) / 1000) : 0;
-    lastTime = timestamp;
-    elapsed += delta;
-
-    pointer.x += (pointer.targetX - pointer.x) * .026;
-    pointer.y += (pointer.targetY - pointer.y) * .026;
-    systemRig.rotation.y = pointer.x * .12;
-    systemRig.rotation.x = -.035 - pointer.y * .075;
-    planetRig.rotation.y = elapsed * .052;
-    planetRig.rotation.x = .045 + Math.sin(elapsed * .12) * .012;
-    if (cloudLayer) {
-      cloudLayer.rotation.y = elapsed * .038;
-      cloudLayer.rotation.x = Math.sin(elapsed * .11) * .004;
-    }
-    if (orbitalRig) {
-      orbitalRig.rotation.y = .16 + elapsed * .032;
-      orbitalRig.rotation.z = -.23 + Math.sin(elapsed * .09) * .012;
-    }
-    if (atmosphereMaterial) atmosphereMaterial.uniforms.uTime.value = elapsed;
-
-    renderer.render(scene, camera);
-    if (renderer.info.render.calls > 0) {
-      host.classList.add("is-ready");
-      host.classList.remove("is-fallback");
-    }
-    animationFrame = requestAnimationFrame(renderFrame);
+  const tick = (now) => {
+    if (!running) return;
+    const dt = Math.min(0.05, (now - last) / 1000); last = now;
+    frame(dt); raf = requestAnimationFrame(tick);
   };
+  const start = () => { if (running || reduced.matches || !ready) return; running = true; last = performance.now(); raf = requestAnimationFrame(tick); };
+  function stop() { running = false; cancelAnimationFrame(raf); }
+  const renderOnce = () => { if (ready) frame(0); };
+  const sync = () => { (visible && !document.hidden) ? start() : stop(); };
 
-  const drawOrResume = () => {
-    if (!renderer || disposed || !visible) return;
-    if (reducedMotion) {
-      renderer.render(scene, camera);
-      return;
-    }
-    if (!animationFrame) {
-      lastTime = 0;
-      animationFrame = requestAnimationFrame(renderFrame);
-    }
-  };
-
-  const createEnvironment = THREE => {
-    const canvas = document.createElement("canvas");
-    canvas.width = 1536;
-    canvas.height = 768;
-    const context = canvas.getContext("2d");
-    const base = context.createLinearGradient(0, 0, 1536, 768);
-    base.addColorStop(0, "#070914");
-    base.addColorStop(.19, "#171a31");
-    base.addColorStop(.38, "#35304c");
-    base.addColorStop(.56, "#0a0d1b");
-    base.addColorStop(.76, "#39324a");
-    base.addColorStop(1, "#080914");
-    context.fillStyle = base;
-    context.fillRect(0, 0, canvas.width, canvas.height);
-
-    const lightPanels = [
-      { x: 90, y: 20, w: 210, h: 660, color: "#dce7ff", alpha: .58 },
-      { x: 430, y: 40, w: 85, h: 570, color: "#9b91cf", alpha: .34 },
-      { x: 770, y: 0, w: 270, h: 640, color: "#e6e7ff", alpha: .48 },
-      { x: 1270, y: 40, w: 110, h: 660, color: "#a99bd7", alpha: .38 }
-    ];
-    lightPanels.forEach(panel => {
-      const gradient = context.createLinearGradient(panel.x, panel.y, panel.x + panel.w, panel.y + panel.h);
-      gradient.addColorStop(0, "rgba(255,255,255,0)");
-      gradient.addColorStop(.48, panel.color);
-      gradient.addColorStop(1, "rgba(255,255,255,0)");
-      context.globalAlpha = panel.alpha;
-      context.fillStyle = gradient;
-      context.fillRect(panel.x, panel.y, panel.w, panel.h);
-    });
-    context.globalAlpha = 1;
-    const texture = new THREE.CanvasTexture(canvas);
-    texture.colorSpace = THREE.SRGBColorSpace;
-    texture.mapping = THREE.EquirectangularReflectionMapping;
-    resources.push(texture);
-    return texture;
-  };
-
-  const addRing = (THREE, parent, inner, outer, color, brightness) => {
-    const geometry = new THREE.RingGeometry(inner, outer, 420, 2);
-    const material = makeRingMaterial(THREE, inner, outer, color, brightness);
-    const mesh = new THREE.Mesh(geometry, material);
-    mesh.renderOrder = 1;
-    parent.add(mesh);
-    resources.push(geometry, material);
-    return mesh;
-  };
-
-
-
-  const start = async () => {
-    if (started || disposed) return;
-    started = true;
-    try {
-      const THREE = await import(THREE_CDN);
-      if (disposed || !host.isConnected) return;
-
-      scene = new THREE.Scene();
-      scene.environment = createEnvironment(THREE);
-      camera = new THREE.PerspectiveCamera(40, 1, .1, 30);
-      camera.position.set(0, 0, 4.75);
-      camera.lookAt(0, 0, 0);
-
-      renderer = new THREE.WebGLRenderer({
-        canvas,
-        alpha: true,
-        antialias: true,
-        powerPreference: "high-performance"
-      });
-      renderer.outputColorSpace = THREE.SRGBColorSpace;
-      renderer.toneMapping = THREE.ACESFilmicToneMapping;
-      renderer.toneMappingExposure = 1.34;
-      renderer.setClearColor(0x000000, 0);
-      rendererMaxAnisotropy = renderer.capabilities.getMaxAnisotropy();
-
-      scene.add(new THREE.HemisphereLight(0xe8eaff, 0x30264e, 1.75));
-      scene.add(new THREE.AmbientLight(0x9c8fc7, .58));
-      const key = new THREE.DirectionalLight(0xfff5f2, 4.8);
-      key.position.set(-3.8, 3.6, 4.4);
-      scene.add(key);
-      const fill = new THREE.DirectionalLight(0x9c9cff, 2.35);
-      fill.position.set(3.8, -1.2, 2.6);
-      scene.add(fill);
-      const frontLift = new THREE.DirectionalLight(0x879aff, 1.05);
-      frontLift.position.set(.2, .5, 5.5);
-      scene.add(frontLift);
-      const rim = new THREE.PointLight(0xb1a5ff, 4.8, 8);
-      rim.position.set(2.6, 1.8, -2.4);
-      scene.add(rim);
-
-      addStars(THREE);
-      systemRig = new THREE.Group();
-      scene.add(systemRig);
-
-      planetRig = new THREE.Group();
-      systemRig.add(planetRig);
-      const planetMaps = buildPlanetMaps(THREE);
-      const planetGeometry = createPlanetGeometry(THREE);
-      const planetMaterial = new THREE.MeshPhysicalMaterial({
-        map: planetMaps.map,
-        bumpMap: planetMaps.bumpMap,
-        bumpScale: .0045,
-        roughnessMap: planetMaps.roughnessMap,
-        roughness: .62,
-        metalness: .035,
-        clearcoat: .34,
-        clearcoatRoughness: .28,
-        emissive: 0x17143b,
-        emissiveIntensity: .26
-      });
-      const planet = new THREE.Mesh(planetGeometry, planetMaterial);
-      planet.rotation.set(-.14, .12, .08);
-      planetRig.add(planet);
-      resources.push(planetGeometry, planetMaterial);
-
-      const cloudTexture = buildCloudTexture(THREE);
-      const cloudGeometry = new THREE.SphereGeometry(1.014, 160, 112);
-      const cloudMaterial = new THREE.MeshBasicMaterial({
-        map: cloudTexture,
-        color: 0xf0efff,
-        transparent: true,
-        opacity: .76,
-        depthWrite: false,
-        side: THREE.FrontSide,
-        blending: THREE.NormalBlending
-      });
-      cloudLayer = new THREE.Mesh(cloudGeometry, cloudMaterial);
-      cloudLayer.renderOrder = 1;
-      planetRig.add(cloudLayer);
-      resources.push(cloudGeometry, cloudMaterial);
-
-      const atmosphereGeometry = new THREE.SphereGeometry(1.078, 112, 80);
-      atmosphereMaterial = makeAtmosphereMaterial(THREE);
-      const atmosphere = new THREE.Mesh(atmosphereGeometry, atmosphereMaterial);
-      atmosphere.renderOrder = 2;
-      planetRig.add(atmosphere);
-      resources.push(atmosphereGeometry, atmosphereMaterial);
-
-      orbitalRig = new THREE.Group();
-      orbitalRig.rotation.set(1.04, .12, -.48);
-      systemRig.add(orbitalRig);
-      addOrbitStrand(THREE, orbitalRig, 1.22, .0025, 0xd6d3ff, .76, 0, 0);
-      addOrbitStrand(THREE, orbitalRig, 1.29, .0017, 0x9f9bdc, .52, .018, .012);
-      addOrbitStrand(THREE, orbitalRig, 1.37, .0022, 0xe6e1ff, .68, -.014, -.018);
-      addOrbitStrand(THREE, orbitalRig, 1.46, .0014, 0xbab5f1, .42, .026, -.012);
-
-      const resizeHandler = () => resize();
-      window.addEventListener("resize", resizeHandler, { passive: true });
-      window.addEventListener("pagehide", cleanup, { once: true });
-      document.addEventListener("visibilitychange", onVisibilityChange);
-      host.addEventListener("pointermove", onPointerMove, { passive: true });
-      host.addEventListener("pointerleave", onPointerLeave, { passive: true });
-      resources.push({ dispose: () => window.removeEventListener("resize", resizeHandler) });
-
-      if ("ResizeObserver" in window) {
-        resizeObserver = new ResizeObserver(resize);
-        resizeObserver.observe(host);
-      }
-      resize();
-      drawOrResume();
-    } catch (error) {
-      console.warn("ORBE & ONIX Vespera planet could not start; the static fallback remains active.", error);
-      host.classList.remove("is-ready");
-      host.classList.add("is-fallback");
-      if (renderer) {
-        renderer.dispose();
-        renderer = null;
-      }
-    }
-  };
-
-  if ("IntersectionObserver" in window) {
-    visible = false;
-    intersectionObserver = new IntersectionObserver(entries => {
-      const entry = entries[0];
-      visible = Boolean(entry && entry.isIntersecting);
-      if (visible) {
-        start();
-        drawOrResume();
-      } else {
-        stop();
-      }
-    }, { rootMargin: "220px 0px" });
-    intersectionObserver.observe(host);
-  } else {
-    start();
+  /* --- events --- */
+  new ResizeObserver(fit).observe(container);
+  new IntersectionObserver(([e]) => { visible = e.isIntersecting; sync(); }, { threshold: 0.01 }).observe(container);
+  document.addEventListener('visibilitychange', sync);
+  reduced.addEventListener('change', () => { reduced.matches ? (stop(), renderOnce()) : sync(); });
+  if (!coarse) {
+    container.addEventListener('pointermove', (e) => {
+      const r = container.getBoundingClientRect();
+      tx = ((e.clientX - r.left) / r.width - 0.5) * 2 * -PARALLAX;
+      ty = ((e.clientY - r.top) / r.height - 0.5) * 2 * PARALLAX * 0.6;
+    }, { passive: true });
+    container.addEventListener('pointerleave', () => { tx = 0; ty = 0; });
   }
-})();
+  canvas.addEventListener('webglcontextlost', (e) => { e.preventDefault(); stop(); showPoster(container); });
+  canvas.addEventListener('webglcontextrestored', () => { container.classList.remove('is-fallback'); container.querySelector('.vespera-poster')?.remove(); ready = true; renderOnce(); sync(); });
+
+  /* --- boot --- */
+  try {
+    applySet(await loadSet(1024));
+    ready = true; fit();
+    container.classList.add('is-ready');
+    sync();
+    if (finalTier > 1024) {
+      // upgrade quietly once the browser is idle
+      (window.requestIdleCallback || ((f) => setTimeout(f, 300)))(async () => {
+        try { applySet(await loadSet(finalTier)); renderOnce(); } catch (e) { console.warn('[VESPERA] hi-res tier failed, keeping 1024', e); }
+      });
+    }
+  } catch (e) {
+    console.warn('[VESPERA] textures failed', e);
+    stop(); canvas.remove(); showPoster(container);
+  }
+}
+
+/* Lazy init: only when the Studio panel approaches the viewport */
+const host = document.querySelector('.home-studio-3d');
+if (host) {
+  const io = new IntersectionObserver((entries) => {
+    if (entries.some((e) => e.isIntersecting)) { io.disconnect(); mountVespera(host); }
+  }, { rootMargin: '300px' });
+  io.observe(host);
+}
