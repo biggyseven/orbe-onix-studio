@@ -1,8 +1,7 @@
-// ORBE & ONIX — homepage studio crystal orb, rendered as a real Three.js object.
+// ORBE & ONIX — VESPERA / 001, a procedural exoplanet and synchronized orbital system.
 (() => {
   const host = document.querySelector("[data-studio-orb3d]");
   if (!host) return;
-
   const canvas = host.querySelector("canvas");
   if (!canvas) return;
 
@@ -12,7 +11,12 @@
   let renderer = null;
   let scene = null;
   let camera = null;
-  let crystalRig = null;
+  let systemRig = null;
+  let planetRig = null;
+  let cloudLayer = null;
+  let atmosphereMaterial = null;
+  let orbitalRig = null;
+  let moonPivot = null;
   let resizeObserver = null;
   let intersectionObserver = null;
   let animationFrame = 0;
@@ -24,19 +28,434 @@
   const pointer = { x: 0, y: 0, targetX: 0, targetY: 0 };
   const resources = [];
 
-  const stop = () => {
-    if (animationFrame) cancelAnimationFrame(animationFrame);
-    animationFrame = 0;
+  const clamp = (value, low, high) => Math.max(low, Math.min(high, value));
+  const mix = (a, b, t) => a + (b - a) * t;
+  const smoothstep = (a, b, value) => {
+    const t = clamp((value - a) / (b - a), 0, 1);
+    return t * t * (3 - 2 * t);
+  };
+  const hash3 = (x, y, z, seed) => {
+    let h = Math.imul(x | 0, 374761393);
+    h = (h + Math.imul(y | 0, 668265263)) | 0;
+    h = (h + Math.imul(z | 0, 2147483647) + (seed | 0)) | 0;
+    h = Math.imul(h ^ (h >>> 13), 1274126177);
+    h ^= h >>> 16;
+    return (h >>> 0) / 4294967295;
+  };
+  const valueNoise3 = (x, y, z, seed) => {
+    const ix = Math.floor(x);
+    const iy = Math.floor(y);
+    const iz = Math.floor(z);
+    const fx0 = x - ix;
+    const fy0 = y - iy;
+    const fz0 = z - iz;
+    const fx = fx0 * fx0 * (3 - 2 * fx0);
+    const fy = fy0 * fy0 * (3 - 2 * fy0);
+    const fz = fz0 * fz0 * (3 - 2 * fz0);
+    const x00 = mix(hash3(ix, iy, iz, seed), hash3(ix + 1, iy, iz, seed), fx);
+    const x10 = mix(hash3(ix, iy + 1, iz, seed), hash3(ix + 1, iy + 1, iz, seed), fx);
+    const x01 = mix(hash3(ix, iy, iz + 1, seed), hash3(ix + 1, iy, iz + 1, seed), fx);
+    const x11 = mix(hash3(ix, iy + 1, iz + 1, seed), hash3(ix + 1, iy + 1, iz + 1, seed), fx);
+    return mix(mix(x00, x10, fy), mix(x01, x11, fy), fz);
+  };
+  const fbm3 = (x, y, z, octaves, seed) => {
+    let value = 0;
+    let amplitude = .5;
+    let total = 0;
+    let frequency = 1;
+    for (let octave = 0; octave < octaves; octave += 1) {
+      value += valueNoise3(x * frequency, y * frequency, z * frequency, seed + octave * 97) * amplitude;
+      total += amplitude;
+      amplitude *= .5;
+      frequency *= 2.03;
+    }
+    return value / total;
+  };
+
+  const makeCraterCatalog = () => {
+    let seed = 7401901;
+    const random = () => {
+      seed = (Math.imul(seed, 1664525) + 1013904223) >>> 0;
+      return seed / 4294967296;
+    };
+    const craters = [];
+    for (let index = 0; index < 31; index += 1) {
+      const y = random() * 1.72 - .86;
+      const angle = random() * Math.PI * 2;
+      const radial = Math.sqrt(1 - y * y);
+      craters.push({
+        x: Math.cos(angle) * radial,
+        y,
+        z: Math.sin(angle) * radial,
+        radius: .025 + Math.pow(random(), 1.7) * .075,
+        depth: .006 + random() * .012
+      });
+    }
+    return craters;
+  };
+  const craters = makeCraterCatalog();
+
+  const craterField = (x, y, z) => {
+    let displacement = 0;
+    let shade = 0;
+    for (let index = 0; index < craters.length; index += 1) {
+      const crater = craters[index];
+      const dot = clamp(x * crater.x + y * crater.y + z * crater.z, -1, 1);
+      if (dot < .986) continue;
+      const chord = Math.sqrt(Math.max(0, 2 - 2 * dot));
+      const q = chord / crater.radius;
+      if (q > 1.48) continue;
+      const bowl = 1 - smoothstep(.04, 1.03, q);
+      const rim = Math.exp(-Math.pow((q - 1.02) / .12, 2));
+      displacement += -crater.depth * bowl * .78 + crater.depth * rim * .38;
+      shade = Math.max(shade, bowl * .42 + rim * .1);
+    }
+    return { displacement, shade };
+  };
+
+  const terrainAt = (x, y, z) => {
+    const continentNoise = fbm3(x * 2.65 + 4.1, y * 2.65 - 1.7, z * 2.65 + 3.2, 4, 1301);
+    const regionalNoise = fbm3(x * 6.7 - 2.4, y * 6.7 + 5.2, z * 6.7 + 1.1, 3, 2711);
+    const detailNoise = fbm3(x * 18.5 + 3.1, y * 18.5, z * 18.5 - 4.2, 4, 3917);
+    const ridgeNoise = fbm3(x * 41 + 1.7, y * 41 - 3.6, z * 41 + 2.2, 3, 5113);
+    const continental = continentNoise * .72 + regionalNoise * .28;
+    const land = smoothstep(.465, .565, continental);
+    const highland = smoothstep(.55, .7, continental + regionalNoise * .12);
+    const ridges = Math.pow(1 - Math.abs(ridgeNoise * 2 - 1), 1.8);
+    const impact = craterField(x, y, z);
+    const elevation = land * (
+      .012 + (regionalNoise - .5) * .018 + detailNoise * .01 +
+      highland * (.012 + ridges * .014)
+    ) - (1 - land) * (.014 + detailNoise * .007) + impact.displacement;
+    return {
+      height: elevation,
+      land,
+      highland: clamp(highland + ridges * highland * .35, 0, 1),
+      detail: detailNoise,
+      ridge: ridges,
+      crater: impact.shade,
+      coast: smoothstep(.435, .535, continental)
+    };
+  };
+
+  const buildPlanetMaps = THREE => {
+    const width = window.innerWidth < 680 ? 768 : 1024;
+    const height = width / 2;
+    const colorCanvas = document.createElement("canvas");
+    colorCanvas.width = width;
+    colorCanvas.height = height;
+    const colorContext = colorCanvas.getContext("2d", { alpha: false });
+    const colorPixels = colorContext.createImageData(width, height);
+    const bumpCanvas = document.createElement("canvas");
+    bumpCanvas.width = width;
+    bumpCanvas.height = height;
+    const bumpContext = bumpCanvas.getContext("2d", { alpha: false });
+    const bumpPixels = bumpContext.createImageData(width, height);
+    const roughCanvas = document.createElement("canvas");
+    roughCanvas.width = width;
+    roughCanvas.height = height;
+    const roughContext = roughCanvas.getContext("2d", { alpha: false });
+    const roughPixels = roughContext.createImageData(width, height);
+
+    for (let py = 0; py < height; py += 1) {
+      const latitude = Math.PI * (.5 - py / height);
+      const cosLatitude = Math.cos(latitude);
+      const sy = Math.sin(latitude);
+      for (let px = 0; px < width; px += 1) {
+        const longitude = (px / width) * Math.PI * 2;
+        const x = cosLatitude * Math.cos(longitude);
+        const z = cosLatitude * Math.sin(longitude);
+        const terrain = terrainAt(x, sy, z);
+        const polar = smoothstep(.72, .96, Math.abs(sy));
+        const fineGrain = fbm3(x * 94 + 7, sy * 94 - 2, z * 94 + 5, 2, 6203);
+        const oceanDepth = clamp((.52 - terrain.land) * 2.2 + .2, 0, 1);
+        const shallow = 1 - terrain.coast;
+        let red;
+        let green;
+        let blue;
+
+        const oceanColor = [
+          mix(26, 48, shallow),
+          mix(35, 66, shallow),
+          mix(58, 83, shallow)
+        ];
+        const basinColor = [
+          mix(9, 21, oceanDepth),
+          mix(15, 30, oceanDepth),
+          mix(31, 49, oceanDepth)
+        ];
+        const lowlandColor = [
+          mix(43, 77, terrain.detail),
+          mix(38, 67, terrain.detail),
+          mix(56, 87, terrain.detail)
+        ];
+        const highlandColor = [
+          mix(84, 151, terrain.highland),
+          mix(73, 134, terrain.highland),
+          mix(101, 165, terrain.highland)
+        ];
+        const landMix = smoothstep(.12, .82, terrain.highland);
+        const landR = mix(lowlandColor[0], highlandColor[0], landMix);
+        const landG = mix(lowlandColor[1], highlandColor[1], landMix);
+        const landB = mix(lowlandColor[2], highlandColor[2], landMix);
+        const ice = polar * (.25 + terrain.highland * .6);
+        const craterDarkening = 1 - terrain.crater * .48;
+        const mineralFleck = (fineGrain - .5) * 10;
+
+        red = mix(basinColor[0], oceanColor[0], smoothstep(.7, .98, terrain.coast));
+        green = mix(basinColor[1], oceanColor[1], smoothstep(.7, .98, terrain.coast));
+        blue = mix(basinColor[2], oceanColor[2], smoothstep(.7, .98, terrain.coast));
+        red = mix(red, landR, terrain.land);
+        green = mix(green, landG, terrain.land);
+        blue = mix(blue, landB, terrain.land);
+        red = mix(red, 178, ice);
+        green = mix(green, 174, ice);
+        blue = mix(blue, 196, ice);
+        red = red * craterDarkening + mineralFleck;
+        green = green * craterDarkening + mineralFleck;
+        blue = blue * craterDarkening + mineralFleck * 1.15;
+
+        const index = (py * width + px) * 4;
+        colorPixels.data[index] = clamp(Math.round(red), 0, 255);
+        colorPixels.data[index + 1] = clamp(Math.round(green), 0, 255);
+        colorPixels.data[index + 2] = clamp(Math.round(blue), 0, 255);
+        colorPixels.data[index + 3] = 255;
+
+        const elevationByte = clamp(Math.round(128 + terrain.height * 2350), 0, 255);
+        bumpPixels.data[index] = elevationByte;
+        bumpPixels.data[index + 1] = elevationByte;
+        bumpPixels.data[index + 2] = elevationByte;
+        bumpPixels.data[index + 3] = 255;
+
+        const roughness = mix(42, 208, terrain.land) + terrain.highland * 22 - terrain.coast * 12;
+        const roughByte = clamp(Math.round(roughness), 0, 255);
+        roughPixels.data[index] = roughByte;
+        roughPixels.data[index + 1] = roughByte;
+        roughPixels.data[index + 2] = roughByte;
+        roughPixels.data[index + 3] = 255;
+      }
+    }
+    colorContext.putImageData(colorPixels, 0, 0);
+    bumpContext.putImageData(bumpPixels, 0, 0);
+    roughContext.putImageData(roughPixels, 0, 0);
+
+    const anisotropy = Math.min(12, rendererMaxAnisotropy);
+    const map = new THREE.CanvasTexture(colorCanvas);
+    map.colorSpace = THREE.SRGBColorSpace;
+    map.wrapS = THREE.RepeatWrapping;
+    map.wrapT = THREE.ClampToEdgeWrapping;
+    map.anisotropy = anisotropy;
+    const bumpMap = new THREE.CanvasTexture(bumpCanvas);
+    bumpMap.wrapS = THREE.RepeatWrapping;
+    bumpMap.wrapT = THREE.ClampToEdgeWrapping;
+    bumpMap.anisotropy = anisotropy;
+    const roughnessMap = new THREE.CanvasTexture(roughCanvas);
+    roughnessMap.wrapS = THREE.RepeatWrapping;
+    roughnessMap.wrapT = THREE.ClampToEdgeWrapping;
+    roughnessMap.anisotropy = anisotropy;
+    resources.push(map, bumpMap, roughnessMap);
+    return { map, bumpMap, roughnessMap };
+  };
+
+  let rendererMaxAnisotropy = 8;
+
+  const createPlanetGeometry = THREE => {
+    const geometry = new THREE.SphereGeometry(1, 176, 128);
+    const positions = geometry.attributes.position;
+    for (let index = 0; index < positions.count; index += 1) {
+      const x = positions.getX(index);
+      const y = positions.getY(index);
+      const z = positions.getZ(index);
+      const length = Math.max(.000001, Math.hypot(x, y, z));
+      const nx = x / length;
+      const ny = y / length;
+      const nz = z / length;
+      const radius = 1 + terrainAt(nx, ny, nz).height;
+      positions.setXYZ(index, nx * radius, ny * radius, nz * radius);
+    }
+    geometry.computeVertexNormals();
+    geometry.computeBoundingSphere();
+    return geometry;
+  };
+
+  const buildCloudTexture = THREE => {
+    const width = window.innerWidth < 680 ? 640 : 896;
+    const height = width / 2;
+    let seed = 913733;
+    const random = () => {
+      seed = (Math.imul(seed, 1664525) + 1013904223) >>> 0;
+      return seed / 4294967296;
+    };
+    const columns = 48;
+    const rows = 24;
+    const field = new Float32Array(columns * rows);
+    const fineField = new Float32Array(columns * 2 * rows);
+    for (let index = 0; index < field.length; index += 1) field[index] = random();
+    for (let index = 0; index < fineField.length; index += 1) fineField[index] = random();
+    const sample = (values, cols, rowCount, u, v) => {
+      const gx = ((u % 1 + 1) % 1) * cols;
+      const gy = clamp(v, 0, .999999) * (rowCount - 1);
+      const x0 = Math.floor(gx);
+      const x1 = (x0 + 1) % cols;
+      const y0 = Math.floor(gy);
+      const y1 = Math.min(rowCount - 1, y0 + 1);
+      const tx = gx - x0;
+      const ty = gy - y0;
+      const a = mix(values[y0 * cols + x0], values[y0 * cols + x1], tx);
+      const b = mix(values[y1 * cols + x0], values[y1 * cols + x1], tx);
+      return mix(a, b, ty);
+    };
+    const canvas = document.createElement("canvas");
+    canvas.width = width;
+    canvas.height = height;
+    const context = canvas.getContext("2d");
+    const image = context.createImageData(width, height);
+    for (let y = 0; y < height; y += 1) {
+      const v = y / height;
+      for (let x = 0; x < width; x += 1) {
+        const u = x / width;
+        const broad = sample(field, columns, rows, u, v);
+        const detail = sample(fineField, columns * 2, rows, u, v);
+        const polar = Math.abs(v - .5) * 2;
+        const wisps = broad * .72 + detail * .28 + Math.sin((v * 11 + broad * 2) * Math.PI) * .035;
+        const coverage = smoothstep(.6, .78, wisps + polar * .035);
+        const alpha = Math.round(coverage * (22 + detail * 63));
+        const index = (y * width + x) * 4;
+        image.data[index] = Math.round(178 + detail * 42);
+        image.data[index + 1] = Math.round(177 + detail * 39);
+        image.data[index + 2] = Math.round(205 + detail * 42);
+        image.data[index + 3] = alpha;
+      }
+    }
+    context.putImageData(image, 0, 0);
+    const texture = new THREE.CanvasTexture(canvas);
+    texture.colorSpace = THREE.SRGBColorSpace;
+    texture.wrapS = THREE.RepeatWrapping;
+    texture.wrapT = THREE.ClampToEdgeWrapping;
+    texture.anisotropy = Math.min(8, rendererMaxAnisotropy);
+    resources.push(texture);
+    return texture;
+  };
+
+  const makeAtmosphereMaterial = THREE => new THREE.ShaderMaterial({
+    transparent: true,
+    depthWrite: false,
+    blending: THREE.AdditiveBlending,
+    side: THREE.FrontSide,
+    uniforms: { uTime: { value: 0 } },
+    vertexShader: [
+      "varying vec3 vNormalView;",
+      "varying vec3 vViewDirection;",
+      "void main(){",
+      "  vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);",
+      "  vNormalView = normalize(normalMatrix * normal);",
+      "  vViewDirection = normalize(-mvPosition.xyz);",
+      "  gl_Position = projectionMatrix * mvPosition;",
+      "}"
+    ].join("\n"),
+    fragmentShader: [
+      "uniform float uTime;",
+      "varying vec3 vNormalView;",
+      "varying vec3 vViewDirection;",
+      "void main(){",
+      "  float facing = max(dot(normalize(vNormalView), normalize(vViewDirection)), 0.0);",
+      "  float rim = pow(1.0 - facing, 3.3);",
+      "  float fineRim = pow(1.0 - facing, 7.5);",
+      "  float flow = 0.92 + 0.08 * sin(uTime * 0.38 + facing * 7.0);",
+      "  vec3 violet = vec3(0.29, 0.22, 0.55);",
+      "  vec3 ice = vec3(0.72, 0.78, 1.0);",
+      "  vec3 atmosphere = mix(violet, ice, fineRim);",
+      "  gl_FragColor = vec4(atmosphere, (rim * 0.42 + fineRim * 0.2) * flow);",
+      "}"
+    ].join("\n")
+  });
+
+  const makeRingMaterial = (THREE, inner, outer, tint, brightness) => new THREE.ShaderMaterial({
+    transparent: true,
+    depthWrite: false,
+    depthTest: true,
+    side: THREE.DoubleSide,
+    uniforms: {
+      uInner: { value: inner },
+      uOuter: { value: outer },
+      uTint: { value: new THREE.Color(tint) },
+      uBrightness: { value: brightness }
+    },
+    vertexShader: [
+      "varying vec3 vLocalPosition;",
+      "varying vec2 vUvRing;",
+      "void main(){",
+      "  vLocalPosition = position;",
+      "  vUvRing = uv;",
+      "  gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);",
+      "}"
+    ].join("\n"),
+    fragmentShader: [
+      "uniform float uInner;",
+      "uniform float uOuter;",
+      "uniform vec3 uTint;",
+      "uniform float uBrightness;",
+      "varying vec3 vLocalPosition;",
+      "varying vec2 vUvRing;",
+      "void main(){",
+      "  float radius = length(vLocalPosition.xy);",
+      "  float across = clamp((radius - uInner) / max(0.001, uOuter - uInner), 0.0, 1.0);",
+      "  float fineBands = 0.5 + 0.5 * sin(radius * 520.0 + sin(radius * 67.0) * 2.0);",
+      "  float broadBands = 0.5 + 0.5 * sin(radius * 92.0 + 1.7);",
+      "  float gaps = smoothstep(0.04, 0.4, fineBands) * smoothstep(0.12, 0.72, broadBands);",
+      "  float edge = smoothstep(0.0, 0.035, across) * (1.0 - smoothstep(0.965, 1.0, across));",
+      "  float alpha = edge * (0.13 + gaps * 0.52) * uBrightness;",
+      "  vec3 color = uTint * (0.48 + gaps * 0.86);",
+      "  color += vec3(0.18, 0.17, 0.23) * (1.0 - broadBands) * 0.28;",
+      "  gl_FragColor = vec4(color, alpha);",
+      "}"
+    ].join("\n")
+  });
+
+  const addStars = THREE => {
+    let seed = 119039;
+    const random = () => {
+      seed = (Math.imul(seed, 1664525) + 1013904223) >>> 0;
+      return seed / 4294967296;
+    };
+    const positions = [];
+    const colors = [];
+    for (let index = 0; index < 420; index += 1) {
+      const y = random() * 2 - 1;
+      const angle = random() * Math.PI * 2;
+      const radius = 2.5 + random() * 2.7;
+      const horizontal = Math.sqrt(1 - y * y);
+      positions.push(Math.cos(angle) * horizontal * radius, y * radius, Math.sin(angle) * horizontal * radius - 1.1);
+      const c = random();
+      colors.push(.6 + c * .38, .58 + c * .34, .78 + c * .22);
+    }
+    const geometry = new THREE.BufferGeometry();
+    geometry.setAttribute("position", new THREE.Float32BufferAttribute(positions, 3));
+    geometry.setAttribute("color", new THREE.Float32BufferAttribute(colors, 3));
+    const material = new THREE.PointsMaterial({
+      size: .019,
+      sizeAttenuation: true,
+      vertexColors: true,
+      transparent: true,
+      opacity: .72,
+      depthWrite: false
+    });
+    const stars = new THREE.Points(geometry, material);
+    scene.add(stars);
+    resources.push(geometry, material);
+    return stars;
   };
 
   const cleanup = () => {
     if (disposed) return;
     disposed = true;
-    stop();
+    if (animationFrame) cancelAnimationFrame(animationFrame);
+    animationFrame = 0;
     if (resizeObserver) resizeObserver.disconnect();
     if (intersectionObserver) intersectionObserver.disconnect();
     window.removeEventListener("resize", resize);
     document.removeEventListener("visibilitychange", onVisibilityChange);
+    window.removeEventListener("pagehide", cleanup);
     host.removeEventListener("pointermove", onPointerMove);
     host.removeEventListener("pointerleave", onPointerLeave);
     resources.forEach(resource => {
@@ -55,16 +474,18 @@
     pointer.targetX = ((event.clientX - rect.left) / rect.width - .5) * 2;
     pointer.targetY = ((event.clientY - rect.top) / rect.height - .5) * 2;
   };
-
   const onPointerLeave = () => {
     pointer.targetX = 0;
     pointer.targetY = 0;
   };
-
   const onVisibilityChange = () => {
     visible = !document.hidden;
     if (visible) drawOrResume();
     else stop();
+  };
+  const stop = () => {
+    if (animationFrame) cancelAnimationFrame(animationFrame);
+    animationFrame = 0;
   };
 
   const resize = () => {
@@ -74,11 +495,43 @@
     const height = Math.max(1, Math.round(rect.height));
     camera.aspect = width / height;
     camera.updateProjectionMatrix();
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, window.innerWidth < 768 ? 1.2 : 1.55));
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, window.innerWidth < 680 ? 1.15 : 1.55));
     renderer.setSize(width, height, false);
     renderer.render(scene, camera);
     host.classList.add("is-ready");
     host.classList.remove("is-fallback");
+  };
+
+  const renderFrame = timestamp => {
+    animationFrame = 0;
+    if (disposed || !visible || document.hidden || !renderer || !systemRig) return;
+    const delta = lastTime ? Math.min(.045, (timestamp - lastTime) / 1000) : 0;
+    lastTime = timestamp;
+    elapsed += delta;
+
+    pointer.x += (pointer.targetX - pointer.x) * .026;
+    pointer.y += (pointer.targetY - pointer.y) * .026;
+    systemRig.rotation.y = pointer.x * .12;
+    systemRig.rotation.x = -.035 - pointer.y * .075;
+    planetRig.rotation.y = elapsed * .052;
+    planetRig.rotation.x = .045 + Math.sin(elapsed * .12) * .012;
+    if (cloudLayer) {
+      cloudLayer.rotation.y = elapsed * .071;
+      cloudLayer.rotation.x = Math.sin(elapsed * .17) * .008;
+    }
+    if (orbitalRig) {
+      orbitalRig.rotation.y = .16 + elapsed * .032;
+      orbitalRig.rotation.z = -.23 + Math.sin(elapsed * .09) * .012;
+    }
+    if (moonPivot) moonPivot.rotation.z = elapsed * .145;
+    if (atmosphereMaterial) atmosphereMaterial.uniforms.uTime.value = elapsed;
+
+    renderer.render(scene, camera);
+    if (renderer.info.render.calls > 0) {
+      host.classList.add("is-ready");
+      host.classList.remove("is-fallback");
+    }
+    animationFrame = requestAnimationFrame(renderFrame);
   };
 
   const drawOrResume = () => {
@@ -93,330 +546,78 @@
     }
   };
 
-  const renderFrame = timestamp => {
-    animationFrame = 0;
-    if (disposed || !visible || document.hidden || !renderer || !crystalRig) return;
-    const delta = lastTime ? Math.min(.05, (timestamp - lastTime) / 1000) : 0;
-    lastTime = timestamp;
-    elapsed += delta;
-
-    pointer.x += (pointer.targetX - pointer.x) * .035;
-    pointer.y += (pointer.targetY - pointer.y) * .035;
-    crystalRig.rotation.y = elapsed * .145 + pointer.x * .11;
-    crystalRig.rotation.x = Math.sin(elapsed * .22) * .045 - pointer.y * .075;
-    crystalRig.rotation.z = Math.sin(elapsed * .16) * .025;
-    crystalRig.position.y = Math.sin(elapsed * .48) * .035;
-
-    renderer.render(scene, camera);
-    if (renderer.info.render.calls > 0) {
-      host.classList.add("is-ready");
-      host.classList.remove("is-fallback");
-    }
-    animationFrame = requestAnimationFrame(renderFrame);
-  };
-
   const createEnvironment = THREE => {
-    const envCanvas = document.createElement("canvas");
-    envCanvas.width = 1024;
-    envCanvas.height = 512;
-    const context = envCanvas.getContext("2d");
-    const base = context.createLinearGradient(0, 0, 1024, 512);
-    base.addColorStop(0, "#171322");
-    base.addColorStop(.22, "#9d8db8");
-    base.addColorStop(.4, "#272033");
-    base.addColorStop(.62, "#756a87");
-    base.addColorStop(.82, "#211a2d");
-    base.addColorStop(1, "#09080f");
+    const canvas = document.createElement("canvas");
+    canvas.width = 1536;
+    canvas.height = 768;
+    const context = canvas.getContext("2d");
+    const base = context.createLinearGradient(0, 0, 1536, 768);
+    base.addColorStop(0, "#070914");
+    base.addColorStop(.19, "#171a31");
+    base.addColorStop(.38, "#35304c");
+    base.addColorStop(.56, "#0a0d1b");
+    base.addColorStop(.76, "#39324a");
+    base.addColorStop(1, "#080914");
     context.fillStyle = base;
-    context.fillRect(0, 0, 1024, 512);
+    context.fillRect(0, 0, canvas.width, canvas.height);
 
-    const softboxes = [
-      { x: 72, y: 30, w: 104, h: 430, color: "#fff", alpha: .92 },
-      { x: 318, y: 0, w: 62, h: 350, color: "#e4d8ff", alpha: .74 },
-      { x: 595, y: 24, w: 128, h: 440, color: "#fff", alpha: .82 },
-      { x: 846, y: 54, w: 42, h: 360, color: "#d5c7ff", alpha: .62 }
+    const lightPanels = [
+      { x: 90, y: 20, w: 210, h: 660, color: "#dce7ff", alpha: .58 },
+      { x: 430, y: 40, w: 85, h: 570, color: "#9b91cf", alpha: .34 },
+      { x: 770, y: 0, w: 270, h: 640, color: "#e6e7ff", alpha: .48 },
+      { x: 1270, y: 40, w: 110, h: 660, color: "#a99bd7", alpha: .38 }
     ];
-    softboxes.forEach(({ x, y, w, h, color, alpha }) => {
-      const gradient = context.createLinearGradient(x, y, x + w, y + h);
+    lightPanels.forEach(panel => {
+      const gradient = context.createLinearGradient(panel.x, panel.y, panel.x + panel.w, panel.y + panel.h);
       gradient.addColorStop(0, "rgba(255,255,255,0)");
-      gradient.addColorStop(.48, color);
+      gradient.addColorStop(.48, panel.color);
       gradient.addColorStop(1, "rgba(255,255,255,0)");
-      context.globalAlpha = alpha;
+      context.globalAlpha = panel.alpha;
       context.fillStyle = gradient;
-      context.fillRect(x, y, w, h);
+      context.fillRect(panel.x, panel.y, panel.w, panel.h);
     });
     context.globalAlpha = 1;
-    const texture = new THREE.CanvasTexture(envCanvas);
+    const texture = new THREE.CanvasTexture(canvas);
     texture.colorSpace = THREE.SRGBColorSpace;
     texture.mapping = THREE.EquirectangularReflectionMapping;
     resources.push(texture);
     return texture;
   };
 
-  const createCrystalSurfaceMaps = (THREE, renderer) => {
-    const width = window.innerWidth < 680 ? 768 : 1280;
-    const height = width / 2;
-    let seed = 20261108;
-    const random = () => {
-      seed = (seed * 1664525 + 1013904223) >>> 0;
-      return seed / 4294967296;
-    };
-    const clamp01 = value => Math.max(0, Math.min(1, value));
-    const smooth = value => {
-      const t = clamp01(value);
-      return t * t * (3 - 2 * t);
-    };
-    const fields = [[12, 6], [24, 12], [48, 24], [96, 48]].map(([columns, rows]) => {
-      const values = new Float32Array(columns * rows);
-      for (let index = 0; index < values.length; index += 1) values[index] = random();
-      return { columns, rows, values };
-    });
-    const sampleNoise = (field, u, v) => {
-      const px = ((u % 1 + 1) % 1) * field.columns;
-      const py = Math.max(0, Math.min(.999999, v)) * (field.rows - 1);
-      const x0 = Math.floor(px) % field.columns;
-      const x1 = (x0 + 1) % field.columns;
-      const y0 = Math.floor(py);
-      const y1 = Math.min(field.rows - 1, y0 + 1);
-      const tx = smooth(px - Math.floor(px));
-      const ty = smooth(py - y0);
-      const a = field.values[y0 * field.columns + x0];
-      const b = field.values[y0 * field.columns + x1];
-      const c = field.values[y1 * field.columns + x0];
-      const d = field.values[y1 * field.columns + x1];
-      const top = a + (b - a) * tx;
-      const bottom = c + (d - c) * tx;
-      return top + (bottom - top) * ty;
-    };
-
-    const colorCanvas = document.createElement("canvas");
-    colorCanvas.width = width;
-    colorCanvas.height = height;
-    const colorContext = colorCanvas.getContext("2d");
-    const colorPixels = colorContext.createImageData(width, height);
-    const heights = new Float32Array(width * height);
-    const roughnessValues = new Uint8Array(width * height);
-
-    // Layered value noise creates the cloudy, grown-inside-the-stone character.
-    for (let y = 0; y < height; y += 1) {
-      const v = y / height;
-      for (let x = 0; x < width; x += 1) {
-        const u = x / width;
-        const broad = sampleNoise(fields[0], u, v);
-        const medium = sampleNoise(fields[1], u, v);
-        const fine = sampleNoise(fields[2], u, v);
-        const micro = sampleNoise(fields[3], u, v);
-        const warp = sampleNoise(fields[1], u + .16, v + .07);
-        const cloud = broad * .48 + medium * .3 + fine * .15 + micro * .07;
-        const bandPosition = v * 9.2 + (broad - .5) * 2.1 + (warp - .5) * .85;
-        const band = Math.pow(Math.max(0, 1 - Math.abs(Math.sin(bandPosition * Math.PI * 2))), 13);
-        const fineVein = Math.pow(Math.max(0, 1 - Math.abs(fine - micro) * 5.2), 8) * .22;
-        const mineral = clamp01((cloud - .2) * 1.42 + .12);
-        const silver = clamp01(band * .62 + fineVein + Math.max(0, micro - .83) * .8);
-        const shadow = clamp01((.48 - cloud) * .7);
-        const index = y * width + x;
-        const pixel = index * 4;
-
-        colorPixels.data[pixel] = Math.round(27 + mineral * 66 + silver * 83 - shadow * 9);
-        colorPixels.data[pixel + 1] = Math.round(19 + mineral * 59 + silver * 79 - shadow * 7);
-        colorPixels.data[pixel + 2] = Math.round(40 + mineral * 91 + silver * 91 - shadow * 3);
-        colorPixels.data[pixel + 3] = 255;
-
-        heights[index] = 104 + mineral * 28 + band * 23 + fineVein * 28 + (micro - .5) * 13;
-        roughnessValues[index] = Math.max(62, Math.min(220,
-          Math.round(155 + (broad - .5) * 33 + (fine - .5) * 26 - silver * 38 + random() * 13)
-        ));
-      }
-    }
-    colorContext.putImageData(colorPixels, 0, 0);
-
-    // Fine fractures follow the mineral bands and split into hairline branches.
-    for (let vein = 0; vein < 118; vein += 1) {
-      let x = random() * width;
-      let y = random() * height;
-      const points = [[x, y]];
-      const count = 6 + Math.floor(random() * 10);
-      let direction = (random() - .5) * .9;
-      for (let step = 0; step < count; step += 1) {
-        direction += (random() - .5) * .62;
-        x += Math.cos(direction) * (9 + random() * 23);
-        y += Math.sin(direction) * (7 + random() * 18);
-        points.push([x, y]);
-      }
-      colorContext.beginPath();
-      colorContext.moveTo(points[0][0], points[0][1]);
-      points.slice(1).forEach(point => colorContext.lineTo(point[0], point[1]));
-      colorContext.lineWidth = .45 + random() * 1.2;
-      colorContext.strokeStyle = "rgba(14,9,22," + (.12 + random() * .18) + ")";
-      colorContext.stroke();
-      colorContext.beginPath();
-      colorContext.moveTo(points[0][0] + .7, points[0][1] - .5);
-      points.slice(1).forEach(point => colorContext.lineTo(point[0] + .7, point[1] - .5));
-      colorContext.lineWidth = .25 + random() * .62;
-      colorContext.strokeStyle = "rgba(244,237,255," + (.12 + random() * .28) + ")";
-      colorContext.stroke();
-
-      if (points.length > 5 && random() > .32) {
-        const origin = points[2 + Math.floor(random() * (points.length - 3))];
-        colorContext.beginPath();
-        colorContext.moveTo(origin[0], origin[1]);
-        colorContext.lineTo(origin[0] + (random() - .5) * 42, origin[1] + (random() - .5) * 48);
-        colorContext.lineWidth = .25 + random() * .55;
-        colorContext.strokeStyle = "rgba(222,207,248," + (.1 + random() * .2) + ")";
-        colorContext.stroke();
-      }
-    }
-
-    // Mica dust is sparse: most of the surface remains deep and glassy.
-    for (let index = 0; index < 9800; index += 1) {
-      const x = random() * width;
-      const y = random() * height;
-      const length = random() > .88 ? 1.2 + random() * 3.8 : .25 + random() * 1.1;
-      colorContext.beginPath();
-      colorContext.ellipse(x, y, length, .22 + random() * .48, random() * Math.PI, 0, Math.PI * 2);
-      colorContext.fillStyle = random() > .64
-        ? "rgba(250,244,255," + (.07 + random() * .24) + ")"
-        : "rgba(8,5,16," + (.04 + random() * .15) + ")";
-      colorContext.fill();
-    }
-
-    const reliefCanvas = document.createElement("canvas");
-    reliefCanvas.width = width;
-    reliefCanvas.height = height;
-    const reliefContext = reliefCanvas.getContext("2d");
-    const reliefPixels = reliefContext.createImageData(width, height);
-    for (let index = 0; index < heights.length; index += 1) {
-      const value = Math.round(heights[index]);
-      const offset = index * 4;
-      reliefPixels.data[offset] = value;
-      reliefPixels.data[offset + 1] = value;
-      reliefPixels.data[offset + 2] = value;
-      reliefPixels.data[offset + 3] = 255;
-    }
-    reliefContext.putImageData(reliefPixels, 0, 0);
-
-    const normalCanvas = document.createElement("canvas");
-    normalCanvas.width = width;
-    normalCanvas.height = height;
-    const normalContext = normalCanvas.getContext("2d");
-    const normalPixels = normalContext.createImageData(width, height);
-    for (let y = 0; y < height; y += 1) {
-      for (let x = 0; x < width; x += 1) {
-        const left = heights[y * width + ((x - 1 + width) % width)];
-        const right = heights[y * width + ((x + 1) % width)];
-        const up = heights[Math.max(0, y - 1) * width + x];
-        const down = heights[Math.min(height - 1, y + 1) * width + x];
-        let nx = -(right - left) * .11;
-        let ny = (down - up) * .11;
-        let nz = 1;
-        const length = Math.hypot(nx, ny, nz);
-        nx /= length;
-        ny /= length;
-        nz /= length;
-        const offset = (y * width + x) * 4;
-        normalPixels.data[offset] = Math.round((nx * .5 + .5) * 255);
-        normalPixels.data[offset + 1] = Math.round((ny * .5 + .5) * 255);
-        normalPixels.data[offset + 2] = Math.round((nz * .5 + .5) * 255);
-        normalPixels.data[offset + 3] = 255;
-      }
-    }
-    normalContext.putImageData(normalPixels, 0, 0);
-
-    const roughnessCanvas = document.createElement("canvas");
-    roughnessCanvas.width = width;
-    roughnessCanvas.height = height;
-    const roughnessContext = roughnessCanvas.getContext("2d");
-    const roughnessPixels = roughnessContext.createImageData(width, height);
-    for (let index = 0; index < roughnessValues.length; index += 1) {
-      const value = roughnessValues[index];
-      const offset = index * 4;
-      roughnessPixels.data[offset] = value;
-      roughnessPixels.data[offset + 1] = value;
-      roughnessPixels.data[offset + 2] = value;
-      roughnessPixels.data[offset + 3] = 255;
-    }
-    roughnessContext.putImageData(roughnessPixels, 0, 0);
-
-    const anisotropy = Math.min(12, renderer.capabilities.getMaxAnisotropy());
-    const map = new THREE.CanvasTexture(colorCanvas);
-    map.colorSpace = THREE.SRGBColorSpace;
-    map.anisotropy = anisotropy;
-    const normalMap = new THREE.CanvasTexture(normalCanvas);
-    normalMap.anisotropy = anisotropy;
-    const roughnessMap = new THREE.CanvasTexture(roughnessCanvas);
-    roughnessMap.anisotropy = anisotropy;
-    resources.push(map, normalMap, roughnessMap);
-    return { map, normalMap, roughnessMap };
+  const addRing = (THREE, parent, inner, outer, color, brightness) => {
+    const geometry = new THREE.RingGeometry(inner, outer, 420, 2);
+    const material = makeRingMaterial(THREE, inner, outer, color, brightness);
+    const mesh = new THREE.Mesh(geometry, material);
+    mesh.renderOrder = 1;
+    parent.add(mesh);
+    resources.push(geometry, material);
+    return mesh;
   };
 
-  const createCrystalGeometry = THREE => {
-    const geometry = new THREE.IcosahedronGeometry(1.04, 4);
-    const positions = geometry.attributes.position;
-    for (let index = 0; index < positions.count; index += 1) {
-      const x = positions.getX(index);
-      const y = positions.getY(index);
-      const z = positions.getZ(index);
-      const length = Math.max(.0001, Math.hypot(x, y, z));
-      const nx = x / length;
-      const ny = y / length;
-      const nz = z / length;
-      const facetWave = (
-        Math.sin(nx * 8.3 + ny * 3.7) +
-        Math.cos(ny * 9.1 - nz * 4.2) +
-        Math.sin(nz * 7.4 + nx * 5.8)
-      ) / 3;
-      const crystallineRidge = Math.pow(Math.max(0, Math.sin(nx * 12.4 + nz * 6.3) * Math.cos(ny * 10.7)), 5);
-      const radius = 1.04 * (1 + facetWave * .021 + crystallineRidge * .009);
-      positions.setXYZ(index, nx * radius, ny * radius * .98, nz * radius);
+  const addMoon = THREE => {
+    moonPivot = new THREE.Group();
+    orbitalRig.add(moonPivot);
+    const geometry = new THREE.SphereGeometry(.074, 36, 28);
+    const material = new THREE.MeshStandardMaterial({
+      color: 0x8f8b9d,
+      roughness: .88,
+      metalness: .04,
+      bumpScale: .012
+    });
+    const position = geometry.attributes.position;
+    for (let index = 0; index < position.count; index += 1) {
+      const x = position.getX(index);
+      const y = position.getY(index);
+      const z = position.getZ(index);
+      const noise = fbm3(x * 38 + 5, y * 38 - 2, z * 38 + 8, 3, 711);
+      const length = Math.hypot(x, y, z);
+      const displacement = 1 + (noise - .5) * .12;
+      position.setXYZ(index, x / length * displacement, y / length * displacement, z / length * displacement);
     }
     geometry.computeVertexNormals();
-    const faceted = geometry.toNonIndexed();
-    geometry.dispose();
-    faceted.computeVertexNormals();
-    return faceted;
-  };
-
-  const addCrystalInclusions = (THREE, parent) => {
-    let seed = 8102026;
-    const random = () => {
-      seed = (seed * 1103515245 + 12345) >>> 0;
-      return seed / 4294967296;
-    };
-    const geometry = new THREE.TetrahedronGeometry(.021, 0);
-    const material = new THREE.MeshPhysicalMaterial({
-      color: 0xf1eaff,
-      metalness: .18,
-      roughness: .22,
-      clearcoat: 1,
-      emissive: 0x9e84cf,
-      emissiveIntensity: .38,
-      transparent: true,
-      opacity: .48,
-      depthWrite: false
-    });
-    const inclusions = new THREE.InstancedMesh(geometry, material, 68);
-    const dummy = new THREE.Object3D();
-    for (let index = 0; index < 68; index += 1) {
-      const z = random() * 2 - 1;
-      const angle = random() * Math.PI * 2;
-      const radial = Math.sqrt(1 - z * z);
-      const radius = .32 + random() * .48;
-      dummy.position.set(
-        Math.cos(angle) * radial * radius,
-        z * radius,
-        Math.sin(angle) * radial * radius
-      );
-      dummy.rotation.set(random() * Math.PI, random() * Math.PI, random() * Math.PI);
-      const scale = .24 + random() * 1.05;
-      dummy.scale.set(scale, scale * (.45 + random() * .9), scale * (.35 + random() * .8));
-      dummy.updateMatrix();
-      inclusions.setMatrixAt(index, dummy.matrix);
-      const tint = random() > .55 ? 0xe8ddff : 0xa992d5;
-      inclusions.setColorAt(index, new THREE.Color(tint));
-    }
-    inclusions.instanceMatrix.needsUpdate = true;
-    if (inclusions.instanceColor) inclusions.instanceColor.needsUpdate = true;
-    parent.add(inclusions);
+    const moon = new THREE.Mesh(geometry, material);
+    moon.position.set(1.94, .025, 0);
+    moonPivot.add(moon);
     resources.push(geometry, material);
   };
 
@@ -429,138 +630,84 @@
 
       scene = new THREE.Scene();
       scene.environment = createEnvironment(THREE);
-      camera = new THREE.PerspectiveCamera(34, 1, .1, 20);
-      camera.position.set(0, 0, 4.05);
+      camera = new THREE.PerspectiveCamera(36, 1, .1, 30);
+      camera.position.set(0, 0, 4.65);
       camera.lookAt(0, 0, 0);
 
       renderer = new THREE.WebGLRenderer({
         canvas,
         alpha: true,
         antialias: true,
-        powerPreference: "low-power"
+        powerPreference: "high-performance"
       });
       renderer.outputColorSpace = THREE.SRGBColorSpace;
       renderer.toneMapping = THREE.ACESFilmicToneMapping;
-      renderer.toneMappingExposure = 1.22;
+      renderer.toneMappingExposure = 1.18;
       renderer.setClearColor(0x000000, 0);
-      renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, window.innerWidth < 768 ? 1.2 : 1.55));
+      rendererMaxAnisotropy = renderer.capabilities.getMaxAnisotropy();
 
-      scene.add(new THREE.HemisphereLight(0xe9e1ff, 0x171020, 1.45));
-      scene.add(new THREE.AmbientLight(0xb4a5d8, .42));
+      scene.add(new THREE.HemisphereLight(0xdfe5ff, 0x10101e, 1.18));
+      scene.add(new THREE.AmbientLight(0x6d658f, .22));
+      const key = new THREE.DirectionalLight(0xfff4e7, 3.6);
+      key.position.set(-3.8, 3.6, 4.4);
+      scene.add(key);
+      const fill = new THREE.DirectionalLight(0x8786dc, 1.15);
+      fill.position.set(3.8, -1.2, 2.6);
+      scene.add(fill);
+      const rim = new THREE.PointLight(0xa69aff, 3.8, 8);
+      rim.position.set(2.6, 1.8, -2.4);
+      scene.add(rim);
 
-      const keyLight = new THREE.DirectionalLight(0xffffff, 4.25);
-      keyLight.position.set(-3.8, 4.8, 5.4);
-      scene.add(keyLight);
-      const rimLight = new THREE.PointLight(0xb89aff, 6.1, 8);
-      rimLight.position.set(3.1, 1.5, -1.6);
-      scene.add(rimLight);
-      const lowerLight = new THREE.PointLight(0xe7dcff, 2.2, 7);
-      lowerLight.position.set(-2.2, -2.5, 2.3);
-      scene.add(lowerLight);
+      addStars(THREE);
+      systemRig = new THREE.Group();
+      scene.add(systemRig);
 
-      crystalRig = new THREE.Group();
-      scene.add(crystalRig);
-
-      const crystalGeometry = createCrystalGeometry(THREE);
-      const surfaceMaps = createCrystalSurfaceMaps(THREE, renderer);
-      const crystalMaterial = new THREE.MeshPhysicalMaterial({
-        color: 0xe0d4f1,
-        map: surfaceMaps.map,
-        normalMap: surfaceMaps.normalMap,
-        normalScale: new THREE.Vector2(.46, .46),
-        roughnessMap: surfaceMaps.roughnessMap,
-        metalness: .12,
-        roughness: .24,
-        clearcoat: 1,
-        clearcoatRoughness: .065,
-        transmission: .16,
-        thickness: 1.1,
-        ior: 1.49,
-        iridescence: .22,
-        iridescenceIOR: 1.34,
-        iridescenceThicknessRange: [135, 420],
-        attenuationColor: 0x80639f,
-        attenuationDistance: 2.2,
-        emissive: 0x21132f,
-        emissiveIntensity: .25,
-        envMapIntensity: 2.35,
-        flatShading: true
+      planetRig = new THREE.Group();
+      systemRig.add(planetRig);
+      const planetMaps = buildPlanetMaps(THREE);
+      const planetGeometry = createPlanetGeometry(THREE);
+      const planetMaterial = new THREE.MeshStandardMaterial({
+        map: planetMaps.map,
+        bumpMap: planetMaps.bumpMap,
+        bumpScale: .012,
+        roughnessMap: planetMaps.roughnessMap,
+        roughness: .78,
+        metalness: .08
       });
-      const crystal = new THREE.Mesh(crystalGeometry, crystalMaterial);
-      crystal.rotation.set(.18, -.3, .08);
-      crystalRig.add(crystal);
-      resources.push(crystalGeometry, crystalMaterial);
-      addCrystalInclusions(THREE, crystalRig);
+      const planet = new THREE.Mesh(planetGeometry, planetMaterial);
+      planet.rotation.set(-.14, .12, .08);
+      planetRig.add(planet);
+      resources.push(planetGeometry, planetMaterial);
 
-      // A clear polished skin gives the facets a convincing glass edge and fresnel reflection.
-      const shellGeometry = new THREE.SphereGeometry(1.092, 80, 64);
-      const shellMaterial = new THREE.MeshPhysicalMaterial({
-        color: 0xd9cafa,
-        metalness: .02,
-        roughness: .055,
-        transmission: .34,
-        thickness: .42,
-        ior: 1.49,
-        clearcoat: 1,
-        clearcoatRoughness: .025,
-        iridescence: .12,
-        iridescenceIOR: 1.32,
-        iridescenceThicknessRange: [180, 360],
-        attenuationColor: 0xb6a0dc,
-        attenuationDistance: 3.4,
-        envMapIntensity: 2.6,
-        side: THREE.FrontSide
-      });
-      const glassShell = new THREE.Mesh(shellGeometry, shellMaterial);
-      crystalRig.add(glassShell);
-      resources.push(shellGeometry, shellMaterial);
-
-      const innerGeometry = new THREE.IcosahedronGeometry(.57, 2);
-      const innerMaterial = new THREE.MeshPhysicalMaterial({
-        color: 0x8972b1,
-        metalness: .08,
-        roughness: .18,
-        transmission: .3,
-        thickness: .6,
-        ior: 1.46,
-        clearcoat: .9,
-        clearcoatRoughness: .08,
-        iridescence: .16,
-        iridescenceThicknessRange: [110, 300],
-        emissive: 0x60468b,
-        emissiveIntensity: .54,
+      const cloudTexture = buildCloudTexture(THREE);
+      const cloudGeometry = new THREE.SphereGeometry(1.009, 128, 96);
+      const cloudMaterial = new THREE.MeshStandardMaterial({
+        map: cloudTexture,
+        color: 0xd7d5eb,
         transparent: true,
-        opacity: .58,
-        depthWrite: false,
-        envMapIntensity: 1.8,
-        flatShading: true
-      });
-      const innerCrystal = new THREE.Mesh(innerGeometry, innerMaterial);
-      innerCrystal.rotation.set(-.36, .42, .18);
-      crystalRig.add(innerCrystal);
-      resources.push(innerGeometry, innerMaterial);
-
-      const coreGeometry = new THREE.IcosahedronGeometry(.22, 2);
-      const coreMaterial = new THREE.MeshBasicMaterial({
-        color: 0xd8c8ff,
-        transparent: true,
-        opacity: .7,
+        opacity: .56,
+        roughness: .92,
+        metalness: 0,
         depthWrite: false
       });
-      const core = new THREE.Mesh(coreGeometry, coreMaterial);
-      crystalRig.add(core);
-      resources.push(coreGeometry, coreMaterial);
+      cloudLayer = new THREE.Mesh(cloudGeometry, cloudMaterial);
+      planetRig.add(cloudLayer);
+      resources.push(cloudGeometry, cloudMaterial);
 
-      const orbitGeometry = new THREE.TorusGeometry(1.22, .006, 6, 160);
-      const orbitMaterial = new THREE.MeshBasicMaterial({
-        color: 0xe8ddff,
-        transparent: true,
-        opacity: .62
-      });
-      const crystalOrbit = new THREE.Mesh(orbitGeometry, orbitMaterial);
-      crystalOrbit.rotation.set(1.08, .28, -.26);
-      crystalRig.add(crystalOrbit);
-      resources.push(orbitGeometry, orbitMaterial);
+      const atmosphereGeometry = new THREE.SphereGeometry(1.062, 112, 80);
+      atmosphereMaterial = makeAtmosphereMaterial(THREE);
+      const atmosphere = new THREE.Mesh(atmosphereGeometry, atmosphereMaterial);
+      atmosphere.renderOrder = 2;
+      planetRig.add(atmosphere);
+      resources.push(atmosphereGeometry, atmosphereMaterial);
+
+      orbitalRig = new THREE.Group();
+      orbitalRig.rotation.set(1.18, .16, -.23);
+      systemRig.add(orbitalRig);
+      addRing(THREE, orbitalRig, 1.125, 1.34, 0xc5c0e5, .92);
+      addRing(THREE, orbitalRig, 1.355, 1.61, 0xaaa6ce, .68);
+      addRing(THREE, orbitalRig, 1.625, 1.665, 0xe0dcf2, .72);
+      addMoon(THREE);
 
       const resizeHandler = () => resize();
       window.addEventListener("resize", resizeHandler, { passive: true });
@@ -568,9 +715,7 @@
       document.addEventListener("visibilitychange", onVisibilityChange);
       host.addEventListener("pointermove", onPointerMove, { passive: true });
       host.addEventListener("pointerleave", onPointerLeave, { passive: true });
-      resources.push({
-        dispose: () => window.removeEventListener("resize", resizeHandler)
-      });
+      resources.push({ dispose: () => window.removeEventListener("resize", resizeHandler) });
 
       if ("ResizeObserver" in window) {
         resizeObserver = new ResizeObserver(resize);
@@ -579,7 +724,7 @@
       resize();
       drawOrResume();
     } catch (error) {
-      console.warn("ORBE & ONIX studio crystal could not start; CSS fallback remains active.", error);
+      console.warn("ORBE & ONIX Vespera planet could not start; the static fallback remains active.", error);
       host.classList.remove("is-ready");
       host.classList.add("is-fallback");
       if (renderer) {
@@ -600,7 +745,7 @@
       } else {
         stop();
       }
-    }, { rootMargin: "180px 0px" });
+    }, { rootMargin: "220px 0px" });
     intersectionObserver.observe(host);
   } else {
     start();
