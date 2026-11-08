@@ -4186,3 +4186,23 @@ body.door-reveal-active .site-header,body.door-reveal-active main,body.door-reve
     inset:38px 0;
   }
 }
+
+
+/* MOBILE 3D VISIBILITY — keep the live canvas above exhibition overlays. */
+.form-study-page .study-3d-stage{
+  z-index:6;
+}
+.form-study-page .study-3d-stage .hero-stage-3d{
+  z-index:1;
+}
+.form-study-page .study-3d-stage .hero-stage-canvas{
+  position:relative;
+  z-index:1;
+}
+.form-study-page .study-3d-stage .hero-stage-fallback{
+  z-index:0;
+}
+.form-study-page .study-scene-topline,
+.form-study-page .study-scene-bottomline{
+  z-index:8;
+}
