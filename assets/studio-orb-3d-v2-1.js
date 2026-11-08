@@ -181,9 +181,9 @@ void main(){
   float night = 1.0 - smoothstep(-0.24, -0.015, sunCos);
   float limb = pow(1.0 - mu, 2.15);
 
-  // View direction points from the atmosphere sample toward the camera.
-  // The forward Mie lobe is therefore strongest when looking toward the sun.
-  float viewSun = dot(-d, L);
+  // d is the camera-to-fragment ray; L points from the planet toward the sun.
+  // The forward Mie lobe aligns the ray of light with the camera ray.
+  float viewSun = dot(d, L);
   const float mieG = 0.58;
   float mieDen = max(1.0 + mieG*mieG - 2.0*mieG*viewSun, 0.025);
   float miePhase = (1.0 - mieG*mieG) / (4.0*PI*pow(mieDen, 1.5));
