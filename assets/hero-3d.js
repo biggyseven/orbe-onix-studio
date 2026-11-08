@@ -10,6 +10,8 @@
   const CDN = "https://cdn.jsdelivr.net/npm/three@0.187.0/build/three.module.js";
   const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   const finePointer = window.matchMedia("(pointer: fine)").matches;
+  const compactDevice = window.matchMedia("(max-width: 760px)").matches
+    || (typeof navigator.deviceMemory === "number" && navigator.deviceMemory <= 4);
   let renderer;
   let resizeObserver;
   let animationFrame = 0;
@@ -39,9 +41,11 @@
 
   const makeEnvironment = THREE => {
     const envCanvas = document.createElement("canvas");
-    envCanvas.width = 2048;
-    envCanvas.height = 1024;
+    const environmentScale = compactDevice ? .5 : 1;
+    envCanvas.width = Math.round(2048 * environmentScale);
+    envCanvas.height = Math.round(1024 * environmentScale);
     const ctx = envCanvas.getContext("2d");
+    ctx.setTransform(environmentScale, 0, 0, environmentScale, 0, 0);
     const base = ctx.createLinearGradient(0, 0, 2048, 1024);
     base.addColorStop(0, "#2b2638");
     base.addColorStop(.28, "#aaa0c7");
@@ -220,9 +224,11 @@
       scene.environment = makeEnvironment(THREE);
 
       const shadowCanvas = document.createElement("canvas");
-      shadowCanvas.width = 512;
-      shadowCanvas.height = 384;
+      const shadowScale = compactDevice ? .5 : 1;
+      shadowCanvas.width = Math.round(512 * shadowScale);
+      shadowCanvas.height = Math.round(384 * shadowScale);
       const shadowContext = shadowCanvas.getContext("2d");
+      shadowContext.setTransform(shadowScale, 0, 0, shadowScale, 0, 0);
       const shadowGradient = shadowContext.createRadialGradient(256, 192, 14, 256, 192, 184);
       shadowGradient.addColorStop(0, "rgba(5,4,10,.42)");
       shadowGradient.addColorStop(.44, "rgba(8,6,14,.22)");
@@ -253,9 +259,46 @@
       renderer = new THREE.WebGLRenderer({
         canvas,
         alpha: true,
-        antialias: true,
-        powerPreference: "high-performance"
+        antialias: !compactDevice,
+        powerPreference: compactDevice ? "low-power" : "high-performance"
       });
+      let canvasVisibilityChecked = false;
+      const revealCanvasWhenDrawn = () => {
+        if (canvasVisibilityChecked || !renderer || !canvas.width || !canvas.height) return;
+        canvasVisibilityChecked = true;
+        try {
+          const gl = renderer.getContext();
+          const pixel = new Uint8Array(4);
+          const samples = [.24, .36, .5, .64, .76];
+          let visiblePixelFound = false;
+          for (const xRatio of samples) {
+            for (const yRatio of samples) {
+              gl.readPixels(
+                Math.min(canvas.width - 1, Math.floor(canvas.width * xRatio)),
+                Math.min(canvas.height - 1, Math.floor(canvas.height * yRatio)),
+                1, 1, gl.RGBA, gl.UNSIGNED_BYTE, pixel
+              );
+              if (pixel[3] > 12 && pixel[0] + pixel[1] + pixel[2] > 75) {
+                visiblePixelFound = true;
+                break;
+              }
+            }
+            if (visiblePixelFound) break;
+          }
+          if (visiblePixelFound) {
+            host.classList.add("is-ready");
+            host.classList.remove("is-fallback");
+            return;
+          }
+        } catch (error) {
+          console.warn("ORBE & ONIX canvas visibility check unavailable.", error);
+        }
+        host.classList.add("is-fallback");
+      };
+      canvas.addEventListener("webglcontextlost", () => {
+        host.classList.remove("is-ready");
+        host.classList.add("is-fallback");
+      }, false);
       renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, window.innerWidth < 760 ? 1.3 : 1.75));
       renderer.outputColorSpace = THREE.SRGBColorSpace;
       renderer.toneMapping = THREE.ACESFilmicToneMapping;
@@ -392,8 +435,8 @@
       // but their high/low passes are shaped into each loop rather than cut apart.
       const outerPath = makeWovenLoopPath(THREE, 1.32, .24, -.3, .028);
       const outerGeometry = makeSculpturalTubeGeometry(THREE, outerPath, {
-        tubularSegments: 768,
-        radialSegments: 88,
+        tubularSegments: tubeSegments,
+        radialSegments: compactDevice ? 48 : 88,
         radius: .16,
         depthRatio: .72,
         phase: .4,
@@ -408,8 +451,8 @@
 
       const glassPath = makeWovenLoopPath(THREE, 1.14, .31, 1.35, .042);
       const glassGeometry = makeSculpturalTubeGeometry(THREE, glassPath, {
-        tubularSegments: 768,
-        radialSegments: 96,
+        tubularSegments: tubeSegments,
+        radialSegments: compactDevice ? 48 : 96,
         radius: .22,
         depthRatio: .38,
         phase: 1.1,
@@ -422,6 +465,8 @@
       glassRing.scale.setScalar(1.04);
       sculpture.add(glassRing);
       resources.push(glassGeometry);
+
+      const tubeSegments = compactDevice ? 384 : 768;
 
       const bridgePath = makeWovenLoopPath(THREE, .86, .19, .75, .03);
 
@@ -437,8 +482,8 @@
         throw new Error("Hero sculpture links are too close: " + clearances.map(value => value.toFixed(3)).join(", "));
       }
       const bridgeGeometry = makeSculpturalTubeGeometry(THREE, bridgePath, {
-        tubularSegments: 768,
-        radialSegments: 80,
+        tubularSegments: tubeSegments,
+        radialSegments: compactDevice ? 40 : 80,
         radius: .075,
         depthRatio: .78,
         phase: .7,
@@ -558,6 +603,7 @@
         ));
         renderer.setSize(width, height, false);
         renderer.render(scene, camera);
+        revealCanvasWhenDrawn();
       };
 
       if ("ResizeObserver" in window) {
@@ -786,7 +832,7 @@
         sculpture.position.y = motionPlaying ? Math.sin(elapsed * .58) * .045 : 0;
 
         renderer.render(scene, camera);
-        host.classList.add("is-ready");
+        revealCanvasWhenDrawn();
         if (hasActiveAnimation()) animationFrame = requestAnimationFrame(renderFrame);
       };
 
@@ -796,7 +842,7 @@
           animationFrame = requestAnimationFrame(renderFrame);
         } else if (renderer) {
           renderer.render(scene, camera);
-          host.classList.add("is-ready");
+          revealCanvasWhenDrawn();
         }
       };
 
