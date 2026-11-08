@@ -122,12 +122,13 @@ void main(){
   float shadowB = texG(uClouds, uv + 2.0*vec2(du, dv), gx, gy).r;
   float selfShadow = clamp((max(shadowA, shadowB)-base)*2.8, 0.0, 1.0);
 
-  vec3 V = normalize(cameraPosition - vWorld);
+  vec3 Vw = normalize(cameraPosition - vWorld);
+  vec3 Vc = normalize(uCloudInv * Vw);
   float ndl = dot(P, Lc);
   float daylight = smoothstep(-0.16, 0.38, ndl);
   float silver = smoothstep(0.12, 0.72, ndl);
-  float edge = pow(1.0-max(dot(P, V), 0.0), 2.4);
-  float forward = pow(max(dot(V, -Lc), 0.0), 5.0);
+  float edge = pow(1.0-max(dot(P, Vc), 0.0), 2.4);
+  float forward = pow(max(dot(Vc, -Lc), 0.0), 5.0);
   float body = smoothstep(0.24, 0.86, density);
   vec3 pearl = vec3(0.91, 0.925, 0.97);
   vec3 lavender = vec3(0.72, 0.66, 0.91);
