@@ -244,8 +244,11 @@
       resources.push(shadowTexture, shadowGeometry, shadowMaterial);
 
       camera = new THREE.PerspectiveCamera(33, 1, .1, 40);
-      camera.position.set(0, 0, stage.hasAttribute("data-sculpture-stage") ? 5.4 : 6.25);
+      const isStudyScene = stage.hasAttribute("data-sculpture-stage");
+      camera.position.set(0, 0, isStudyScene ? 5.4 : 6.25);
       camera.lookAt(0, 0, 0);
+      let targetCameraZ = camera.position.z;
+      let cameraFramingScale = 1;
 
       renderer = new THREE.WebGLRenderer({
         canvas,
@@ -529,22 +532,46 @@
 
       const resize = () => {
         if (!renderer || disposed) return;
-        const rect = host.getBoundingClientRect();
-        const width = Math.max(1, Math.round(rect.width));
-        const height = Math.max(1, Math.round(rect.height));
-        renderer.setSize(width, height, false);
-        camera.aspect = width / height;
+        const hostRect = host.getBoundingClientRect();
+        const stageRect = stage.getBoundingClientRect();
+        const width = Math.max(1, Math.round(hostRect.width || stageRect.width || window.innerWidth));
+        const height = Math.max(1, Math.round(hostRect.height || stageRect.height || window.innerHeight));
+        const aspect = width / height;
+
+        // Portrait viewports need a little more camera distance so the full
+        // sculpture remains inside the narrower horizontal field of view.
+        cameraFramingScale = isStudyScene ? Math.max(1, 1.08 / Math.max(aspect, .7)) : 1;
+        camera.position.z = targetCameraZ * cameraFramingScale;
+        camera.aspect = aspect;
         camera.updateProjectionMatrix();
+
+        renderer.setPixelRatio(Math.min(
+          window.devicePixelRatio || 1,
+          window.innerWidth < 760 ? 1.25 : 1.65
+        ));
+        renderer.setSize(width, height, false);
         renderer.render(scene, camera);
       };
 
       if ("ResizeObserver" in window) {
         resizeObserver = new ResizeObserver(resize);
         resizeObserver.observe(host);
-      } else {
-        window.addEventListener("resize", resize, { passive: true });
+        resizeObserver.observe(stage);
+        const sceneFrame = stage.closest(".study-scene-frame");
+        if (sceneFrame) resizeObserver.observe(sceneFrame);
       }
+      window.addEventListener("resize", resize, { passive: true });
+      if (window.visualViewport) {
+        window.visualViewport.addEventListener("resize", resize, { passive: true });
+      }
+      resources.push({
+        dispose: () => {
+          window.removeEventListener("resize", resize);
+          if (window.visualViewport) window.visualViewport.removeEventListener("resize", resize);
+        }
+      });
       resize();
+      requestAnimationFrame(resize);
 
       const clock = new THREE.Clock();
       let motionPlaying = !reducedMotion;
@@ -554,7 +581,6 @@
       let viewRotation = { x: -.12, y: .08, z: -.08 };
       let targetViewRotation = { ...viewRotation };
       let viewTransitionActive = false;
-      let targetCameraZ = camera.position.z;
       const motionControls = document.querySelector("[data-sculpture-controls]");
       const exhibitionViewer = document.querySelector("[data-exhibition-viewer]");
       const fullscreenButton = document.querySelector("[data-exhibition-fullscreen]");
@@ -592,9 +618,9 @@
       const lightButtons = motionControls ? [...motionControls.querySelectorAll("[data-light-preset]")] : [];
       const galleryButtons = [...document.querySelectorAll("[data-study-gallery-view]")];
       const viewPresets = {
-        front: { x: -.12, y: .08, z: -.08, cameraZ: camera.position.z },
-        "three-quarter": { x: -.12, y: .62, z: -.08, cameraZ: camera.position.z - .18 },
-        side: { x: -.04, y: 1.48, z: -.035, cameraZ: camera.position.z + .28 }
+        front: { x: -.12, y: .08, z: -.08, cameraZ: targetCameraZ },
+        "three-quarter": { x: -.12, y: .62, z: -.08, cameraZ: targetCameraZ - .18 },
+        side: { x: -.04, y: 1.48, z: -.035, cameraZ: targetCameraZ + .28 }
       };
 
       const hasActiveAnimation = () => motionPlaying || viewTransitionActive || lightTransitionActive || materialFocusActive;
@@ -720,16 +746,17 @@
           viewRotation.x = approachAngle(viewRotation.x, targetViewRotation.x, transitionAmount);
           viewRotation.y = approachAngle(viewRotation.y, targetViewRotation.y, transitionAmount);
           viewRotation.z = approachAngle(viewRotation.z, targetViewRotation.z, transitionAmount);
-          camera.position.z += (targetCameraZ - camera.position.z) * transitionAmount;
+          const fittedCameraZ = targetCameraZ * cameraFramingScale;
+          camera.position.z += (fittedCameraZ - camera.position.z) * transitionAmount;
 
           const rotationRemaining = Math.max(
             Math.abs(Math.atan2(Math.sin(targetViewRotation.x - viewRotation.x), Math.cos(targetViewRotation.x - viewRotation.x))),
             Math.abs(Math.atan2(Math.sin(targetViewRotation.y - viewRotation.y), Math.cos(targetViewRotation.y - viewRotation.y))),
             Math.abs(Math.atan2(Math.sin(targetViewRotation.z - viewRotation.z), Math.cos(targetViewRotation.z - viewRotation.z)))
           );
-          if (rotationRemaining < .001 && Math.abs(targetCameraZ - camera.position.z) < .001) {
+          if (rotationRemaining < .001 && Math.abs(fittedCameraZ - camera.position.z) < .001) {
             viewRotation = { ...targetViewRotation };
-            camera.position.z = targetCameraZ;
+            camera.position.z = fittedCameraZ;
             viewTransitionActive = false;
             stage.classList.remove("is-view-transitioning");
           }
@@ -996,7 +1023,7 @@
         stage.classList.toggle("is-view-transitioning", viewTransitionActive);
         if (reducedMotion) {
           viewRotation = { ...targetViewRotation };
-          camera.position.z = targetCameraZ;
+          camera.position.z = targetCameraZ * cameraFramingScale;
         }
         updateMotionControls();
         if (viewTransitionActive || hasActiveAnimation()) startLoop();
@@ -1030,7 +1057,7 @@
           setLightingPreset("studio");
           if (reducedMotion) {
             viewRotation = { ...targetViewRotation };
-            camera.position.z = targetCameraZ;
+            camera.position.z = targetCameraZ * cameraFramingScale;
           }
           lastElapsed = clock.getElapsedTime();
           updateMotionControls();
@@ -1126,7 +1153,7 @@
             z: sculpture.rotation.z
           };
           targetViewRotation = { ...viewRotation };
-          targetCameraZ = camera.position.z;
+          targetCameraZ = camera.position.z / cameraFramingScale;
           rotationPhase = 0;
           viewTransitionActive = false;
           activeView = "custom";
