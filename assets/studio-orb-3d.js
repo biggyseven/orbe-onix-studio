@@ -139,7 +139,7 @@
   };
 
   const buildPlanetMaps = THREE => {
-    const width = window.innerWidth < 680 ? 768 : 1024;
+    const width = window.innerWidth < 680 ? 512 : 768;
     const height = width / 2;
     const colorCanvas = document.createElement("canvas");
     colorCanvas.width = width;
