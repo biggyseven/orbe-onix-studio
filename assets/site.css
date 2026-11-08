@@ -4234,9 +4234,14 @@ body.door-reveal-active .site-header,body.door-reveal-active main,body.door-reve
     min-height: 0;
   }
   .form-study-page .study-3d-stage {
-    inset: 38px 0;
+    position: absolute;
+    top: 38px;
+    right: 0;
+    bottom: auto;
+    left: 0;
     width: auto;
-    height: auto;
+    height: clamp(334px, calc(62vw - 76px), 404px);
+    min-height: 334px;
     min-width: 0;
   }
   .form-study-page .study-3d-stage .hero-stage-3d,
