@@ -3,6 +3,10 @@ on:
   push:
     branches: [main]
   workflow_dispatch:
+  workflow_run:
+    workflows: ["Build VESPERA 2.0 textures"]
+    types: [completed]
+    branches: [main]
 permissions:
   contents: read
   pages: write
@@ -12,6 +16,7 @@ concurrency:
   cancel-in-progress: true
 jobs:
   deploy:
+    if: github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success'
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
@@ -44,6 +49,7 @@ jobs:
           node --check assets/site.js
           node --check assets/hero-3d.js
           node --check --input-type=module < assets/studio-orb-3d.js
+          node --check --input-type=module < assets/studio-orb-3d-v2.js
           node scripts/check-site.mjs
       - name: Configure Pages
         uses: actions/configure-pages@v5
