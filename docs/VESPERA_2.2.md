@@ -11,6 +11,16 @@ VESPERA 2.2 is an isolated synthesis study. It does not replace VESPERA 2.0, VES
 
 These are file-level and code-level observations. Visual approval still requires comparing the generated renders on the same display and camera framing.
 
+## Recalibration results (2026-11-08)
+The second cloud-generation pass completed successfully for the 1024, 2048 and 4096 tiers.
+
+- VESPERA 2.0 reference: 10% coverage above 0.35, mean cloud-map value 0.11.
+- VESPERA 2.1 reference: 1% coverage above 0.35, mean 0.03.
+- VESPERA 2.2 recalibrated: 13% coverage above 0.35, mean 0.13 at all three generated tiers.
+- The first 2.2 pass measured 4% coverage and 0.06 mean, so the retune restored substantially more cloud body.
+
+These are generator-level texture statistics, not a direct measurement of visible cloud pixels in the final render. The 2.2 shader keeps dense-cloud opacity below the 2.0 reference, so the final appearance must still be judged in the three-way preview under the same camera and lighting.
+
 ## 2.2 synthesis choices
 - Keep the 2.1 mineral seam field and multi-scale cirrus layer.
 - Blend broad landform weighting between 2.0 and 2.1, and set normal strength to an intermediate 3.55.
