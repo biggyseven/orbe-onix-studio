@@ -153,8 +153,158 @@
     return texture;
   };
 
+  const createCrystalSurfaceMaps = (THREE, renderer) => {
+    const width = 1536;
+    const height = 768;
+    let seed = 2471108;
+    const random = () => {
+      seed = (seed * 1664525 + 1013904223) >>> 0;
+      return seed / 4294967296;
+    };
+
+    const colorCanvas = document.createElement("canvas");
+    colorCanvas.width = width;
+    colorCanvas.height = height;
+    const color = colorCanvas.getContext("2d");
+    const base = color.createLinearGradient(0, 0, width, height);
+    base.addColorStop(0, "#21172f");
+    base.addColorStop(.17, "#59456f");
+    base.addColorStop(.31, "#2b203b");
+    base.addColorStop(.48, "#a18dbd");
+    base.addColorStop(.62, "#30213f");
+    base.addColorStop(.79, "#66527f");
+    base.addColorStop(1, "#1b1427");
+    color.fillStyle = base;
+    color.fillRect(0, 0, width, height);
+
+    // Clouded mineral layers create depth below the polished surface.
+    for (let index = 0; index < 34; index += 1) {
+      const x = random() * width;
+      const y = random() * height;
+      const radius = 34 + random() * 180;
+      const glow = color.createRadialGradient(x, y, 0, x, y, radius);
+      const tint = random() > .55 ? "224,211,255" : "117,91,151";
+      glow.addColorStop(0, "rgba(" + tint + "," + (.08 + random() * .1) + ")");
+      glow.addColorStop(1, "rgba(" + tint + ",0)");
+      color.fillStyle = glow;
+      color.fillRect(x - radius, y - radius, radius * 2, radius * 2);
+    }
+
+    // Long, broken quartz veins with a restrained silver edge.
+    for (let vein = 0; vein < 46; vein += 1) {
+      let x = random() * width;
+      let y = random() * height;
+      const points = [];
+      const count = 5 + Math.floor(random() * 7);
+      const drift = (random() - .5) * 90;
+      for (let step = 0; step < count; step += 1) {
+        points.push([x, y]);
+        x += (random() - .5) * 105 + drift * .16;
+        y += (random() - .5) * 74;
+      }
+      color.beginPath();
+      color.moveTo(points[0][0], points[0][1]);
+      points.slice(1).forEach(point => color.lineTo(point[0], point[1]));
+      color.lineWidth = .65 + random() * 2.4;
+      color.strokeStyle = "rgba(19,13,29," + (.16 + random() * .22) + ")";
+      color.stroke();
+      color.beginPath();
+      color.moveTo(points[0][0] + 1.2, points[0][1] - .8);
+      points.slice(1).forEach(point => color.lineTo(point[0] + 1.2, point[1] - .8));
+      color.lineWidth = .35 + random() * .8;
+      color.strokeStyle = "rgba(242,234,255," + (.14 + random() * .27) + ")";
+      color.stroke();
+
+      // Small offshoot fractures make the inclusions feel naturally grown.
+      if (points.length > 4 && random() > .28) {
+        const origin = points[2 + Math.floor(random() * (points.length - 3))];
+        color.beginPath();
+        color.moveTo(origin[0], origin[1]);
+        color.lineTo(origin[0] + (random() - .5) * 36, origin[1] + (random() - .5) * 42);
+        color.lineWidth = .35 + random() * .65;
+        color.strokeStyle = "rgba(228,216,250," + (.12 + random() * .22) + ")";
+        color.stroke();
+      }
+    }
+
+    // Fine grain, tiny mica flecks and elongated mineral glints.
+    for (let index = 0; index < 7200; index += 1) {
+      const x = random() * width;
+      const y = random() * height;
+      const radius = random() > .94 ? .8 + random() * 1.8 : .18 + random() * .65;
+      const light = random() > .58;
+      color.beginPath();
+      color.arc(x, y, radius, 0, Math.PI * 2);
+      color.fillStyle = light
+        ? "rgba(247,239,255," + (.05 + random() * .23) + ")"
+        : "rgba(8,5,16," + (.04 + random() * .16) + ")";
+      color.fill();
+    }
+    for (let index = 0; index < 170; index += 1) {
+      const x = random() * width;
+      const y = random() * height;
+      color.beginPath();
+      color.moveTo(x, y);
+      color.lineTo(x + (random() - .5) * 15, y + 2 + random() * 24);
+      color.lineWidth = .35 + random() * .8;
+      color.strokeStyle = "rgba(238,229,255," + (.08 + random() * .2) + ")";
+      color.stroke();
+    }
+
+    // A separate greyscale relief map catches light on the micro-fractures.
+    const reliefCanvas = document.createElement("canvas");
+    reliefCanvas.width = width;
+    reliefCanvas.height = height;
+    const relief = reliefCanvas.getContext("2d");
+    const pixels = relief.createImageData(width, height);
+    for (let index = 0; index < pixels.data.length; index += 4) {
+      const value = 119 + Math.floor(random() * 25);
+      pixels.data[index] = value;
+      pixels.data[index + 1] = value;
+      pixels.data[index + 2] = value;
+      pixels.data[index + 3] = 255;
+    }
+    relief.putImageData(pixels, 0, 0);
+
+    for (let vein = 0; vein < 74; vein += 1) {
+      let x = random() * width;
+      let y = random() * height;
+      relief.beginPath();
+      relief.moveTo(x, y);
+      const count = 4 + Math.floor(random() * 8);
+      for (let step = 0; step < count; step += 1) {
+        x += (random() - .5) * 92;
+        y += (random() - .5) * 60;
+        relief.lineTo(x, y);
+      }
+      relief.lineWidth = .55 + random() * 1.8;
+      relief.strokeStyle = random() > .5 ? "rgba(220,220,220,.72)" : "rgba(48,48,48,.64)";
+      relief.stroke();
+    }
+    for (let index = 0; index < 4800; index += 1) {
+      const x = random() * width;
+      const y = random() * height;
+      const radius = .25 + random() * 1.05;
+      relief.beginPath();
+      relief.arc(x, y, radius, 0, Math.PI * 2);
+      const value = random() > .5 ? 205 : 58;
+      relief.fillStyle = "rgba(" + value + "," + value + "," + value + "," + (.12 + random() * .35) + ")";
+      relief.fill();
+    }
+
+    const map = new THREE.CanvasTexture(colorCanvas);
+    map.colorSpace = THREE.SRGBColorSpace;
+    map.anisotropy = Math.min(8, renderer.capabilities.getMaxAnisotropy());
+    const bumpMap = new THREE.CanvasTexture(reliefCanvas);
+    bumpMap.anisotropy = Math.min(8, renderer.capabilities.getMaxAnisotropy());
+    const roughnessMap = new THREE.CanvasTexture(reliefCanvas);
+    roughnessMap.anisotropy = Math.min(8, renderer.capabilities.getMaxAnisotropy());
+    resources.push(map, bumpMap, roughnessMap);
+    return { map, bumpMap, roughnessMap };
+  };
+
   const createCrystalGeometry = THREE => {
-    const geometry = new THREE.IcosahedronGeometry(1.04, 2);
+    const geometry = new THREE.IcosahedronGeometry(1.04, 3);
     const positions = geometry.attributes.position;
     for (let index = 0; index < positions.count; index += 1) {
       const x = positions.getX(index);
@@ -169,7 +319,8 @@
         Math.cos(ny * 9.1 - nz * 4.2) +
         Math.sin(nz * 7.4 + nx * 5.8)
       ) / 3;
-      const radius = 1.04 * (1 + facetWave * .025);
+      const crystallineRidge = Math.pow(Math.max(0, Math.sin(nx * 12.4 + nz * 6.3) * Math.cos(ny * 10.7)), 5);
+      const radius = 1.04 * (1 + facetWave * .032 + crystallineRidge * .014);
       positions.setXYZ(index, nx * radius, ny * radius * .98, nz * radius);
     }
     geometry.computeVertexNormals();
@@ -177,6 +328,48 @@
     geometry.dispose();
     faceted.computeVertexNormals();
     return faceted;
+  };
+
+  const addCrystalInclusions = (THREE, parent) => {
+    let seed = 8102026;
+    const random = () => {
+      seed = (seed * 1103515245 + 12345) >>> 0;
+      return seed / 4294967296;
+    };
+    const geometry = new THREE.TetrahedronGeometry(.025, 0);
+    const material = new THREE.MeshPhysicalMaterial({
+      color: 0xf1eaff,
+      metalness: .18,
+      roughness: .22,
+      clearcoat: 1,
+      emissive: 0x9e84cf,
+      emissiveIntensity: .38,
+      transparent: true,
+      opacity: .48,
+      depthWrite: false
+    });
+    const inclusions = new THREE.InstancedMesh(geometry, material, 34);
+    const dummy = new THREE.Object3D();
+    for (let index = 0; index < 34; index += 1) {
+      const z = random() * 2 - 1;
+      const angle = random() * Math.PI * 2;
+      const radial = Math.sqrt(1 - z * z);
+      const radius = .32 + random() * .48;
+      dummy.position.set(
+        Math.cos(angle) * radial * radius,
+        z * radius,
+        Math.sin(angle) * radial * radius
+      );
+      dummy.rotation.set(random() * Math.PI, random() * Math.PI, random() * Math.PI);
+      const scale = .32 + random() * 1.2;
+      dummy.scale.set(scale, scale * (.45 + random() * .9), scale * (.35 + random() * .8));
+      dummy.updateMatrix();
+      inclusions.setMatrixAt(index, dummy.matrix);
+      const tint = random() > .55 ? 0xe8ddff : 0xa992d5;
+      inclusions.setColorAt(index, new THREE.Color(tint));
+    }
+    parent.add(inclusions);
+    resources.push(geometry, material);
   };
 
   const start = async () => {
@@ -221,24 +414,30 @@
       scene.add(crystalRig);
 
       const crystalGeometry = createCrystalGeometry(THREE);
+      const surfaceMaps = createCrystalSurfaceMaps(THREE, renderer);
       const crystalMaterial = new THREE.MeshPhysicalMaterial({
-        color: 0xb8a5dd,
-        metalness: .28,
-        roughness: .19,
-        clearcoat: 1,
-        clearcoatRoughness: .1,
-        transmission: .14,
-        thickness: .7,
-        ior: 1.42,
-        emissive: 0x2a1a40,
-        emissiveIntensity: .32,
-        envMapIntensity: 1.9,
+        color: 0xd1c3e8,
+        map: surfaceMaps.map,
+        bumpMap: surfaceMaps.bumpMap,
+        bumpScale: .018,
+        roughnessMap: surfaceMaps.roughnessMap,
+        metalness: .24,
+        roughness: .28,
+        clearcoat: .96,
+        clearcoatRoughness: .13,
+        transmission: .08,
+        thickness: .9,
+        ior: 1.48,
+        emissive: 0x28193b,
+        emissiveIntensity: .3,
+        envMapIntensity: 2.05,
         flatShading: true
       });
       const crystal = new THREE.Mesh(crystalGeometry, crystalMaterial);
       crystal.rotation.set(.18, -.3, .08);
       crystalRig.add(crystal);
       resources.push(crystalGeometry, crystalMaterial);
+      addCrystalInclusions(THREE, crystalRig);
 
       const innerGeometry = new THREE.IcosahedronGeometry(.57, 1);
       const innerMaterial = new THREE.MeshPhysicalMaterial({
