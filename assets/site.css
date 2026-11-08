@@ -5082,3 +5082,71 @@ body.door-reveal-active .site-header,body.door-reveal-active main,body.door-reve
     letter-spacing:-.14em;
   }
 }
+
+
+/* HOMEPAGE / 03 — deeper field, sharper halo separation */
+.home-studio-section{
+  background:
+    radial-gradient(ellipse at 78% 48%,rgba(94,72,137,.12),transparent 32%),
+    radial-gradient(ellipse at 8% 100%,rgba(104,84,144,.045),transparent 34%),
+    linear-gradient(115deg,#090a10 0%,#111019 58%,#17131f 100%);
+}
+.home-studio-visual{
+  border-color:rgba(225,215,248,.14);
+  background:
+    radial-gradient(ellipse at 50% 48%,rgba(117,91,167,.105),transparent 34%),
+    linear-gradient(145deg,rgba(255,255,255,.032),rgba(255,255,255,.006) 55%,rgba(125,100,170,.045));
+  box-shadow:inset 0 1px rgba(255,255,255,.045),0 28px 90px rgba(0,0,0,.34);
+}
+.home-studio-visual:before{
+  opacity:.14;
+  background:
+    linear-gradient(rgba(224,211,255,.1) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(224,211,255,.1) 1px,transparent 1px);
+}
+.home-studio-visual:after{
+  width:48%;
+  background:rgba(150,119,210,.17);
+  filter:blur(30px);
+}
+.home-studio-orbit{
+  border-color:rgba(234,225,255,.42);
+  box-shadow:
+    0 0 24px rgba(173,145,230,.12),
+    0 0 48px rgba(156,125,217,.08),
+    inset 0 0 24px rgba(255,255,255,.035);
+}
+.home-studio-orbit:before{
+  border-color:rgba(245,239,255,.92);
+  box-shadow:0 0 7px rgba(236,224,255,.38),0 0 22px rgba(191,166,244,.2);
+}
+.home-studio-orbit:after{
+  border-color:rgba(206,188,244,.88);
+  box-shadow:0 0 9px rgba(191,166,244,.3),0 0 25px rgba(145,115,203,.16);
+}
+.home-studio-orb{
+  box-shadow:
+    inset -17px -20px 38px rgba(8,5,16,.78),
+    inset 8px 8px 17px rgba(255,255,255,.36),
+    0 18px 48px rgba(0,0,0,.52),
+    0 0 28px rgba(174,145,226,.25);
+}
+.home-studio-orb:before{
+  opacity:.92;
+  filter:drop-shadow(0 0 9px rgba(224,211,255,.34));
+}
+.home-studio-orb:after{
+  opacity:.9;
+  filter:brightness(1.16) drop-shadow(0 0 7px rgba(239,229,255,.32));
+}
+.home-studio-orb i{
+  box-shadow:
+    0 0 12px rgba(255,255,255,.98),
+    0 0 27px rgba(211,193,255,.9),
+    0 0 48px rgba(173,147,236,.5);
+}
+.home-studio-visual-note,
+.home-studio-topline,
+.home-studio-bottomline{
+  border-color:rgba(255,255,255,.11);
+}
