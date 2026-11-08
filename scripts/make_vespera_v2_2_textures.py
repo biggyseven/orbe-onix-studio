@@ -260,19 +260,19 @@ cells = fbm(CX * 10.5, CY * 10.5, CZ * 10.5, 4, seed_off=251.0) * 0.5 + 0.5
 mottle = fbm(CX * 17.0, CY * 17.0, CZ * 17.0, 3, seed_off=281.0) * 0.5 + 0.5
 # Convective decks are interrupted by clear windows at every scale.
 formation = macro * 0.42 + meso * 0.39 + cells * 0.19
-deck = smooth(0.415, 0.695, formation) * (0.68 + 0.42 * mottle)
+deck = smooth(0.405, 0.685, formation) * (0.70 + 0.44 * mottle)
 # Wind-sheared fronts create curved, broken cloud filaments instead of latitude stripes.
 front = fbm(CX * 6.2, CY * 7.0, CZ * 6.2, 5, ridged=True, seed_off=261.0) * 0.5 + 0.5
 front = gaussian_filter(front, (0.45, max(0.6, W / 6200)), mode=('nearest', 'wrap'))
-wisps = smooth(0.635, 0.86, front) * (1.0 - deck * 0.75)
+wisps = smooth(0.62, 0.855, front) * (1.0 - deck * 0.74)
 # A sparse cirrus layer adds high, fine veils in otherwise clear windows.
 cirrus_field = fbm(CX * 13.0, CY * 13.0, CZ * 13.0, 4, gain=0.53, ridged=True, seed_off=291.0) * 0.5 + 0.5
 cirrus = smooth(0.73, 0.91, cirrus_field) * (1.0 - smooth(0.28, 0.69, macro))
 # Compact high-density cores, surrounded by softer cloud shoulders.
 core_field = fbm(CX * 3.8, CY * 3.8, CZ * 3.8, 4, seed_off=271.0) * 0.5 + 0.5
 cores = smooth(0.69, 0.91, core_field * 0.55 + cells * 0.45) * deck
-clouds = deck * (0.40 + 0.22 * mottle) + cores * 0.16 + wisps * 0.32 + cirrus * 0.14
-clouds = smooth(0.15, 0.80, clouds) ** 1.06
+clouds = deck * (0.43 + 0.22 * mottle) + cores * 0.16 + wisps * 0.34 + cirrus * 0.15
+clouds = smooth(0.11, 0.78, clouds) ** 1.02
 clouds = np.clip(clouds, 0, 1)
 print(f"  cloud coverage (>0.35): {(clouds > 0.35).mean()*100:.0f}%  mean {clouds.mean():.2f}")
 t("cloud systems", T0)
