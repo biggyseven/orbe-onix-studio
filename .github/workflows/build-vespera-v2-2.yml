@@ -1,0 +1,90 @@
+name: Build VESPERA 2.2 textures
+
+on:
+  push:
+    branches: [main, feature/vespera-2-2-balanced-materials]
+    paths:
+      - "scripts/make_vespera_v2_2_textures.py"
+      - ".github/workflows/build-vespera-v2-2.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: vespera-v2-2-textures
+  cancel-in-progress: false
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install texture tools
+        run: python -m pip install --upgrade pip numpy scipy pillow
+
+      - name: Compile and validate generator
+        run: python -m py_compile scripts/make_vespera_v2_2_textures.py
+
+      - name: Generate 1024 texture tier
+        run: python scripts/make_vespera_v2_2_textures.py 1024 assets/vespera-v2-2/1024
+
+      - name: Generate 2048 texture tier
+        run: python scripts/make_vespera_v2_2_textures.py 2048 assets/vespera-v2-2/2048
+
+      - name: Generate 4096 texture tier
+        run: python scripts/make_vespera_v2_2_textures.py 4096 assets/vespera-v2-2/4096
+
+      - name: Add poster fallback
+        run: |
+          set -euo pipefail
+          test -s assets/vespera-v2-1/vespera-poster.webp
+          mkdir -p assets/vespera-v2-2
+          cp assets/vespera-v2-1/vespera-poster.webp assets/vespera-v2-2/vespera-poster.webp
+
+      - name: Validate generated textures and renderer
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          from pathlib import Path
+          from PIL import Image
+          for width, height in ((1024, 512), (2048, 1024), (4096, 2048)):
+              folder = Path("assets/vespera-v2-2") / str(width)
+              for name in ("color", "normal", "orm", "clouds"):
+                  path = folder / f"{name}.webp"
+                  if not path.is_file() or path.stat().st_size == 0:
+                      raise SystemExit(f"Missing texture: {path}")
+                  with Image.open(path) as image:
+                      if image.size != (width, height):
+                          raise SystemExit(f"Invalid dimensions: {path} {image.size}")
+              (folder / "_height.npy").unlink(missing_ok=True)
+          PY
+          test -s assets/vespera-v2-2/vespera-poster.webp
+          node --check --input-type=module < assets/studio-orb-3d-v2-2.js
+          echo "=== VESPERA 2.2 TEXTURE SIZES ==="
+          du -h assets/vespera-v2-2/*/* assets/vespera-v2-2/vespera-poster.webp
+
+      - name: Commit generated texture tiers to the triggering branch
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A assets/vespera-v2-2
+          if git diff --cached --quiet; then
+            echo "No VESPERA 2.2 texture changes to commit."
+            exit 0
+          fi
+          git commit -m "build: generate VESPERA 2.2 texture tiers"
+          git push origin "HEAD:${GITHUB_REF_NAME}"
