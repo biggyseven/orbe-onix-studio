@@ -138,7 +138,7 @@
   };
 
   const buildPlanetMaps = THREE => {
-    const width = window.innerWidth < 680 ? 512 : 768;
+    const width = window.innerWidth < 680 ? 768 : 1024;
     const height = width / 2;
     const colorCanvas = document.createElement("canvas");
     colorCanvas.width = width;
@@ -269,7 +269,7 @@
       const nx = x / length;
       const ny = y / length;
       const nz = z / length;
-      const radius = 1 + terrainAt(nx, ny, nz).height * .12;
+      const radius = 1 + terrainAt(nx, ny, nz).height * .035;
       positions.setXYZ(index, nx * radius, ny * radius, nz * radius);
     }
     geometry.computeVertexNormals();
@@ -278,64 +278,40 @@
   };
 
   const buildCloudTexture = THREE => {
-    const width = window.innerWidth < 680 ? 640 : 896;
+    const width = window.innerWidth < 680 ? 768 : 1024;
     const height = width / 2;
-    let seed = 913733;
-    const random = () => {
-      seed = (Math.imul(seed, 1664525) + 1013904223) >>> 0;
-      return seed / 4294967296;
-    };
-    const grids = [
-      { columns: 40, rows: 20 },
-      { columns: 80, rows: 40 },
-      { columns: 160, rows: 80 }
-    ].map(grid => {
-      const values = new Float32Array(grid.columns * grid.rows);
-      for (let index = 0; index < values.length; index += 1) values[index] = random();
-      return { ...grid, values };
-    });
-    const sample = (field, u, v) => {
-      const gx = ((u % 1 + 1) % 1) * field.columns;
-      const gy = clamp(v, 0, .999999) * (field.rows - 1);
-      const x0 = Math.floor(gx);
-      const x1 = (x0 + 1) % field.columns;
-      const y0 = Math.floor(gy);
-      const y1 = Math.min(field.rows - 1, y0 + 1);
-      const tx0 = gx - x0;
-      const ty0 = gy - y0;
-      const tx = tx0 * tx0 * (3 - 2 * tx0);
-      const ty = ty0 * ty0 * (3 - 2 * ty0);
-      const a = mix(field.values[y0 * field.columns + x0], field.values[y0 * field.columns + x1], tx);
-      const b = mix(field.values[y1 * field.columns + x0], field.values[y1 * field.columns + x1], tx);
-      return mix(a, b, ty);
-    };
-
     const canvas = document.createElement("canvas");
     canvas.width = width;
     canvas.height = height;
     const context = canvas.getContext("2d");
     const image = context.createImageData(width, height);
+
     for (let y = 0; y < height; y += 1) {
-      const v = y / height;
+      const latitude = Math.PI * (.5 - y / height);
+      const cosLatitude = Math.cos(latitude);
+      const sy = Math.sin(latitude);
       for (let x = 0; x < width; x += 1) {
-        const u = x / width;
-        const broadWarp = sample(grids[0], u, v);
-        const fineWarp = sample(grids[1], u + .19, v + .11);
-        const warpedU = u + (broadWarp - .5) * .045;
-        const warpedV = v + (fineWarp - .5) * .035;
-        const broad = sample(grids[0], warpedU, warpedV);
-        const medium = sample(grids[1], warpedU, warpedV);
-        const fine = sample(grids[2], warpedU, warpedV);
-        const polar = smoothstep(.72, .98, Math.abs(v - .5) * 2);
-        const flow = Math.sin((warpedV * 8.2 + broad * 1.7) * Math.PI) * .035;
-        const clouds = broad * .54 + medium * .31 + fine * .15 + flow;
-        const coverage = smoothstep(.625, .79, clouds + polar * .045);
-        const wispyEdge = smoothstep(.58, .76, clouds + (fine - .5) * .08);
-        const alpha = Math.round(coverage * (34 + wispyEdge * 72));
+        const longitude = (x / width) * Math.PI * 2;
+        const nx = cosLatitude * Math.cos(longitude);
+        const nz = cosLatitude * Math.sin(longitude);
+        const warpA = fbm3(nx * 3.8 + 8, sy * 3.8 - 2, nz * 3.8 + 5, 4, 8127);
+        const warpB = fbm3(nx * 4.6 - 3, sy * 4.6 + 7, nz * 4.6 + 1, 4, 9329);
+        const wx = nx + (warpA - .5) * .16;
+        const wy = sy + (warpB - .5) * .12;
+        const wz = nz + (warpA - .5) * .14;
+        const broad = fbm3(wx * 5.2 + 2, wy * 5.2 - 4, wz * 5.2 + 6, 5, 7123);
+        const medium = fbm3(wx * 12.5 - 7, wy * 12.5 + 2, wz * 12.5 + 4, 4, 6143);
+        const fine = fbm3(wx * 34 + 5, wy * 34 - 8, wz * 34 + 1, 3, 5189);
+        const filaments = 1 - Math.abs(fbm3(wx * 19 + 3, wy * 19 + 1, wz * 19 - 5, 3, 4177) * 2 - 1);
+        const cloudField = broad * .56 + medium * .27 + fine * .11 + filaments * .06;
+        const coverage = smoothstep(.585, .735, cloudField);
+        const wisps = smoothstep(.54, .68, cloudField + (fine - .5) * .045);
+        const alpha = Math.round(coverage * (28 + wisps * 94));
         const index = (y * width + x) * 4;
-        image.data[index] = Math.round(194 + fine * 38);
-        image.data[index + 1] = Math.round(194 + fine * 35);
-        image.data[index + 2] = Math.round(226 + fine * 27);
+        const shade = 222 + fine * 28;
+        image.data[index] = Math.round(shade * .96);
+        image.data[index + 1] = Math.round(shade * .97);
+        image.data[index + 2] = 255;
         image.data[index + 3] = alpha;
       }
     }
@@ -344,7 +320,7 @@
     texture.colorSpace = THREE.SRGBColorSpace;
     texture.wrapS = THREE.RepeatWrapping;
     texture.wrapT = THREE.ClampToEdgeWrapping;
-    texture.anisotropy = Math.min(8, rendererMaxAnisotropy);
+    texture.anisotropy = Math.min(12, rendererMaxAnisotropy);
     resources.push(texture);
     return texture;
   };
@@ -505,8 +481,8 @@
     planetRig.rotation.y = elapsed * .052;
     planetRig.rotation.x = .045 + Math.sin(elapsed * .12) * .012;
     if (cloudLayer) {
-      cloudLayer.rotation.y = elapsed * .071;
-      cloudLayer.rotation.x = Math.sin(elapsed * .17) * .008;
+      cloudLayer.rotation.y = elapsed * .038;
+      cloudLayer.rotation.x = Math.sin(elapsed * .11) * .004;
     }
     if (orbitalRig) {
       orbitalRig.rotation.y = .16 + elapsed * .032;
@@ -635,7 +611,7 @@
       const planetMaterial = new THREE.MeshPhysicalMaterial({
         map: planetMaps.map,
         bumpMap: planetMaps.bumpMap,
-        bumpScale: .008,
+        bumpScale: .0045,
         roughnessMap: planetMaps.roughnessMap,
         roughness: .62,
         metalness: .035,
@@ -650,16 +626,15 @@
       resources.push(planetGeometry, planetMaterial);
 
       const cloudTexture = buildCloudTexture(THREE);
-      const cloudGeometry = new THREE.SphereGeometry(1.009, 128, 96);
-      const cloudMaterial = new THREE.MeshStandardMaterial({
+      const cloudGeometry = new THREE.SphereGeometry(1.014, 160, 112);
+      const cloudMaterial = new THREE.MeshBasicMaterial({
         map: cloudTexture,
-        color: 0xc6c4e6,
+        color: 0xf0efff,
         transparent: true,
-        opacity: .48,
-        roughness: 1,
-        metalness: 0,
+        opacity: .76,
         depthWrite: false,
-        side: THREE.FrontSide
+        side: THREE.FrontSide,
+        blending: THREE.NormalBlending
       });
       cloudLayer = new THREE.Mesh(cloudGeometry, cloudMaterial);
       cloudLayer.renderOrder = 1;
