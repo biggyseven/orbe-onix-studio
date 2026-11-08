@@ -1,5 +1,5 @@
 /* VESPERA — ORBE & ONIX Studio
- * Three.js r187 · 3 shader layers (surface, clouds, atmosphere) · one directional sun.
+ * Three.js r187 · 3 shader programs · lower cloud shell plus a subtle, independently drifting high-cirrus shell.
  * Load with: <script type="module" src="assets/studio-orb-3d.js"></script>
  * Textures: assets/vespera/{1024,2048,4096}/{color,normal,orm,clouds}.webp
  *           (made by scripts/make_vespera_textures.py)
