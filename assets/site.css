@@ -4206,3 +4206,22 @@ body.door-reveal-active .site-header,body.door-reveal-active main,body.door-reve
 .form-study-page .study-scene-bottomline{
   z-index:8;
 }
+
+
+/* Visible safety net: keep the sculptural silhouette when a mobile GPU
+   creates a WebGL context but fails to paint the first frame. */
+.form-study-page .study-3d-stage .hero-stage-3d .hero-stage-fallback{
+  z-index:0;
+}
+.form-study-page .study-3d-stage .hero-stage-3d.is-ready .hero-stage-fallback{
+  opacity:0;
+  visibility:hidden;
+}
+.form-study-page .study-3d-stage .hero-stage-3d.is-fallback .hero-stage-fallback{
+  opacity:1;
+  visibility:visible;
+}
+.form-study-page .study-3d-stage .hero-stage-fallback .fallback-ring--glass,
+.form-study-page .study-3d-stage .hero-stage-fallback .fallback-ring--bridge{
+  display:block;
+}
