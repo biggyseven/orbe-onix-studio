@@ -5377,3 +5377,20 @@ body.door-reveal-active .site-header,body.door-reveal-active main,body.door-reve
 @media(prefers-reduced-motion:reduce){
   .home-studio-3d canvas{transition:none!important}
 }
+
+
+/* VESPERA — static poster fallback for WebGL or texture failures */
+.home-studio-3d.is-fallback{
+  background:transparent!important;
+  box-shadow:none!important;
+}
+.home-studio-3d .vespera-poster{
+  position:absolute;
+  inset:0;
+  z-index:3;
+  display:block;
+  width:100%;
+  height:100%;
+  object-fit:contain;
+  pointer-events:none;
+}
