@@ -2739,7 +2739,7 @@ body.door-reveal-active .site-header,body.door-reveal-active main,body.door-reve
   .study-control-status{grid-column:1/-1;justify-content:flex-start}
   .study-construction-grid{gap:52px}
 }
-@media(max-width:760px){
+@media(max-width:768px){
   .study-intro{padding:50px 0 26px}
   .study-heading-grid{grid-template-columns:1fr;gap:34px;padding:58px 0 50px}
   .study-heading-grid h1{font-size:clamp(68px,14vw,106px)}
@@ -4224,4 +4224,27 @@ body.door-reveal-active .site-header,body.door-reveal-active main,body.door-reve
 .form-study-page .study-3d-stage .hero-stage-fallback .fallback-ring--glass,
 .form-study-page .study-3d-stage .hero-stage-fallback .fallback-ring--bridge{
   display:block;
+}
+
+
+/* 768px TABLET + SMALLER — stable frame dimensions and touch-safe 3D canvas. */
+@media (max-width: 768px) {
+  .form-study-page .study-scene-frame {
+    height: clamp(410px, 62vw, 480px);
+    min-height: 0;
+  }
+  .form-study-page .study-3d-stage {
+    inset: 38px 0;
+    width: auto;
+    height: auto;
+    min-width: 0;
+  }
+  .form-study-page .study-3d-stage .hero-stage-3d,
+  .form-study-page .study-3d-stage .hero-stage-canvas {
+    display: block;
+    width: 100%;
+    height: 100%;
+    min-width: 0;
+    min-height: 0;
+  }
 }
