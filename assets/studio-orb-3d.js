@@ -97,7 +97,7 @@ ${COMMON}
 void main(){
   vec3 P = normalize(vObj);
   vec2 uv = lonlat(P);
-  vec2 sampleUv = uv * uCloudUvScale + uCloudUvOffset;
+  vec2 sampleUv = vec2(uv.x * uCloudUvScale.x + uCloudUvOffset.x, (uv.y - 0.5) * uCloudUvScale.y + 0.5 + uCloudUvOffset.y);
   vec2 gx, gy; seamGrad(uv, gx, gy);
   gx *= uCloudUvScale; gy *= uCloudUvScale;
   float d0 = texG(uClouds, sampleUv, gx, gy).r;
@@ -259,8 +259,8 @@ export async function mountVespera(container) {
     vertexShader: VERT, fragmentShader: CLOUD_FRAG, transparent: true, depthWrite: false,
     uniforms: {
       uClouds: { value: placeholder }, uSun: { value: sun }, uCloudInv: uCloudInv2, uSunPower,
-      uCloudUvScale: { value: new THREE.Vector2(2.05, 2.2) },
-      uCloudUvOffset: { value: new THREE.Vector2(0.23, 0.37) },
+      uCloudUvScale: { value: new THREE.Vector2(2.05, 0.92) },
+      uCloudUvOffset: { value: new THREE.Vector2(0.23, 0.035) },
       uLayerOpacity: { value: 0.16 }
     }
   }) : null;
