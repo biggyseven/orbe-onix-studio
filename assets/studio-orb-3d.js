@@ -368,6 +368,8 @@
       const tint = random() > .55 ? 0xe8ddff : 0xa992d5;
       inclusions.setColorAt(index, new THREE.Color(tint));
     }
+    inclusions.instanceMatrix.needsUpdate = true;
+    if (inclusions.instanceColor) inclusions.instanceColor.needsUpdate = true;
     parent.add(inclusions);
     resources.push(geometry, material);
   };
