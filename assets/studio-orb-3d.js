@@ -156,155 +156,201 @@
   const createCrystalSurfaceMaps = (THREE, renderer) => {
     const width = 1536;
     const height = 768;
-    let seed = 2471108;
+    let seed = 20261108;
     const random = () => {
       seed = (seed * 1664525 + 1013904223) >>> 0;
       return seed / 4294967296;
+    };
+    const clamp01 = value => Math.max(0, Math.min(1, value));
+    const smooth = value => {
+      const t = clamp01(value);
+      return t * t * (3 - 2 * t);
+    };
+    const fields = [[12, 6], [24, 12], [48, 24], [96, 48]].map(([columns, rows]) => {
+      const values = new Float32Array(columns * rows);
+      for (let index = 0; index < values.length; index += 1) values[index] = random();
+      return { columns, rows, values };
+    });
+    const sampleNoise = (field, u, v) => {
+      const px = ((u % 1 + 1) % 1) * field.columns;
+      const py = Math.max(0, Math.min(.999999, v)) * (field.rows - 1);
+      const x0 = Math.floor(px) % field.columns;
+      const x1 = (x0 + 1) % field.columns;
+      const y0 = Math.floor(py);
+      const y1 = Math.min(field.rows - 1, y0 + 1);
+      const tx = smooth(px - Math.floor(px));
+      const ty = smooth(py - y0);
+      const a = field.values[y0 * field.columns + x0];
+      const b = field.values[y0 * field.columns + x1];
+      const c = field.values[y1 * field.columns + x0];
+      const d = field.values[y1 * field.columns + x1];
+      const top = a + (b - a) * tx;
+      const bottom = c + (d - c) * tx;
+      return top + (bottom - top) * ty;
     };
 
     const colorCanvas = document.createElement("canvas");
     colorCanvas.width = width;
     colorCanvas.height = height;
-    const color = colorCanvas.getContext("2d");
-    const base = color.createLinearGradient(0, 0, width, height);
-    base.addColorStop(0, "#21172f");
-    base.addColorStop(.17, "#59456f");
-    base.addColorStop(.31, "#2b203b");
-    base.addColorStop(.48, "#a18dbd");
-    base.addColorStop(.62, "#30213f");
-    base.addColorStop(.79, "#66527f");
-    base.addColorStop(1, "#1b1427");
-    color.fillStyle = base;
-    color.fillRect(0, 0, width, height);
+    const colorContext = colorCanvas.getContext("2d");
+    const colorPixels = colorContext.createImageData(width, height);
+    const heights = new Float32Array(width * height);
+    const roughnessValues = new Uint8Array(width * height);
 
-    // Clouded mineral layers create depth below the polished surface.
-    for (let index = 0; index < 34; index += 1) {
-      const x = random() * width;
-      const y = random() * height;
-      const radius = 34 + random() * 180;
-      const glow = color.createRadialGradient(x, y, 0, x, y, radius);
-      const tint = random() > .55 ? "224,211,255" : "117,91,151";
-      glow.addColorStop(0, "rgba(" + tint + "," + (.08 + random() * .1) + ")");
-      glow.addColorStop(1, "rgba(" + tint + ",0)");
-      color.fillStyle = glow;
-      color.fillRect(x - radius, y - radius, radius * 2, radius * 2);
+    // Layered value noise creates the cloudy, grown-inside-the-stone character.
+    for (let y = 0; y < height; y += 1) {
+      const v = y / height;
+      for (let x = 0; x < width; x += 1) {
+        const u = x / width;
+        const broad = sampleNoise(fields[0], u, v);
+        const medium = sampleNoise(fields[1], u, v);
+        const fine = sampleNoise(fields[2], u, v);
+        const micro = sampleNoise(fields[3], u, v);
+        const warp = sampleNoise(fields[1], u + .16, v + .07);
+        const cloud = broad * .48 + medium * .3 + fine * .15 + micro * .07;
+        const bandPosition = v * 9.2 + (broad - .5) * 2.1 + (warp - .5) * .85;
+        const band = Math.pow(Math.max(0, 1 - Math.abs(Math.sin(bandPosition * Math.PI * 2))), 13);
+        const fineVein = Math.pow(Math.max(0, 1 - Math.abs(fine - micro) * 5.2), 8) * .22;
+        const mineral = clamp01((cloud - .2) * 1.42 + .12);
+        const silver = clamp01(band * .62 + fineVein + Math.max(0, micro - .83) * .8);
+        const shadow = clamp01((.48 - cloud) * .7);
+        const index = y * width + x;
+        const pixel = index * 4;
+
+        colorPixels.data[pixel] = Math.round(27 + mineral * 66 + silver * 83 - shadow * 9);
+        colorPixels.data[pixel + 1] = Math.round(19 + mineral * 59 + silver * 79 - shadow * 7);
+        colorPixels.data[pixel + 2] = Math.round(40 + mineral * 91 + silver * 91 - shadow * 3);
+        colorPixels.data[pixel + 3] = 255;
+
+        heights[index] = 104 + mineral * 28 + band * 23 + fineVein * 28 + (micro - .5) * 13;
+        roughnessValues[index] = Math.max(62, Math.min(220,
+          Math.round(155 + (broad - .5) * 33 + (fine - .5) * 26 - silver * 38 + random() * 13)
+        ));
+      }
     }
+    colorContext.putImageData(colorPixels, 0, 0);
 
-    // Long, broken quartz veins with a restrained silver edge.
-    for (let vein = 0; vein < 46; vein += 1) {
+    // Fine fractures follow the mineral bands and split into hairline branches.
+    for (let vein = 0; vein < 118; vein += 1) {
       let x = random() * width;
       let y = random() * height;
-      const points = [];
-      const count = 5 + Math.floor(random() * 7);
-      const drift = (random() - .5) * 90;
+      const points = [[x, y]];
+      const count = 6 + Math.floor(random() * 10);
+      let direction = (random() - .5) * .9;
       for (let step = 0; step < count; step += 1) {
+        direction += (random() - .5) * .62;
+        x += Math.cos(direction) * (9 + random() * 23);
+        y += Math.sin(direction) * (7 + random() * 18);
         points.push([x, y]);
-        x += (random() - .5) * 105 + drift * .16;
-        y += (random() - .5) * 74;
       }
-      color.beginPath();
-      color.moveTo(points[0][0], points[0][1]);
-      points.slice(1).forEach(point => color.lineTo(point[0], point[1]));
-      color.lineWidth = .65 + random() * 2.4;
-      color.strokeStyle = "rgba(19,13,29," + (.16 + random() * .22) + ")";
-      color.stroke();
-      color.beginPath();
-      color.moveTo(points[0][0] + 1.2, points[0][1] - .8);
-      points.slice(1).forEach(point => color.lineTo(point[0] + 1.2, point[1] - .8));
-      color.lineWidth = .35 + random() * .8;
-      color.strokeStyle = "rgba(242,234,255," + (.14 + random() * .27) + ")";
-      color.stroke();
+      colorContext.beginPath();
+      colorContext.moveTo(points[0][0], points[0][1]);
+      points.slice(1).forEach(point => colorContext.lineTo(point[0], point[1]));
+      colorContext.lineWidth = .45 + random() * 1.2;
+      colorContext.strokeStyle = "rgba(14,9,22," + (.12 + random() * .18) + ")";
+      colorContext.stroke();
+      colorContext.beginPath();
+      colorContext.moveTo(points[0][0] + .7, points[0][1] - .5);
+      points.slice(1).forEach(point => colorContext.lineTo(point[0] + .7, point[1] - .5));
+      colorContext.lineWidth = .25 + random() * .62;
+      colorContext.strokeStyle = "rgba(244,237,255," + (.12 + random() * .28) + ")";
+      colorContext.stroke();
 
-      // Small offshoot fractures make the inclusions feel naturally grown.
-      if (points.length > 4 && random() > .28) {
+      if (points.length > 5 && random() > .32) {
         const origin = points[2 + Math.floor(random() * (points.length - 3))];
-        color.beginPath();
-        color.moveTo(origin[0], origin[1]);
-        color.lineTo(origin[0] + (random() - .5) * 36, origin[1] + (random() - .5) * 42);
-        color.lineWidth = .35 + random() * .65;
-        color.strokeStyle = "rgba(228,216,250," + (.12 + random() * .22) + ")";
-        color.stroke();
+        colorContext.beginPath();
+        colorContext.moveTo(origin[0], origin[1]);
+        colorContext.lineTo(origin[0] + (random() - .5) * 42, origin[1] + (random() - .5) * 48);
+        colorContext.lineWidth = .25 + random() * .55;
+        colorContext.strokeStyle = "rgba(222,207,248," + (.1 + random() * .2) + ")";
+        colorContext.stroke();
       }
     }
 
-    // Fine grain, tiny mica flecks and elongated mineral glints.
-    for (let index = 0; index < 7200; index += 1) {
+    // Mica dust is sparse: most of the surface remains deep and glassy.
+    for (let index = 0; index < 9800; index += 1) {
       const x = random() * width;
       const y = random() * height;
-      const radius = random() > .94 ? .8 + random() * 1.8 : .18 + random() * .65;
-      const light = random() > .58;
-      color.beginPath();
-      color.arc(x, y, radius, 0, Math.PI * 2);
-      color.fillStyle = light
-        ? "rgba(247,239,255," + (.05 + random() * .23) + ")"
-        : "rgba(8,5,16," + (.04 + random() * .16) + ")";
-      color.fill();
-    }
-    for (let index = 0; index < 170; index += 1) {
-      const x = random() * width;
-      const y = random() * height;
-      color.beginPath();
-      color.moveTo(x, y);
-      color.lineTo(x + (random() - .5) * 15, y + 2 + random() * 24);
-      color.lineWidth = .35 + random() * .8;
-      color.strokeStyle = "rgba(238,229,255," + (.08 + random() * .2) + ")";
-      color.stroke();
+      const length = random() > .88 ? 1.2 + random() * 3.8 : .25 + random() * 1.1;
+      colorContext.beginPath();
+      colorContext.ellipse(x, y, length, .22 + random() * .48, random() * Math.PI, 0, Math.PI * 2);
+      colorContext.fillStyle = random() > .64
+        ? "rgba(250,244,255," + (.07 + random() * .24) + ")"
+        : "rgba(8,5,16," + (.04 + random() * .15) + ")";
+      colorContext.fill();
     }
 
-    // A separate greyscale relief map catches light on the micro-fractures.
     const reliefCanvas = document.createElement("canvas");
     reliefCanvas.width = width;
     reliefCanvas.height = height;
-    const relief = reliefCanvas.getContext("2d");
-    const pixels = relief.createImageData(width, height);
-    for (let index = 0; index < pixels.data.length; index += 4) {
-      const value = 119 + Math.floor(random() * 25);
-      pixels.data[index] = value;
-      pixels.data[index + 1] = value;
-      pixels.data[index + 2] = value;
-      pixels.data[index + 3] = 255;
+    const reliefContext = reliefCanvas.getContext("2d");
+    const reliefPixels = reliefContext.createImageData(width, height);
+    for (let index = 0; index < heights.length; index += 1) {
+      const value = Math.round(heights[index]);
+      const offset = index * 4;
+      reliefPixels.data[offset] = value;
+      reliefPixels.data[offset + 1] = value;
+      reliefPixels.data[offset + 2] = value;
+      reliefPixels.data[offset + 3] = 255;
     }
-    relief.putImageData(pixels, 0, 0);
+    reliefContext.putImageData(reliefPixels, 0, 0);
 
-    for (let vein = 0; vein < 74; vein += 1) {
-      let x = random() * width;
-      let y = random() * height;
-      relief.beginPath();
-      relief.moveTo(x, y);
-      const count = 4 + Math.floor(random() * 8);
-      for (let step = 0; step < count; step += 1) {
-        x += (random() - .5) * 92;
-        y += (random() - .5) * 60;
-        relief.lineTo(x, y);
+    const normalCanvas = document.createElement("canvas");
+    normalCanvas.width = width;
+    normalCanvas.height = height;
+    const normalContext = normalCanvas.getContext("2d");
+    const normalPixels = normalContext.createImageData(width, height);
+    for (let y = 0; y < height; y += 1) {
+      for (let x = 0; x < width; x += 1) {
+        const left = heights[y * width + ((x - 1 + width) % width)];
+        const right = heights[y * width + ((x + 1) % width)];
+        const up = heights[Math.max(0, y - 1) * width + x];
+        const down = heights[Math.min(height - 1, y + 1) * width + x];
+        let nx = -(right - left) * .11;
+        let ny = (down - up) * .11;
+        let nz = 1;
+        const length = Math.hypot(nx, ny, nz);
+        nx /= length;
+        ny /= length;
+        nz /= length;
+        const offset = (y * width + x) * 4;
+        normalPixels.data[offset] = Math.round((nx * .5 + .5) * 255);
+        normalPixels.data[offset + 1] = Math.round((ny * .5 + .5) * 255);
+        normalPixels.data[offset + 2] = Math.round((nz * .5 + .5) * 255);
+        normalPixels.data[offset + 3] = 255;
       }
-      relief.lineWidth = .55 + random() * 1.8;
-      relief.strokeStyle = random() > .5 ? "rgba(220,220,220,.72)" : "rgba(48,48,48,.64)";
-      relief.stroke();
     }
-    for (let index = 0; index < 4800; index += 1) {
-      const x = random() * width;
-      const y = random() * height;
-      const radius = .25 + random() * 1.05;
-      relief.beginPath();
-      relief.arc(x, y, radius, 0, Math.PI * 2);
-      const value = random() > .5 ? 205 : 58;
-      relief.fillStyle = "rgba(" + value + "," + value + "," + value + "," + (.12 + random() * .35) + ")";
-      relief.fill();
-    }
+    normalContext.putImageData(normalPixels, 0, 0);
 
+    const roughnessCanvas = document.createElement("canvas");
+    roughnessCanvas.width = width;
+    roughnessCanvas.height = height;
+    const roughnessContext = roughnessCanvas.getContext("2d");
+    const roughnessPixels = roughnessContext.createImageData(width, height);
+    for (let index = 0; index < roughnessValues.length; index += 1) {
+      const value = roughnessValues[index];
+      const offset = index * 4;
+      roughnessPixels.data[offset] = value;
+      roughnessPixels.data[offset + 1] = value;
+      roughnessPixels.data[offset + 2] = value;
+      roughnessPixels.data[offset + 3] = 255;
+    }
+    roughnessContext.putImageData(roughnessPixels, 0, 0);
+
+    const anisotropy = Math.min(12, renderer.capabilities.getMaxAnisotropy());
     const map = new THREE.CanvasTexture(colorCanvas);
     map.colorSpace = THREE.SRGBColorSpace;
-    map.anisotropy = Math.min(8, renderer.capabilities.getMaxAnisotropy());
-    const bumpMap = new THREE.CanvasTexture(reliefCanvas);
-    bumpMap.anisotropy = Math.min(8, renderer.capabilities.getMaxAnisotropy());
-    const roughnessMap = new THREE.CanvasTexture(reliefCanvas);
-    roughnessMap.anisotropy = Math.min(8, renderer.capabilities.getMaxAnisotropy());
-    resources.push(map, bumpMap, roughnessMap);
-    return { map, bumpMap, roughnessMap };
+    map.anisotropy = anisotropy;
+    const normalMap = new THREE.CanvasTexture(normalCanvas);
+    normalMap.anisotropy = anisotropy;
+    const roughnessMap = new THREE.CanvasTexture(roughnessCanvas);
+    roughnessMap.anisotropy = anisotropy;
+    resources.push(map, normalMap, roughnessMap);
+    return { map, normalMap, roughnessMap };
   };
 
   const createCrystalGeometry = THREE => {
-    const geometry = new THREE.IcosahedronGeometry(1.04, 3);
+    const geometry = new THREE.IcosahedronGeometry(1.04, 4);
     const positions = geometry.attributes.position;
     for (let index = 0; index < positions.count; index += 1) {
       const x = positions.getX(index);
@@ -320,7 +366,7 @@
         Math.sin(nz * 7.4 + nx * 5.8)
       ) / 3;
       const crystallineRidge = Math.pow(Math.max(0, Math.sin(nx * 12.4 + nz * 6.3) * Math.cos(ny * 10.7)), 5);
-      const radius = 1.04 * (1 + facetWave * .032 + crystallineRidge * .014);
+      const radius = 1.04 * (1 + facetWave * .021 + crystallineRidge * .009);
       positions.setXYZ(index, nx * radius, ny * radius * .98, nz * radius);
     }
     geometry.computeVertexNormals();
@@ -336,7 +382,7 @@
       seed = (seed * 1103515245 + 12345) >>> 0;
       return seed / 4294967296;
     };
-    const geometry = new THREE.TetrahedronGeometry(.025, 0);
+    const geometry = new THREE.TetrahedronGeometry(.021, 0);
     const material = new THREE.MeshPhysicalMaterial({
       color: 0xf1eaff,
       metalness: .18,
@@ -348,9 +394,9 @@
       opacity: .48,
       depthWrite: false
     });
-    const inclusions = new THREE.InstancedMesh(geometry, material, 34);
+    const inclusions = new THREE.InstancedMesh(geometry, material, 68);
     const dummy = new THREE.Object3D();
-    for (let index = 0; index < 34; index += 1) {
+    for (let index = 0; index < 68; index += 1) {
       const z = random() * 2 - 1;
       const angle = random() * Math.PI * 2;
       const radial = Math.sqrt(1 - z * z);
@@ -361,7 +407,7 @@
         Math.sin(angle) * radial * radius
       );
       dummy.rotation.set(random() * Math.PI, random() * Math.PI, random() * Math.PI);
-      const scale = .32 + random() * 1.2;
+      const scale = .24 + random() * 1.05;
       dummy.scale.set(scale, scale * (.45 + random() * .9), scale * (.35 + random() * .8));
       dummy.updateMatrix();
       inclusions.setMatrixAt(index, dummy.matrix);
@@ -395,7 +441,7 @@
       });
       renderer.outputColorSpace = THREE.SRGBColorSpace;
       renderer.toneMapping = THREE.ACESFilmicToneMapping;
-      renderer.toneMappingExposure = 1.16;
+      renderer.toneMappingExposure = 1.22;
       renderer.setClearColor(0x000000, 0);
       renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, window.innerWidth < 768 ? 1.2 : 1.55));
 
@@ -403,9 +449,9 @@
       scene.add(new THREE.AmbientLight(0xb4a5d8, .42));
 
       const keyLight = new THREE.DirectionalLight(0xffffff, 4.25);
-      keyLight.position.set(-3.4, 4.2, 4.8);
+      keyLight.position.set(-3.8, 4.8, 5.4);
       scene.add(keyLight);
-      const rimLight = new THREE.PointLight(0xb89aff, 5.2, 8);
+      const rimLight = new THREE.PointLight(0xb89aff, 6.1, 8);
       rimLight.position.set(3.1, 1.5, -1.6);
       scene.add(rimLight);
       const lowerLight = new THREE.PointLight(0xe7dcff, 2.2, 7);
@@ -418,21 +464,26 @@
       const crystalGeometry = createCrystalGeometry(THREE);
       const surfaceMaps = createCrystalSurfaceMaps(THREE, renderer);
       const crystalMaterial = new THREE.MeshPhysicalMaterial({
-        color: 0xd1c3e8,
+        color: 0xe0d4f1,
         map: surfaceMaps.map,
-        bumpMap: surfaceMaps.bumpMap,
-        bumpScale: .018,
+        normalMap: surfaceMaps.normalMap,
+        normalScale: new THREE.Vector2(.46, .46),
         roughnessMap: surfaceMaps.roughnessMap,
-        metalness: .24,
-        roughness: .28,
-        clearcoat: .96,
-        clearcoatRoughness: .13,
-        transmission: .08,
-        thickness: .9,
-        ior: 1.48,
-        emissive: 0x28193b,
-        emissiveIntensity: .3,
-        envMapIntensity: 2.05,
+        metalness: .12,
+        roughness: .24,
+        clearcoat: 1,
+        clearcoatRoughness: .065,
+        transmission: .16,
+        thickness: 1.1,
+        ior: 1.49,
+        iridescence: .22,
+        iridescenceIOR: 1.34,
+        iridescenceThicknessRange: [135, 420],
+        attenuationColor: 0x80639f,
+        attenuationDistance: 2.2,
+        emissive: 0x21132f,
+        emissiveIntensity: .25,
+        envMapIntensity: 2.35,
         flatShading: true
       });
       const crystal = new THREE.Mesh(crystalGeometry, crystalMaterial);
@@ -441,19 +492,48 @@
       resources.push(crystalGeometry, crystalMaterial);
       addCrystalInclusions(THREE, crystalRig);
 
-      const innerGeometry = new THREE.IcosahedronGeometry(.57, 1);
-      const innerMaterial = new THREE.MeshPhysicalMaterial({
-        color: 0x745a9e,
-        metalness: .3,
-        roughness: .24,
+      // A clear polished skin gives the facets a convincing glass edge and fresnel reflection.
+      const shellGeometry = new THREE.SphereGeometry(1.052, 72, 56);
+      const shellMaterial = new THREE.MeshPhysicalMaterial({
+        color: 0xd9cafa,
+        metalness: .02,
+        roughness: .055,
+        transmission: .34,
+        thickness: .42,
+        ior: 1.49,
         clearcoat: 1,
-        clearcoatRoughness: .16,
-        emissive: 0x674b9c,
-        emissiveIntensity: .72,
+        clearcoatRoughness: .025,
+        iridescence: .12,
+        iridescenceIOR: 1.32,
+        iridescenceThicknessRange: [180, 360],
+        attenuationColor: 0xb6a0dc,
+        attenuationDistance: 3.4,
+        envMapIntensity: 2.6,
+        side: THREE.FrontSide
+      });
+      const glassShell = new THREE.Mesh(shellGeometry, shellMaterial);
+      crystalRig.add(glassShell);
+      resources.push(shellGeometry, shellMaterial);
+
+      const innerGeometry = new THREE.IcosahedronGeometry(.57, 2);
+      const innerMaterial = new THREE.MeshPhysicalMaterial({
+        color: 0x8972b1,
+        metalness: .08,
+        roughness: .18,
+        transmission: .3,
+        thickness: .6,
+        ior: 1.46,
+        clearcoat: .9,
+        clearcoatRoughness: .08,
+        iridescence: .16,
+        iridescenceThicknessRange: [110, 300],
+        emissive: 0x60468b,
+        emissiveIntensity: .54,
         transparent: true,
-        opacity: .72,
+        opacity: .58,
         depthWrite: false,
-        envMapIntensity: 1.35
+        envMapIntensity: 1.8,
+        flatShading: true
       });
       const innerCrystal = new THREE.Mesh(innerGeometry, innerMaterial);
       innerCrystal.rotation.set(-.36, .42, .18);
