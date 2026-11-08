@@ -407,6 +407,8 @@
       });
       resources.push(pearlMaterial);
 
+      const tubeSegments = compactDevice ? 384 : 768;
+
       // The paths deliberately weave in depth. They cross in the camera view,
       // but their high/low passes are shaped into each loop rather than cut apart.
       const outerPath = makeWovenLoopPath(THREE, 1.32, .24, -.3, .028);
@@ -441,8 +443,6 @@
       glassRing.scale.setScalar(1.04);
       sculpture.add(glassRing);
       resources.push(glassGeometry);
-
-      const tubeSegments = compactDevice ? 384 : 768;
 
       const bridgePath = makeWovenLoopPath(THREE, .86, .19, .75, .03);
 
