@@ -174,32 +174,32 @@
         let blue;
 
         const oceanColor = [
-          mix(26, 48, shallow),
-          mix(35, 66, shallow),
-          mix(58, 83, shallow)
+          mix(31, 61, shallow),
+          mix(42, 67, shallow),
+          mix(91, 133, shallow)
         ];
         const basinColor = [
-          mix(9, 21, oceanDepth),
-          mix(15, 30, oceanDepth),
-          mix(31, 49, oceanDepth)
+          mix(18, 34, oceanDepth),
+          mix(24, 43, oceanDepth),
+          mix(57, 91, oceanDepth)
         ];
         const lowlandColor = [
-          mix(43, 77, terrain.detail),
-          mix(38, 67, terrain.detail),
-          mix(56, 87, terrain.detail)
+          mix(66, 109, terrain.detail),
+          mix(49, 83, terrain.detail),
+          mix(111, 159, terrain.detail)
         ];
         const highlandColor = [
-          mix(84, 151, terrain.highland),
-          mix(73, 134, terrain.highland),
-          mix(101, 165, terrain.highland)
+          mix(118, 194, terrain.highland),
+          mix(91, 157, terrain.highland),
+          mix(171, 224, terrain.highland)
         ];
         const landMix = smoothstep(.12, .82, terrain.highland);
         const landR = mix(lowlandColor[0], highlandColor[0], landMix);
         const landG = mix(lowlandColor[1], highlandColor[1], landMix);
         const landB = mix(lowlandColor[2], highlandColor[2], landMix);
         const ice = polar * (.25 + terrain.highland * .6);
-        const craterDarkening = 1 - terrain.crater * .48;
-        const mineralFleck = (fineGrain - .5) * 10;
+        const craterDarkening = 1 - terrain.crater * .32;
+        const mineralFleck = (fineGrain - .5) * 15;
 
         red = mix(basinColor[0], oceanColor[0], smoothstep(.7, .98, terrain.coast));
         green = mix(basinColor[1], oceanColor[1], smoothstep(.7, .98, terrain.coast));
@@ -207,9 +207,9 @@
         red = mix(red, landR, terrain.land);
         green = mix(green, landG, terrain.land);
         blue = mix(blue, landB, terrain.land);
-        red = mix(red, 178, ice);
-        green = mix(green, 174, ice);
-        blue = mix(blue, 196, ice);
+        red = mix(red, 207, ice);
+        green = mix(green, 205, ice);
+        blue = mix(blue, 232, ice);
         red = red * craterDarkening + mineralFleck;
         green = green * craterDarkening + mineralFleck;
         blue = blue * craterDarkening + mineralFleck * 1.15;
@@ -320,9 +320,9 @@
         const coverage = smoothstep(.55, .74, wisps + polar * .035);
         const alpha = Math.round(coverage * (88 + detail * 112));
         const index = (y * width + x) * 4;
-        image.data[index] = Math.round(178 + detail * 42);
-        image.data[index + 1] = Math.round(177 + detail * 39);
-        image.data[index + 2] = Math.round(205 + detail * 42);
+        image.data[index] = Math.round(202 + detail * 34);
+        image.data[index + 1] = Math.round(202 + detail * 30);
+        image.data[index + 2] = Math.round(236 + detail * 19);
         image.data[index + 3] = alpha;
       }
     }
@@ -361,10 +361,10 @@
       "  float rim = pow(1.0 - facing, 3.3);",
       "  float fineRim = pow(1.0 - facing, 7.5);",
       "  float flow = 0.92 + 0.08 * sin(uTime * 0.38 + facing * 7.0);",
-      "  vec3 violet = vec3(0.29, 0.22, 0.55);",
-      "  vec3 ice = vec3(0.72, 0.78, 1.0);",
+      "  vec3 violet = vec3(0.35, 0.28, 0.78);",
+      "  vec3 ice = vec3(0.78, 0.86, 1.0);",
       "  vec3 atmosphere = mix(violet, ice, fineRim);",
-      "  gl_FragColor = vec4(atmosphere, (rim * 0.42 + fineRim * 0.2) * flow);",
+      "  gl_FragColor = vec4(atmosphere, (rim * 0.58 + fineRim * 0.28) * flow);",
       "}"
     ].join("\n")
   });
@@ -403,8 +403,8 @@
       "  float broadBands = 0.5 + 0.5 * sin(radius * 168.0 + 1.7);",
       "  float grooves = smoothstep(0.58, 0.94, fineBands) * smoothstep(0.08, 0.78, broadBands);",
       "  float edge = smoothstep(0.0, 0.025, across) * (1.0 - smoothstep(0.975, 1.0, across));",
-      "  float alpha = edge * (0.012 + grooves * 0.62) * uBrightness;",
-      "  vec3 color = uTint * (0.34 + grooves * 1.02);",
+      "  float alpha = edge * (0.018 + grooves * 0.78) * uBrightness;",
+      "  vec3 color = uTint * (0.5 + grooves * 1.12);",
       "  color += vec3(0.16, 0.15, 0.21) * (1.0 - broadBands) * 0.22;",
       "  gl_FragColor = vec4(color, alpha);",
       "}"
@@ -695,19 +695,22 @@
       });
       renderer.outputColorSpace = THREE.SRGBColorSpace;
       renderer.toneMapping = THREE.ACESFilmicToneMapping;
-      renderer.toneMappingExposure = 1.18;
+      renderer.toneMappingExposure = 1.34;
       renderer.setClearColor(0x000000, 0);
       rendererMaxAnisotropy = renderer.capabilities.getMaxAnisotropy();
 
-      scene.add(new THREE.HemisphereLight(0xdfe5ff, 0x10101e, 1.18));
-      scene.add(new THREE.AmbientLight(0x6d658f, .22));
-      const key = new THREE.DirectionalLight(0xfff4e7, 3.6);
+      scene.add(new THREE.HemisphereLight(0xe8eaff, 0x30264e, 1.75));
+      scene.add(new THREE.AmbientLight(0x9c8fc7, .58));
+      const key = new THREE.DirectionalLight(0xfff5f2, 4.8);
       key.position.set(-3.8, 3.6, 4.4);
       scene.add(key);
-      const fill = new THREE.DirectionalLight(0x8786dc, 1.15);
+      const fill = new THREE.DirectionalLight(0x9c9cff, 2.35);
       fill.position.set(3.8, -1.2, 2.6);
       scene.add(fill);
-      const rim = new THREE.PointLight(0xa69aff, 3.8, 8);
+      const frontLift = new THREE.DirectionalLight(0x879aff, 1.05);
+      frontLift.position.set(.2, .5, 5.5);
+      scene.add(frontLift);
+      const rim = new THREE.PointLight(0xb1a5ff, 4.8, 8);
       rim.position.set(2.6, 1.8, -2.4);
       scene.add(rim);
 
@@ -720,13 +723,17 @@
       systemRig.add(planetRig);
       const planetMaps = buildPlanetMaps(THREE);
       const planetGeometry = createPlanetGeometry(THREE);
-      const planetMaterial = new THREE.MeshStandardMaterial({
+      const planetMaterial = new THREE.MeshPhysicalMaterial({
         map: planetMaps.map,
         bumpMap: planetMaps.bumpMap,
-        bumpScale: .012,
+        bumpScale: .02,
         roughnessMap: planetMaps.roughnessMap,
-        roughness: .78,
-        metalness: .08
+        roughness: .62,
+        metalness: .035,
+        clearcoat: .34,
+        clearcoatRoughness: .28,
+        emissive: 0x17143b,
+        emissiveIntensity: .26
       });
       const planet = new THREE.Mesh(planetGeometry, planetMaterial);
       planet.rotation.set(-.14, .12, .08);
@@ -735,20 +742,20 @@
 
       const cloudTexture = buildCloudTexture(THREE);
       const cloudGeometry = new THREE.SphereGeometry(1.009, 128, 96);
-      const cloudMaterial = new THREE.MeshStandardMaterial({
+      const cloudMaterial = new THREE.MeshBasicMaterial({
         map: cloudTexture,
-        color: 0xd7d5eb,
+        color: 0xf0edff,
         transparent: true,
-        opacity: .68,
-        roughness: .92,
-        metalness: 0,
-        depthWrite: false
+        opacity: .84,
+        depthWrite: false,
+        side: THREE.FrontSide
       });
       cloudLayer = new THREE.Mesh(cloudGeometry, cloudMaterial);
+      cloudLayer.renderOrder = 1;
       planetRig.add(cloudLayer);
       resources.push(cloudGeometry, cloudMaterial);
 
-      const atmosphereGeometry = new THREE.SphereGeometry(1.062, 112, 80);
+      const atmosphereGeometry = new THREE.SphereGeometry(1.078, 112, 80);
       atmosphereMaterial = makeAtmosphereMaterial(THREE);
       const atmosphere = new THREE.Mesh(atmosphereGeometry, atmosphereMaterial);
       atmosphere.renderOrder = 2;
