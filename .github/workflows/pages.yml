@@ -19,10 +19,31 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+      - name: Prepare VESPERA texture assets
+        shell: bash
+        run: |
+          set -euo pipefail
+          tmp_dir="$(mktemp -d)"
+          unzip -oq files/vespera-package.zip -d "$tmp_dir"
+          source_dir="$tmp_dir/assets/vespera"
+          test -s "$source_dir/vespera-poster.webp"
+          for tier in 1024 2048 4096; do
+            for map in color normal orm clouds; do
+              test -s "$source_dir/$tier/$map.webp"
+            done
+          done
+          mkdir -p assets/vespera
+          cp -a "$source_dir/." assets/vespera/
+          rm -rf "$tmp_dir"
+          # Keep the source archive in Git, but do not publish the 8.8 MB ZIP on Pages.
+          rm -f files/vespera-package.zip
+          echo "VESPERA assets prepared:"
+          find assets/vespera -type f -printf '%P | %s bytes\\n' | sort
       - name: Validate site
         run: |
           node --check assets/site.js
           node --check assets/hero-3d.js
+          node --check --input-type=module < assets/studio-orb-3d.js
           node scripts/check-site.mjs
       - name: Configure Pages
         uses: actions/configure-pages@v5
