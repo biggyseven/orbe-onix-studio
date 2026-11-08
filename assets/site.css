@@ -4896,3 +4896,70 @@ body.door-reveal-active .site-header,body.door-reveal-active main,body.door-reve
 @media(prefers-reduced-motion:reduce){
   .home-studio-orbit,.home-studio-orb{transition:none!important}
 }
+
+
+/* HOMEPAGE / 03 — slow orbital motion */
+.home-studio-orbit{
+  transform-origin:50% 50%;
+  animation:home-studio-field-float 8s ease-in-out infinite;
+  will-change:transform;
+}
+.home-studio-orbit:before{
+  transform-origin:50% 50%;
+  animation:home-studio-ring-clockwise 28s linear infinite;
+  will-change:transform;
+}
+.home-studio-orbit:after{
+  transform-origin:50% 50%;
+  animation:home-studio-ring-counter 36s linear infinite;
+  will-change:transform;
+}
+.home-studio-orb{
+  animation:home-studio-core-float 6.4s ease-in-out infinite;
+  will-change:transform,box-shadow;
+}
+.home-studio-orb i{
+  animation:home-studio-core-glint 4.8s ease-in-out infinite;
+  transform-origin:center;
+  will-change:transform,opacity;
+}
+.home-studio-visual:after{
+  animation:home-studio-atmosphere 9s ease-in-out infinite;
+}
+@keyframes home-studio-field-float{
+  0%,100%{transform:rotate(-28deg) scaleY(.76) translate3d(0,0,0)}
+  50%{transform:rotate(-24deg) scaleY(.78) translate3d(0,-7px,0)}
+}
+@keyframes home-studio-ring-clockwise{
+  from{transform:rotate(52deg)}
+  to{transform:rotate(412deg)}
+}
+@keyframes home-studio-ring-counter{
+  from{transform:rotate(-48deg)}
+  to{transform:rotate(-408deg)}
+}
+@keyframes home-studio-core-float{
+  0%,100%{
+    transform:rotate(28deg) scaleY(1.32) translate3d(0,0,0);
+    box-shadow:inset -14px -18px 34px rgba(15,12,22,.55),inset 8px 8px 20px rgba(255,255,255,.42),0 18px 48px rgba(0,0,0,.38),0 0 40px rgba(193,173,244,.22);
+  }
+  50%{
+    transform:rotate(31deg) scaleY(1.32) translate3d(0,-6px,0);
+    box-shadow:inset -14px -18px 34px rgba(15,12,22,.5),inset 8px 8px 22px rgba(255,255,255,.5),0 24px 54px rgba(0,0,0,.34),0 0 54px rgba(193,173,244,.34);
+  }
+}
+@keyframes home-studio-core-glint{
+  0%,100%{opacity:.78;transform:translate3d(0,0,0) scale(.88)}
+  50%{opacity:1;transform:translate3d(-5px,4px,0) scale(1.22)}
+}
+@keyframes home-studio-atmosphere{
+  0%,100%{opacity:.72}
+  50%{opacity:1}
+}
+@media(prefers-reduced-motion:reduce){
+  .home-studio-orbit,.home-studio-orbit:before,.home-studio-orbit:after,
+  .home-studio-orb,.home-studio-orb i,.home-studio-visual:after{
+    animation:none!important;
+    will-change:auto;
+  }
+}
