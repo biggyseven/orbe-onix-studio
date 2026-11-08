@@ -154,8 +154,8 @@
   };
 
   const createCrystalSurfaceMaps = (THREE, renderer) => {
-    const width = 1536;
-    const height = 768;
+    const width = window.innerWidth < 680 ? 768 : 1280;
+    const height = width / 2;
     let seed = 20261108;
     const random = () => {
       seed = (seed * 1664525 + 1013904223) >>> 0;
@@ -493,7 +493,7 @@
       addCrystalInclusions(THREE, crystalRig);
 
       // A clear polished skin gives the facets a convincing glass edge and fresnel reflection.
-      const shellGeometry = new THREE.SphereGeometry(1.052, 72, 56);
+      const shellGeometry = new THREE.SphereGeometry(1.092, 80, 64);
       const shellMaterial = new THREE.MeshPhysicalMaterial({
         color: 0xd9cafa,
         metalness: .02,
