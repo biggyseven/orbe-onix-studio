@@ -530,12 +530,6 @@
       marker.position.set(1.53, -.62, .14);
       sculpture.add(marker);
 
-      // Fit the complete sculpture instead of relying on a viewport-only zoom
-      // estimate. The bounding sphere remains valid for every rotation preset.
-      const sculptureBounds = new THREE.Box3().setFromObject(sculpture);
-      const sculptureSphere = sculptureBounds.getBoundingSphere(new THREE.Sphere());
-      const sculptureFitRadius = Math.max(.1, sculptureSphere.radius);
-
       const resize = () => {
         if (!renderer || disposed) return;
         const hostRect = host.getBoundingClientRect();
@@ -544,14 +538,17 @@
         const height = Math.max(1, Math.round(hostRect.height || stageRect.height || window.innerHeight));
         const aspect = width / height;
 
-        // Fit both axes. On narrow screens the horizontal field of view is the
-        // limiting factor, so the camera moves back only as much as necessary.
-        const halfVerticalFov = THREE.MathUtils.degToRad(camera.fov) / 2;
-        const fitHeightDistance = sculptureFitRadius / Math.tan(halfVerticalFov);
-        const fitWidthDistance = sculptureFitRadius / (Math.tan(halfVerticalFov) * Math.max(aspect, .1));
-        const fitDistance = Math.max(fitHeightDistance, fitWidthDistance) * 1.08;
-        cameraFramingScale = isStudyScene ? Math.max(1, fitDistance / Math.max(targetCameraZ, .1)) : 1;
-        camera.position.z = targetCameraZ * cameraFramingScale;
+        // Keep the camera and desktop sculpture size unchanged. Scale only the
+        // study object, proportionally to the real 3D frame dimensions.
+        // 520 × 420 px is the reference frame; small screens scale down smoothly.
+        if (isStudyScene) {
+          const responsiveScale = Math.max(.45, Math.min(1, width / 520, height / 420));
+          sculpture.scale.setScalar(responsiveScale);
+        } else {
+          sculpture.scale.setScalar(1);
+        }
+        cameraFramingScale = 1;
+        camera.position.z = targetCameraZ;
         camera.aspect = aspect;
         camera.updateProjectionMatrix();
 
