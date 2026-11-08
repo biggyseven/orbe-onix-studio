@@ -10,8 +10,6 @@
   const CDN = "https://cdn.jsdelivr.net/npm/three@0.187.0/build/three.module.js";
   const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   const finePointer = window.matchMedia("(pointer: fine)").matches;
-  const compactDevice = window.matchMedia("(max-width: 820px)").matches
-    || (typeof navigator.deviceMemory === "number" && navigator.deviceMemory <= 4);
   let renderer;
   let resizeObserver;
   let animationFrame = 0;
@@ -41,11 +39,9 @@
 
   const makeEnvironment = THREE => {
     const envCanvas = document.createElement("canvas");
-    const environmentScale = compactDevice ? .5 : 1;
-    envCanvas.width = Math.round(2048 * environmentScale);
-    envCanvas.height = Math.round(1024 * environmentScale);
+    envCanvas.width = 2048;
+    envCanvas.height = 1024;
     const ctx = envCanvas.getContext("2d");
-    ctx.setTransform(environmentScale, 0, 0, environmentScale, 0, 0);
     const base = ctx.createLinearGradient(0, 0, 2048, 1024);
     base.addColorStop(0, "#2b2638");
     base.addColorStop(.28, "#aaa0c7");
@@ -224,11 +220,9 @@
       scene.environment = makeEnvironment(THREE);
 
       const shadowCanvas = document.createElement("canvas");
-      const shadowScale = compactDevice ? .5 : 1;
-      shadowCanvas.width = Math.round(512 * shadowScale);
-      shadowCanvas.height = Math.round(384 * shadowScale);
+      shadowCanvas.width = 512;
+      shadowCanvas.height = 384;
       const shadowContext = shadowCanvas.getContext("2d");
-      shadowContext.setTransform(shadowScale, 0, 0, shadowScale, 0, 0);
       const shadowGradient = shadowContext.createRadialGradient(256, 192, 14, 256, 192, 184);
       shadowGradient.addColorStop(0, "rgba(5,4,10,.42)");
       shadowGradient.addColorStop(.44, "rgba(8,6,14,.22)");
@@ -259,8 +253,8 @@
       renderer = new THREE.WebGLRenderer({
         canvas,
         alpha: true,
-        antialias: !compactDevice,
-        powerPreference: compactDevice ? "default" : "high-performance"
+        antialias: true,
+        powerPreference: "high-performance"
       });
       // A successful Three.js render is the reliable readiness signal.
       // Reading pixels from the default framebuffer is not reliable on every
@@ -268,14 +262,25 @@
       // return transparent pixels after presentation even when the scene drew.
       const revealCanvasWhenDrawn = () => {
         if (!renderer || disposed) return;
-        host.classList.add("is-ready");
-        host.classList.remove("is-fallback");
+        try {
+          const gl = renderer.getContext();
+          const hasDrawCalls = renderer.info && renderer.info.render && renderer.info.render.calls > 0;
+          if (!gl.isContextLost() && hasDrawCalls) {
+            host.classList.add("is-ready");
+            host.classList.remove("is-fallback");
+            return;
+          }
+        } catch (error) {
+          console.warn("ORBE & ONIX WebGL readiness check failed.", error);
+        }
+        host.classList.remove("is-ready");
+        host.classList.add("is-fallback");
       };
       canvas.addEventListener("webglcontextlost", () => {
         host.classList.remove("is-ready");
         host.classList.add("is-fallback");
       }, false);
-      renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, window.innerWidth < 760 ? 1.3 : 1.75));
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, window.innerWidth < 768 ? 1.25 : 1.65));
       renderer.outputColorSpace = THREE.SRGBColorSpace;
       renderer.toneMapping = THREE.ACESFilmicToneMapping;
       renderer.toneMappingExposure = 1.04;
@@ -407,14 +412,14 @@
       });
       resources.push(pearlMaterial);
 
-      const tubeSegments = compactDevice ? 384 : 768;
+      const tubeSegments = 768;
 
       // The paths deliberately weave in depth. They cross in the camera view,
       // but their high/low passes are shaped into each loop rather than cut apart.
       const outerPath = makeWovenLoopPath(THREE, 1.32, .24, -.3, .028);
       const outerGeometry = makeSculpturalTubeGeometry(THREE, outerPath, {
         tubularSegments: tubeSegments,
-        radialSegments: compactDevice ? 48 : 88,
+        radialSegments: 88,
         radius: .16,
         depthRatio: .72,
         phase: .4,
@@ -430,7 +435,7 @@
       const glassPath = makeWovenLoopPath(THREE, 1.14, .31, 1.35, .042);
       const glassGeometry = makeSculpturalTubeGeometry(THREE, glassPath, {
         tubularSegments: tubeSegments,
-        radialSegments: compactDevice ? 48 : 96,
+        radialSegments: 96,
         radius: .22,
         depthRatio: .38,
         phase: 1.1,
@@ -459,7 +464,7 @@
       }
       const bridgeGeometry = makeSculpturalTubeGeometry(THREE, bridgePath, {
         tubularSegments: tubeSegments,
-        radialSegments: compactDevice ? 40 : 80,
+        radialSegments: 80,
         radius: .075,
         depthRatio: .78,
         phase: .7,
@@ -575,7 +580,7 @@
 
         renderer.setPixelRatio(Math.min(
           window.devicePixelRatio || 1,
-          compactDevice ? 1 : 1.65
+          window.innerWidth < 768 ? 1.25 : 1.65
         ));
         renderer.setSize(width, height, false);
         renderer.render(scene, camera);
