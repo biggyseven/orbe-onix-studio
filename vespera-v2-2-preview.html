@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="fr"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#0b0b11">
+<meta name="description" content="Comparaison de VESPERA 2.0, 2.1 et 2.2, planète signature du moteur 3D propriétaire ORBE & ONIX.">
+<title>VESPERA 2.2 | ORBE &amp; ONIX</title>
+<link rel="stylesheet" href="assets/site.css?v=vespera-v2-lab-01">
+<style>
+:root{color-scheme:dark}body.v2-lab{margin:0;min-height:100vh;background:#0b0b11;color:#f0edf6}
+.v2-shell{width:min(1320px,calc(100% - 48px));margin:auto}
+.v2-header{display:flex;justify-content:space-between;align-items:center;padding:28px 0;border-bottom:1px solid #ffffff1b}
+.v2-brand{display:flex;align-items:center;gap:12px;color:#f5f1fa;text-decoration:none;font-size:12px;letter-spacing:.16em}.v2-brand img{width:38px;height:38px}
+.v2-back{color:#d8d0ed;text-decoration:none;font-size:11px;letter-spacing:.1em}
+.v2-intro{padding:78px 0 45px;max-width:780px}.v2-kicker{color:#ac9bd3;font-size:10px;letter-spacing:.22em;text-transform:uppercase}
+.v2-intro h1{font:400 clamp(44px,7vw,86px)/.96 Georgia,serif;letter-spacing:-.045em;margin:18px 0 22px}.v2-intro h1 em{color:#b6a4df}
+.v2-intro p{max-width:640px;color:#aaa6b6;font-size:15px;line-height:1.8}
+.v2-compare{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;padding:15px 0 35px}
+.v2-card{min-width:0;padding:16px;border:1px solid #e2dcf51f;border-radius:22px;background:linear-gradient(155deg,#ffffff0c,#ffffff03)}
+.v2-card--new{border-color:#b6a4df60;background:linear-gradient(155deg,#8770be1a,#ffffff03)}
+.v2-card-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:8px 6px 16px}
+.v2-label{font-size:9px;letter-spacing:.2em;color:#928ca2}.v2-name{font:italic 22px Georgia,serif;color:#efebf7;margin-top:6px}
+.v2-state{border:1px solid #ffffff25;border-radius:99px;padding:7px 9px;color:#b8b1c8;font-size:9px;letter-spacing:.12em;white-space:nowrap}
+.v2-card--new .v2-state{border-color:#b6a4df60;color:#c9b9ef}
+.v2-stage{position:relative;aspect-ratio:1;width:100%;overflow:hidden;border-radius:16px;background:radial-gradient(ellipse at 50% 48%,#4a42703d,transparent 62%),#0b0b11}
+.v2-stage>.vespera-v2-3d,.v2-stage>.vespera-v2-1-3d,.v2-stage>.vespera-v2-2-3d{position:absolute;inset:0;width:100%;height:100%;aspect-ratio:auto;overflow:visible;border:0;border-radius:0;background:transparent;box-shadow:none;transform:none}
+.v2-stage canvas{position:absolute;inset:0;width:100%;height:100%;display:block;background:transparent;opacity:0;transition:opacity .8s ease}
+.v2-stage .is-ready canvas{opacity:1}.v2-stage .vespera-poster{position:absolute;inset:0;z-index:3;width:100%;height:100%;object-fit:contain}
+.v2-stage .home-studio-planet-mark{display:none!important}
+.v2-desc{min-height:66px;padding:16px 7px 8px;color:#aaa5b4;font-size:12px;line-height:1.75}.v2-desc strong{color:#e5deef;font-weight:500}
+.v2-notes{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:1px;margin:22px 0 70px;overflow:hidden;border:1px solid #e6e1f51a;border-radius:16px;background:#e6e1f51a}
+.v2-note{padding:22px;background:#101017}.v2-note small{display:block;margin-bottom:9px;color:#9489ad;font-size:9px;letter-spacing:.19em}
+.v2-note strong{font:italic 19px Georgia,serif;color:#ece6f5;font-weight:400}.v2-note p{margin:9px 0 0;color:#9692a2;font-size:11px;line-height:1.7}
+.v2-footer{display:flex;justify-content:space-between;gap:16px;padding:24px 0 38px;border-top:1px solid #e6e1f51b;color:#797586;font-size:10px;letter-spacing:.12em}
+@media(max-width:980px){.v2-compare{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:760px){.v2-shell{width:min(100% - 28px,560px)}.v2-header{padding:20px 0}.v2-intro{padding:52px 0 28px}.v2-compare{grid-template-columns:1fr;gap:16px}.v2-stage{max-width:520px;margin:auto}.v2-notes{grid-template-columns:1fr}.v2-note{padding:18px}.v2-footer{flex-direction:column}}
+@media(prefers-reduced-motion:reduce){.v2-stage canvas{transition:none}}
+</style></head>
+<body class="v2-lab"><div class="v2-shell">
+<header class="v2-header"><a class="v2-brand" href="index.html"><img src="assets/orbe-mark.svg" alt=""><span>ORBE &amp; ONIX<br><small style="font-size:8px;color:#8d879a;letter-spacing:.16em">PROPRIETARY 3D ENGINE</small></span></a><a class="v2-back" href="index.html#studio">← RETOUR AU STUDIO</a></header>
+<main id="main">
+<section class="v2-intro"><div class="v2-kicker">VESPERA / MATERIAL STUDY 004</div><h1>One world.<br><em>Three evolutions.</em></h1><p>Une comparaison directe des trois études de la planète signature O&amp;O. La 2.2 cherche l’équilibre : la lecture minérale et la présence des nuages de la 2.0, les filons et le cirrus de la 2.1, avec un relief et une atmosphère recalibrés.</p></section>
+<section class="v2-compare" aria-label="Comparaison des trois versions de VESPERA">
+<article class="v2-card"><div class="v2-card-head"><div><div class="v2-label">REFERENCE / 002</div><div class="v2-name">VESPERA 2.0</div></div><span class="v2-state">DENSE / MINERAL</span></div><div class="v2-stage"><div class="vespera-v2-3d" role="img" aria-label="VESPERA 2.0, référence minérale"><canvas aria-hidden="true"></canvas></div></div><p class="v2-desc"><strong>La matière d’origine.</strong> Une couverture nuageuse plus présente et une lecture minérale ample, avec des reliefs plus doux.</p></article>
+<article class="v2-card"><div class="v2-card-head"><div><div class="v2-label">REFINEMENT / 003</div><div class="v2-name">VESPERA 2.1</div></div><span class="v2-state">FINE / AIRY</span></div><div class="v2-stage"><div class="vespera-v2-1-3d" role="img" aria-label="VESPERA 2.1, étude affinée"><canvas aria-hidden="true"></canvas></div></div><p class="v2-desc"><strong>Le détail poussé.</strong> Relief tectonique et normales renforcés, filons minéraux, cirrus et nuages plus légers.</p></article>
+<article class="v2-card v2-card--new"><div class="v2-card-head"><div><div class="v2-label">BALANCED SYNTHESIS / 004</div><div class="v2-name">VESPERA 2.2</div></div><span class="v2-state">BALANCED</span></div><div class="v2-stage"><div class="vespera-v2-2-3d" role="img" aria-label="VESPERA 2.2, synthèse équilibrée"><canvas aria-hidden="true"></canvas></div></div><p class="v2-desc"><strong>La synthèse.</strong> Densité nuageuse rééquilibrée, micro-relief moins agressif et détails minéraux préservés.</p></article>
+</section>
+<section class="v2-notes" aria-label="Choix de la version 2.2"><div class="v2-note"><small>01 / SURFACE</small><strong>Relief maîtrisé</strong><p>La 2.2 conserve les filons et les détails de la 2.1, mais ramène la force du relief vers un équilibre entre présence et finesse.</p></div><div class="v2-note"><small>02 / NUAGES</small><strong>Volume retrouvé</strong><p>Une densité intermédiaire entre les deux versions, avec des cirrus fins pour éviter un voile uniforme.</p></div><div class="v2-note"><small>03 / LUMIÈRE</small><strong>Atmosphère lisible</strong><p>La correction de diffusion Mie de la 2.1 est conservée, avec une opacité nuageuse plus généreuse.</p></div></section>
+</main><footer class="v2-footer"><span>ORBE &amp; ONIX · VESPERA / 004</span><span>STRUCTURE · SENS · SENSATION</span></footer></div>
+<script type="module" src="assets/studio-orb-3d-v2.js?v=vespera-20-ref-001"></script><script type="module" src="assets/studio-orb-3d-v2-1.js?v=vespera-v21-ref-001"></script><script type="module" src="assets/studio-orb-3d-v2-2.js?v=vespera-v22-ref-001"></script>
+</body></html>
