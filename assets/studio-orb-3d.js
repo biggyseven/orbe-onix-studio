@@ -761,7 +761,7 @@
       addRing(THREE, orbitalRig, 1.125, 1.34, 0xc5c0e5, .92);
       addRing(THREE, orbitalRig, 1.355, 1.61, 0xaaa6ce, .68);
       addRing(THREE, orbitalRig, 1.625, 1.665, 0xe0dcf2, .72);
-      addMoon(THREE);
+      // The pale companion body is created once in systemRig above; no separate moon is needed.
 
       const resizeHandler = () => resize();
       window.addEventListener("resize", resizeHandler, { passive: true });
