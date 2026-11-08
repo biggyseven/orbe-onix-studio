@@ -809,15 +809,18 @@
         const galleryImages = [...document.querySelectorAll("[data-study-render]")];
         if (!galleryImages.length || !renderer || !scene || !camera || !sculpture) return;
 
-        const width = 720;
-        const height = 540;
+        // Gallery thumbnails are secondary to the live sculpture. Keep their
+        // GPU cost modest on compact screens and avoid multisample buffers there.
+        const compactViewport = window.matchMedia("(max-width: 760px)").matches;
+        const width = compactViewport ? 420 : 720;
+        const height = compactViewport ? 315 : 540;
         const ratio = renderer.getPixelRatio();
         const target = new THREE.WebGLRenderTarget(width, height, {
           format: THREE.RGBAFormat,
           type: THREE.UnsignedByteType,
           depthBuffer: true,
           stencilBuffer: false,
-          samples: 4
+          samples: compactViewport ? 0 : 4
         });
         target.texture.colorSpace = THREE.SRGBColorSpace;
         target.texture.generateMipmaps = false;
@@ -892,6 +895,30 @@
           target.dispose();
           renderer.render(scene, camera);
         }
+      };
+
+      // Do not render off-screen gallery thumbnails before the main sculpture.
+      // On phones that work can compete with the first WebGL frame and exhaust
+      // limited GPU memory. Render them only shortly before the gallery is seen.
+      const scheduleStudyGalleryRender = () => {
+        const gallerySection = document.querySelector(".study-gallery");
+        if (!gallerySection) return;
+
+        if (!("IntersectionObserver" in window)) {
+          requestAnimationFrame(() => {
+            if (!disposed) renderStudyGallery();
+          });
+          return;
+        }
+
+        const galleryObserver = new IntersectionObserver(entries => {
+          if (!entries.some(entry => entry.isIntersecting)) return;
+          galleryObserver.disconnect();
+          if (!disposed) requestAnimationFrame(renderStudyGallery);
+        }, { rootMargin: "180px 0px" });
+
+        galleryObserver.observe(gallerySection);
+        resources.push({ dispose: () => galleryObserver.disconnect() });
       };
 
       const captureSculpture = async () => {
@@ -1073,7 +1100,7 @@
         });
       }
       updateMotionControls();
-      renderStudyGallery();
+      scheduleStudyGalleryRender();
 
       galleryButtons.forEach(button => {
         button.addEventListener("click", () => {
