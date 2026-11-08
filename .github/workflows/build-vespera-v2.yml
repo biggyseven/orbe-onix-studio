@@ -36,7 +36,6 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-          cache: pip
 
       - name: Install texture tools
         run: python -m pip install --upgrade pip numpy scipy pillow
@@ -64,15 +63,20 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          for spec in "1024 512" "2048 1024" "4096 2048"; do
-            read -r width height <<< "$spec"
-            for map in color normal orm clouds; do
-              file="assets/vespera-v2/$width/$map.webp"
-              test -s "$file"
-              identify -format "%wx%h" "$file" | grep -qx "${width}x${height}"
-            done
-            rm -f "assets/vespera-v2/$width/_height.npy"
-          done
+          python - <<'PY'
+          from pathlib import Path
+          from PIL import Image
+          for width, height in ((1024, 512), (2048, 1024), (4096, 2048)):
+              folder = Path("assets/vespera-v2") / str(width)
+              for name in ("color", "normal", "orm", "clouds"):
+                  path = folder / f"{name}.webp"
+                  if not path.is_file() or path.stat().st_size == 0:
+                      raise SystemExit(f"Missing texture: {path}")
+                  with Image.open(path) as image:
+                      if image.size != (width, height):
+                          raise SystemExit(f"Invalid dimensions: {path} {image.size}")
+              (folder / "_height.npy").unlink(missing_ok=True)
+          PY
           test -s assets/vespera-v2/vespera-poster.webp
           node --check --input-type=module < assets/studio-orb-3d-v2.js
           echo "=== VESPERA 2.0 TEXTURE SIZES ==="
