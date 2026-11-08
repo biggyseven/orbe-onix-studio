@@ -1,8 +1,8 @@
 /* VESPERA 2.0 — ORBE & ONIX proprietary planet engine
  * Three.js r187 · geological surface · physically layered clouds · cinematic atmosphere.
- * Load with: <script type="module" src="assets/studio-orb-3d.js"></script>
- * Textures: assets/vespera/{1024,2048,4096}/{color,normal,orm,clouds}.webp
- *           (made by scripts/make_vespera_textures.py)
+ * Load with: <script type="module" src="assets/studio-orb-3d-v2.js"></script>
+ * Textures: assets/vespera-v2/{1024,2048,4096}/{color,normal,orm,clouds}.webp
+ *           (made by scripts/make_vespera_v2_textures.py)
  */
 const THREE_URL = 'https://cdn.jsdelivr.net/npm/three@0.187.0/build/three.module.js';
 const BASE = new URL('./vespera-v2/', import.meta.url).href;
