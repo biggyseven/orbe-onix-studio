@@ -269,7 +269,7 @@
       const nx = x / length;
       const ny = y / length;
       const nz = z / length;
-      const radius = 1 + terrainAt(nx, ny, nz).height;
+      const radius = 1 + terrainAt(nx, ny, nz).height * .12;
       positions.setXYZ(index, nx * radius, ny * radius, nz * radius);
     }
     geometry.computeVertexNormals();
@@ -285,25 +285,31 @@
       seed = (Math.imul(seed, 1664525) + 1013904223) >>> 0;
       return seed / 4294967296;
     };
-    const columns = 48;
-    const rows = 24;
-    const field = new Float32Array(columns * rows);
-    const fineField = new Float32Array(columns * 2 * rows);
-    for (let index = 0; index < field.length; index += 1) field[index] = random();
-    for (let index = 0; index < fineField.length; index += 1) fineField[index] = random();
-    const sample = (values, cols, rowCount, u, v) => {
-      const gx = ((u % 1 + 1) % 1) * cols;
-      const gy = clamp(v, 0, .999999) * (rowCount - 1);
+    const grids = [
+      { columns: 40, rows: 20 },
+      { columns: 80, rows: 40 },
+      { columns: 160, rows: 80 }
+    ].map(grid => {
+      const values = new Float32Array(grid.columns * grid.rows);
+      for (let index = 0; index < values.length; index += 1) values[index] = random();
+      return { ...grid, values };
+    });
+    const sample = (field, u, v) => {
+      const gx = ((u % 1 + 1) % 1) * field.columns;
+      const gy = clamp(v, 0, .999999) * (field.rows - 1);
       const x0 = Math.floor(gx);
-      const x1 = (x0 + 1) % cols;
+      const x1 = (x0 + 1) % field.columns;
       const y0 = Math.floor(gy);
-      const y1 = Math.min(rowCount - 1, y0 + 1);
-      const tx = gx - x0;
-      const ty = gy - y0;
-      const a = mix(values[y0 * cols + x0], values[y0 * cols + x1], tx);
-      const b = mix(values[y1 * cols + x0], values[y1 * cols + x1], tx);
+      const y1 = Math.min(field.rows - 1, y0 + 1);
+      const tx0 = gx - x0;
+      const ty0 = gy - y0;
+      const tx = tx0 * tx0 * (3 - 2 * tx0);
+      const ty = ty0 * ty0 * (3 - 2 * ty0);
+      const a = mix(field.values[y0 * field.columns + x0], field.values[y0 * field.columns + x1], tx);
+      const b = mix(field.values[y1 * field.columns + x0], field.values[y1 * field.columns + x1], tx);
       return mix(a, b, ty);
     };
+
     const canvas = document.createElement("canvas");
     canvas.width = width;
     canvas.height = height;
@@ -313,16 +319,23 @@
       const v = y / height;
       for (let x = 0; x < width; x += 1) {
         const u = x / width;
-        const broad = sample(field, columns, rows, u, v);
-        const detail = sample(fineField, columns * 2, rows, u, v);
-        const polar = Math.abs(v - .5) * 2;
-        const wisps = broad * .72 + detail * .28 + Math.sin((v * 11 + broad * 2) * Math.PI) * .035;
-        const coverage = smoothstep(.55, .74, wisps + polar * .035);
-        const alpha = Math.round(coverage * (88 + detail * 112));
+        const broadWarp = sample(grids[0], u, v);
+        const fineWarp = sample(grids[1], u + .19, v + .11);
+        const warpedU = u + (broadWarp - .5) * .045;
+        const warpedV = v + (fineWarp - .5) * .035;
+        const broad = sample(grids[0], warpedU, warpedV);
+        const medium = sample(grids[1], warpedU, warpedV);
+        const fine = sample(grids[2], warpedU, warpedV);
+        const polar = smoothstep(.72, .98, Math.abs(v - .5) * 2);
+        const flow = Math.sin((warpedV * 8.2 + broad * 1.7) * Math.PI) * .035;
+        const clouds = broad * .54 + medium * .31 + fine * .15 + flow;
+        const coverage = smoothstep(.625, .79, clouds + polar * .045);
+        const wispyEdge = smoothstep(.58, .76, clouds + (fine - .5) * .08);
+        const alpha = Math.round(coverage * (34 + wispyEdge * 72));
         const index = (y * width + x) * 4;
-        image.data[index] = Math.round(202 + detail * 34);
-        image.data[index + 1] = Math.round(202 + detail * 30);
-        image.data[index + 2] = Math.round(236 + detail * 19);
+        image.data[index] = Math.round(194 + fine * 38);
+        image.data[index + 1] = Math.round(194 + fine * 35);
+        image.data[index + 2] = Math.round(226 + fine * 27);
         image.data[index + 3] = alpha;
       }
     }
@@ -369,47 +382,24 @@
     ].join("\n")
   });
 
-  const makeRingMaterial = (THREE, inner, outer, tint, brightness) => new THREE.ShaderMaterial({
-    transparent: true,
-    depthWrite: false,
-    depthTest: true,
-    side: THREE.DoubleSide,
-    uniforms: {
-      uInner: { value: inner },
-      uOuter: { value: outer },
-      uTint: { value: new THREE.Color(tint) },
-      uBrightness: { value: brightness }
-    },
-    vertexShader: [
-      "varying vec3 vLocalPosition;",
-      "varying vec2 vUvRing;",
-      "void main(){",
-      "  vLocalPosition = position;",
-      "  vUvRing = uv;",
-      "  gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);",
-      "}"
-    ].join("\n"),
-    fragmentShader: [
-      "uniform float uInner;",
-      "uniform float uOuter;",
-      "uniform vec3 uTint;",
-      "uniform float uBrightness;",
-      "varying vec3 vLocalPosition;",
-      "varying vec2 vUvRing;",
-      "void main(){",
-      "  float radius = length(vLocalPosition.xy);",
-      "  float across = clamp((radius - uInner) / max(0.001, uOuter - uInner), 0.0, 1.0);",
-      "  float fineBands = 0.5 + 0.5 * sin(radius * 1180.0 + sin(radius * 91.0) * 2.2);",
-      "  float broadBands = 0.5 + 0.5 * sin(radius * 168.0 + 1.7);",
-      "  float grooves = smoothstep(0.58, 0.94, fineBands) * smoothstep(0.08, 0.78, broadBands);",
-      "  float edge = smoothstep(0.0, 0.025, across) * (1.0 - smoothstep(0.975, 1.0, across));",
-      "  float alpha = edge * (0.018 + grooves * 0.78) * uBrightness;",
-      "  vec3 color = uTint * (0.5 + grooves * 1.12);",
-      "  color += vec3(0.16, 0.15, 0.21) * (1.0 - broadBands) * 0.22;",
-      "  gl_FragColor = vec4(color, alpha);",
-      "}"
-    ].join("\n")
-  });
+  const addOrbitStrand = (THREE, parent, radius, tube, tint, opacity, tiltX, tiltZ) => {
+    const geometry = new THREE.TorusGeometry(radius, tube, 6, 520);
+    const material = new THREE.MeshBasicMaterial({
+      color: tint,
+      transparent: true,
+      opacity,
+      blending: THREE.AdditiveBlending,
+      depthWrite: false,
+      depthTest: true,
+      side: THREE.DoubleSide
+    });
+    const strand = new THREE.Mesh(geometry, material);
+    strand.rotation.set(tiltX, 0, tiltZ);
+    strand.renderOrder = 2;
+    parent.add(strand);
+    resources.push(geometry, material);
+    return strand;
+  };
 
   const addStars = THREE => {
     let seed = 119039;
@@ -592,87 +582,7 @@
     return mesh;
   };
 
-  const addCompanionBody = (THREE, parent) => {
-    const width = window.innerWidth < 680 ? 384 : 512;
-    const height = width / 2;
-    const colorCanvas = document.createElement("canvas");
-    colorCanvas.width = width;
-    colorCanvas.height = height;
-    const colorContext = colorCanvas.getContext("2d", { alpha: false });
-    const colorPixels = colorContext.createImageData(width, height);
-    const bumpCanvas = document.createElement("canvas");
-    bumpCanvas.width = width;
-    bumpCanvas.height = height;
-    const bumpContext = bumpCanvas.getContext("2d", { alpha: false });
-    const bumpPixels = bumpContext.createImageData(width, height);
 
-    for (let py = 0; py < height; py += 1) {
-      const latitude = Math.PI * (.5 - py / height);
-      const cosLatitude = Math.cos(latitude);
-      const sy = Math.sin(latitude);
-      for (let px = 0; px < width; px += 1) {
-        const longitude = (px / width) * Math.PI * 2;
-        const x = cosLatitude * Math.cos(longitude);
-        const z = cosLatitude * Math.sin(longitude);
-        const broad = fbm3(x * 5.2 + 3, sy * 5.2 - 1, z * 5.2 + 4, 4, 811);
-        const fine = fbm3(x * 28 + 7, sy * 28 + 2, z * 28 - 3, 3, 919);
-        const crater = craterField(x, sy, z);
-        const dust = (fine - .5) * 18;
-        const tone = clamp(168 + (broad - .5) * 70 + dust - crater.shade * 43, 92, 226);
-        const index = (py * width + px) * 4;
-        colorPixels.data[index] = clamp(tone * .94 + 8, 0, 255);
-        colorPixels.data[index + 1] = clamp(tone * .92 + 7, 0, 255);
-        colorPixels.data[index + 2] = clamp(tone * 1.04 + 10, 0, 255);
-        colorPixels.data[index + 3] = 255;
-        const elevation = clamp(Math.round(128 + (broad - .5) * 78 + fine * 32 - crater.shade * 54), 0, 255);
-        bumpPixels.data[index] = elevation;
-        bumpPixels.data[index + 1] = elevation;
-        bumpPixels.data[index + 2] = elevation;
-        bumpPixels.data[index + 3] = 255;
-      }
-    }
-    colorContext.putImageData(colorPixels, 0, 0);
-    bumpContext.putImageData(bumpPixels, 0, 0);
-    const map = new THREE.CanvasTexture(colorCanvas);
-    map.colorSpace = THREE.SRGBColorSpace;
-    const bumpMap = new THREE.CanvasTexture(bumpCanvas);
-    resources.push(map, bumpMap);
-
-    const geometry = new THREE.SphereGeometry(.755, 104, 80);
-    const positions = geometry.attributes.position;
-    for (let index = 0; index < positions.count; index += 1) {
-      const x = positions.getX(index);
-      const y = positions.getY(index);
-      const z = positions.getZ(index);
-      const length = Math.max(.00001, Math.hypot(x, y, z));
-      const nx = x / length;
-      const ny = y / length;
-      const nz = z / length;
-      const regional = fbm3(nx * 8 + 3, ny * 8 - 1, nz * 8 + 4, 3, 811);
-      const detail = fbm3(nx * 26 + 7, ny * 26 + 2, nz * 26 - 3, 3, 919);
-      const impact = craterField(nx, ny, nz);
-      const radius = .755 + (regional - .5) * .025 + (detail - .5) * .008 + impact.displacement * .55;
-      positions.setXYZ(index, nx * radius, ny * radius, nz * radius);
-    }
-    geometry.computeVertexNormals();
-
-    const material = new THREE.MeshStandardMaterial({
-      color: 0xd7d1e7,
-      map,
-      bumpMap,
-      bumpScale: .014,
-      roughness: .9,
-      metalness: .015
-    });
-    const companion = new THREE.Mesh(geometry, material);
-    companion.position.set(-.48, -1.25, -.42);
-    companion.rotation.set(.2, -.46, -.12);
-    companion.castShadow = false;
-    companion.receiveShadow = true;
-    parent.add(companion);
-    resources.push(geometry, material);
-    return companion;
-  };
 
   const start = async () => {
     if (started || disposed) return;
@@ -717,7 +627,6 @@
       addStars(THREE);
       systemRig = new THREE.Group();
       scene.add(systemRig);
-      addCompanionBody(THREE, systemRig);
 
       planetRig = new THREE.Group();
       systemRig.add(planetRig);
@@ -726,7 +635,7 @@
       const planetMaterial = new THREE.MeshPhysicalMaterial({
         map: planetMaps.map,
         bumpMap: planetMaps.bumpMap,
-        bumpScale: .02,
+        bumpScale: .008,
         roughnessMap: planetMaps.roughnessMap,
         roughness: .62,
         metalness: .035,
@@ -742,11 +651,13 @@
 
       const cloudTexture = buildCloudTexture(THREE);
       const cloudGeometry = new THREE.SphereGeometry(1.009, 128, 96);
-      const cloudMaterial = new THREE.MeshBasicMaterial({
+      const cloudMaterial = new THREE.MeshStandardMaterial({
         map: cloudTexture,
-        color: 0xf0edff,
+        color: 0xc6c4e6,
         transparent: true,
-        opacity: .84,
+        opacity: .48,
+        roughness: 1,
+        metalness: 0,
         depthWrite: false,
         side: THREE.FrontSide
       });
@@ -763,12 +674,12 @@
       resources.push(atmosphereGeometry, atmosphereMaterial);
 
       orbitalRig = new THREE.Group();
-      orbitalRig.rotation.set(1.18, .16, -.23);
+      orbitalRig.rotation.set(1.04, .12, -.48);
       systemRig.add(orbitalRig);
-      addRing(THREE, orbitalRig, 1.125, 1.34, 0xc5c0e5, .92);
-      addRing(THREE, orbitalRig, 1.355, 1.61, 0xaaa6ce, .68);
-      addRing(THREE, orbitalRig, 1.625, 1.665, 0xe0dcf2, .72);
-      // The pale companion body is created once in systemRig above; no separate moon is needed.
+      addOrbitStrand(THREE, orbitalRig, 1.22, .0025, 0xd6d3ff, .76, 0, 0);
+      addOrbitStrand(THREE, orbitalRig, 1.29, .0017, 0x9f9bdc, .52, .018, .012);
+      addOrbitStrand(THREE, orbitalRig, 1.37, .0022, 0xe6e1ff, .68, -.014, -.018);
+      addOrbitStrand(THREE, orbitalRig, 1.46, .0014, 0xbab5f1, .42, .026, -.012);
 
       const resizeHandler = () => resize();
       window.addEventListener("resize", resizeHandler, { passive: true });
