@@ -5328,8 +5328,13 @@ body.door-reveal-active .site-header,body.door-reveal-active main,body.door-reve
 .home-studio-3d.is-ready canvas{opacity:1}
 .home-studio-3d.is-fallback{
   background:
-    radial-gradient(circle at 34% 28%,rgba(190,181,223,.72),rgba(86,75,121,.5) 24%,rgba(24,27,47,.98) 64%,#080b17 100%);
-  box-shadow:inset -18px -24px 44px rgba(0,0,0,.66),0 0 48px rgba(148,136,215,.2)!important;
+    radial-gradient(ellipse at 29% 27%,rgba(235,235,255,.98) 0%,rgba(156,163,231,.82) 13%,transparent 38%),
+    radial-gradient(ellipse at 70% 67%,rgba(112,82,192,.9),transparent 46%),
+    radial-gradient(circle at 46% 44%,#35365f 0%,#212543 49%,#0b1028 78%,#050817 100%);
+  box-shadow:
+    inset -20px -24px 46px rgba(2,4,16,.48),
+    inset 9px 8px 24px rgba(236,234,255,.18),
+    0 0 56px rgba(123,128,226,.34)!important;
 }
 .home-studio-3d>span.home-studio-planet-mark{
   position:absolute;
