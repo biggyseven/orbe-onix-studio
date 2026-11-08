@@ -1,11 +1,11 @@
 /* VESPERA — ORBE & ONIX Studio
  * Three.js r187 · 3 shader programs · lower cloud shell plus a subtle, independently drifting high-cirrus shell.
  * Load with: <script type="module" src="assets/studio-orb-3d.js"></script>
- * Textures: assets/vespera/{1024,2048,4096}/{color,normal,orm,clouds}.webp
+ * Textures: assets/vespera-v2/{1024,2048,4096}/{color,normal,orm,clouds}.webp
  *           (made by scripts/make_vespera_textures.py)
  */
 const THREE_URL = 'https://cdn.jsdelivr.net/npm/three@0.187.0/build/three.module.js';
-const BASE = new URL('./vespera/', import.meta.url).href;
+const BASE = new URL('./vespera-v2/', import.meta.url).href;
 
 /* ------------------------------------------------------------------ GLSL */
 const COMMON = /* glsl */ `
