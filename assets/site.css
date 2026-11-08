@@ -5048,3 +5048,37 @@ body.door-reveal-active .site-header,body.door-reveal-active main,body.door-reve
 @media(prefers-reduced-motion:reduce){
   .home-studio-orb:after{animation:none!important}
 }
+
+
+/* HOMEPAGE / 03 — readable metallic O&O monogram */
+.home-studio-orb>span{
+  display:inline-block;
+  position:relative;
+  z-index:6;
+  white-space:nowrap;
+  color:#f7f2ff;
+  font-family:var(--serif,"Space Grotesk",sans-serif);
+  font-size:clamp(23px,2.7vw,36px);
+  font-style:normal;
+  font-weight:700;
+  line-height:1;
+  letter-spacing:-.13em;
+  padding-right:.12em;
+  background:linear-gradient(155deg,#fff 0%,#f2edff 24%,#c9bddf 45%,#fff 59%,#9d8abf 82%,#eee8fa 100%);
+  -webkit-background-clip:text;
+  background-clip:text;
+  color:transparent;
+  -webkit-text-stroke:.45px rgba(255,255,255,.74);
+  text-shadow:
+    0 1px 0 rgba(89,70,117,.95),
+    0 2px 0 rgba(53,39,76,.9),
+    0 3px 3px rgba(20,13,30,.72),
+    0 0 16px rgba(255,255,255,.46);
+  filter:drop-shadow(0 0 8px rgba(226,214,255,.38));
+}
+@media(max-width:680px){
+  .home-studio-orb>span{
+    font-size:clamp(29px,8vw,35px);
+    letter-spacing:-.14em;
+  }
+}
