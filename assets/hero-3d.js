@@ -678,11 +678,12 @@
       resize();
       requestAnimationFrame(resize);
 
-      const clock = new THREE.Clock();
+      const timer = new THREE.Timer();
+      timer.connect(document);
+      resources.push({ dispose: () => timer.dispose() });
       let motionPlaying = !reducedMotion;
       let rotationSpeed = .16;
       let rotationPhase = 0;
-      let lastElapsed = clock.getElapsedTime();
       let viewRotation = { x: -.12, y: .08, z: -.08 };
       let targetViewRotation = { ...viewRotation };
       let viewTransitionActive = false;
@@ -838,13 +839,13 @@
       });
       if (partTriggers.length) selectStudyPart("chrome");
 
-      const renderFrame = () => {
+      const renderFrame = timestamp => {
         animationFrame = 0;
         if (disposed || !visible || document.hidden || !renderer) return;
 
-        const elapsed = clock.getElapsedTime();
-        const delta = Math.min(.05, Math.max(0, elapsed - lastElapsed));
-        lastElapsed = elapsed;
+        timer.update(timestamp);
+        const elapsed = timer.getElapsed();
+        const delta = Math.min(.05, Math.max(0, timer.getDelta()));
 
         if (viewTransitionActive) {
           const transitionAmount = 1 - Math.exp(-delta * 3.4);
@@ -890,7 +891,7 @@
 
       const startLoop = () => {
         if (hasActiveAnimation() && visible && !document.hidden && !animationFrame) {
-          lastElapsed = clock.getElapsedTime();
+          timer.reset();
           animationFrame = requestAnimationFrame(renderFrame);
         } else if (renderer) {
           renderer.render(scene, camera);
