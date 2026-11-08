@@ -630,8 +630,8 @@
 
       scene = new THREE.Scene();
       scene.environment = createEnvironment(THREE);
-      camera = new THREE.PerspectiveCamera(36, 1, .1, 30);
-      camera.position.set(0, 0, 4.65);
+      camera = new THREE.PerspectiveCamera(40, 1, .1, 30);
+      camera.position.set(0, 0, 4.75);
       camera.lookAt(0, 0, 0);
 
       renderer = new THREE.WebGLRenderer({
