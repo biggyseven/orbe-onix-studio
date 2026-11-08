@@ -530,6 +530,12 @@
       marker.position.set(1.53, -.62, .14);
       sculpture.add(marker);
 
+      // Fit the complete sculpture instead of relying on a viewport-only zoom
+      // estimate. The bounding sphere remains valid for every rotation preset.
+      const sculptureBounds = new THREE.Box3().setFromObject(sculpture);
+      const sculptureSphere = sculptureBounds.getBoundingSphere(new THREE.Sphere());
+      const sculptureFitRadius = Math.max(.1, sculptureSphere.radius);
+
       const resize = () => {
         if (!renderer || disposed) return;
         const hostRect = host.getBoundingClientRect();
@@ -538,9 +544,13 @@
         const height = Math.max(1, Math.round(hostRect.height || stageRect.height || window.innerHeight));
         const aspect = width / height;
 
-        // Portrait viewports need a little more camera distance so the full
-        // sculpture remains inside the narrower horizontal field of view.
-        cameraFramingScale = isStudyScene ? Math.max(1, 1.08 / Math.max(aspect, .7)) : 1;
+        // Fit both axes. On narrow screens the horizontal field of view is the
+        // limiting factor, so the camera moves back only as much as necessary.
+        const halfVerticalFov = THREE.MathUtils.degToRad(camera.fov) / 2;
+        const fitHeightDistance = sculptureFitRadius / Math.tan(halfVerticalFov);
+        const fitWidthDistance = sculptureFitRadius / (Math.tan(halfVerticalFov) * Math.max(aspect, .1));
+        const fitDistance = Math.max(fitHeightDistance, fitWidthDistance) * 1.08;
+        cameraFramingScale = isStudyScene ? Math.max(1, fitDistance / Math.max(targetCameraZ, .1)) : 1;
         camera.position.z = targetCameraZ * cameraFramingScale;
         camera.aspect = aspect;
         camera.updateProjectionMatrix();
