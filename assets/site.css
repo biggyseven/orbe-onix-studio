@@ -5105,9 +5105,8 @@ body.door-reveal-active .site-header,body.door-reveal-active main,body.door-reve
     linear-gradient(90deg,rgba(224,211,255,.1) 1px,transparent 1px);
 }
 .home-studio-visual:after{
-  width:48%;
-  background:rgba(150,119,210,.17);
-  filter:blur(30px);
+  content:none!important;
+  display:none!important;
 }
 .home-studio-orbit{
   border-color:rgba(234,225,255,.42);
