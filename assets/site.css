@@ -4253,3 +4253,395 @@ body.door-reveal-active .site-header,body.door-reveal-active main,body.door-reve
     min-height: 0;
   }
 }
+
+
+/* HOMEPAGE / 02 — asymmetric service composition */
+.home-services-section{
+  position:relative;
+  overflow:hidden;
+  isolation:isolate;
+  background:
+    radial-gradient(ellipse at 92% 16%,rgba(179,162,220,.14),transparent 31%),
+    #eeece7;
+}
+.home-services-section:before{
+  content:"";
+  position:absolute;
+  z-index:-1;
+  top:7%;
+  right:-210px;
+  width:520px;
+  aspect-ratio:1;
+  border:1px solid rgba(116,99,163,.12);
+  border-radius:50%;
+  box-shadow:0 0 0 34px rgba(116,99,163,.035),0 0 0 68px rgba(116,99,163,.025);
+  pointer-events:none;
+}
+.home-services-head{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) minmax(230px,.54fr);
+  align-items:end;
+  gap:clamp(28px,6vw,90px);
+  margin-bottom:48px;
+}
+.home-services-head .section-note{
+  margin:0 0 5px;
+  max-width:350px;
+}
+.home-services-grid{
+  display:grid;
+  grid-template-columns:minmax(0,1.08fr) minmax(360px,.92fr);
+  grid-template-rows:repeat(3,minmax(150px,1fr));
+  gap:12px;
+  align-items:stretch;
+}
+.home-service-card{
+  position:relative;
+  min-width:0;
+  overflow:hidden;
+  border:1px solid rgba(57,49,68,.16);
+  background:linear-gradient(145deg,#f8f7f3 0%,#e8e5e1 70%,#e3deeb 100%);
+  box-shadow:0 12px 38px rgba(39,33,48,.035);
+  transition:transform .45s cubic-bezier(.2,.72,.18,1),border-color .35s,box-shadow .45s;
+}
+.home-service-card:focus-within,
+.home-service-card:hover{
+  transform:translateY(-3px);
+  border-color:rgba(116,99,163,.48);
+  box-shadow:0 22px 48px rgba(39,33,48,.09);
+}
+.home-service-card--featured{
+  grid-column:1;
+  grid-row:1 / span 3;
+  display:grid;
+  grid-template-columns:minmax(0,.86fr) minmax(0,1.14fr);
+  grid-template-rows:auto 1fr;
+  gap:24px;
+  min-height:510px;
+  padding:clamp(25px,3.2vw,42px);
+  color:#f3f0f8;
+  border-color:#ffffff20;
+  background:
+    radial-gradient(ellipse at 76% 42%,rgba(154,132,206,.23),transparent 42%),
+    linear-gradient(145deg,#292632 0%,#191820 58%,#121218 100%);
+  box-shadow:0 26px 70px rgba(24,20,31,.16),inset 0 1px rgba(255,255,255,.09);
+}
+.home-service-card--featured:before{
+  content:"";
+  position:absolute;
+  width:380px;
+  aspect-ratio:1;
+  right:-170px;
+  bottom:-220px;
+  border:1px solid rgba(221,211,255,.22);
+  border-radius:50%;
+  box-shadow:0 0 0 24px rgba(221,211,255,.035),0 0 0 48px rgba(221,211,255,.025);
+  pointer-events:none;
+}
+.home-service-meta{
+  position:relative;
+  z-index:2;
+  grid-column:1 / -1;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  color:#7d718f;
+  font:8px/1.5 var(--mono,"IBM Plex Mono",monospace);
+  letter-spacing:.14em;
+  text-transform:uppercase;
+}
+.home-service-card--featured .home-service-meta{color:#c2b8d7}
+.home-service-body{
+  position:relative;
+  z-index:2;
+  min-width:0;
+  display:flex;
+  flex-direction:column;
+  align-items:flex-start;
+  justify-content:center;
+}
+.home-service-body h3{
+  margin:0 0 12px;
+  color:#23202a;
+  font:500 clamp(26px,3vw,39px)/1.04 var(--serif,"Space Grotesk",sans-serif);
+  letter-spacing:-.065em;
+}
+.home-service-body p{
+  margin:0;
+  max-width:390px;
+  color:#66616d;
+  font-size:11px;
+  line-height:1.9;
+}
+.home-service-body a{
+  display:inline-flex;
+  align-items:center;
+  gap:18px;
+  margin-top:27px;
+  padding-bottom:7px;
+  border-bottom:1px solid rgba(102,82,139,.35);
+  color:#554574;
+  font:8px/1.5 var(--mono,"IBM Plex Mono",monospace);
+  letter-spacing:.1em;
+  text-transform:uppercase;
+  transition:gap .3s,color .3s,border-color .3s;
+}
+.home-service-body a span:last-child{font-size:15px;line-height:.8}
+.home-service-body a:hover{gap:25px;color:#8a70bf;border-color:#8a70bf}
+.home-service-card--featured .home-service-body h3{color:#f6f2fb;font-size:clamp(35px,4.2vw,55px)}
+.home-service-card--featured .home-service-body p{color:#c0bacb;max-width:310px}
+.home-service-card--featured .home-service-body a{
+  color:#e2d8ff;
+  border-color:#cbbaf777;
+}
+.home-service-card--featured .home-service-body a:hover{color:#fff;border-color:#fff}
+.home-service-visual{
+  position:relative;
+  z-index:1;
+  min-width:0;
+  display:grid;
+  place-items:center;
+  pointer-events:none;
+}
+.home-service-card--featured .home-service-visual{align-self:stretch}
+.home-service-visual--presence{perspective:1000px}
+.presence-window{
+  position:relative;
+  width:100%;
+  max-width:430px;
+  padding:10px;
+  border:1px solid rgba(239,231,255,.48);
+  background:linear-gradient(145deg,rgba(255,255,255,.19),rgba(255,255,255,.035));
+  box-shadow:0 28px 60px rgba(0,0,0,.28),inset 0 1px rgba(255,255,255,.25);
+  transform:rotateY(-8deg) rotateX(3deg);
+  transform-style:preserve-3d;
+  transition:transform .7s cubic-bezier(.2,.72,.18,1);
+}
+.home-service-card--featured:hover .presence-window{transform:rotateY(-3deg) rotateX(1deg) translateY(-4px)}
+.presence-window-bar,.presence-window-foot{
+  display:flex;
+  justify-content:space-between;
+  gap:10px;
+  color:#d9d1eb;
+  font:6px/1.5 var(--mono,"IBM Plex Mono",monospace);
+  letter-spacing:.1em;
+}
+.presence-window-bar{padding:4px 3px 10px}
+.presence-window-main{
+  display:grid;
+  grid-template-columns:1.08fr .92fr;
+  gap:8px;
+  min-height:230px;
+  padding:18px 12px 14px;
+  background:linear-gradient(135deg,#f0edf4,#d9d1e6 58%,#c1b4d6);
+  color:#26222f;
+}
+.presence-window-copy{display:flex;flex-direction:column;align-items:flex-start;justify-content:center}
+.presence-window-copy>span:first-child{
+  color:#746687;
+  font:6px var(--mono,"IBM Plex Mono",monospace);
+  letter-spacing:.08em;
+}
+.presence-window-copy b{
+  margin:18px 0;
+  font:500 clamp(19px,2.2vw,29px)/.97 var(--serif,"Space Grotesk",sans-serif);
+  letter-spacing:-.075em;
+}
+.presence-window-copy b i{color:#82709e;font-style:italic}
+.presence-window-line{width:56%;height:1px;background:#86799466}
+.presence-window-copy .presence-window-link{
+  margin-top:12px;
+  color:#5f516e;
+  font:5px var(--mono,"IBM Plex Mono",monospace);
+  letter-spacing:.03em;
+}
+.presence-window-art{
+  position:relative;
+  overflow:hidden;
+  align-self:stretch;
+  background:
+    radial-gradient(circle at 52% 36%,#fff 0 3%,#d4c9e7 4% 13%,transparent 14%),
+    radial-gradient(ellipse at 50% 58%,#7e6c9b 0 18%,transparent 19%),
+    linear-gradient(150deg,#bbb0d1,#574b68 70%,#25212f);
+}
+.presence-window-art:before,.presence-window-art:after{
+  content:"";
+  position:absolute;
+  left:50%;top:50%;
+  width:115%;height:55%;
+  border:1px solid #f8f4ffbd;
+  border-radius:50%;
+  transform:translate(-50%,-50%) rotate(-36deg);
+}
+.presence-window-art:after{
+  width:78%;height:105%;
+  transform:translate(-50%,-50%) rotate(34deg);
+  border-color:#d4c8f1aa;
+}
+.presence-window-foot{padding:10px 3px 3px;font-size:5px;color:#bcb2ce}
+.home-service-card--compact{
+  grid-column:2;
+  display:grid;
+  grid-template-columns:minmax(0,1fr) 118px;
+  grid-template-rows:auto 1fr;
+  column-gap:12px;
+  min-height:150px;
+  padding:19px 22px;
+}
+.home-service-card--compact .home-service-meta{font-size:7px;letter-spacing:.1em}
+.home-service-card--compact .home-service-meta span:last-child{color:#96909d}
+.home-service-card--compact .home-service-body{justify-content:center;padding-top:8px}
+.home-service-card--compact .home-service-body h3{
+  margin-bottom:6px;
+  font-size:clamp(21px,2vw,27px);
+}
+.home-service-card--compact .home-service-body p{
+  max-width:320px;
+  font-size:9px;
+  line-height:1.65;
+}
+.home-service-card--compact .home-service-body a{
+  margin-top:12px;
+  padding-bottom:3px;
+  gap:12px;
+  font-size:7px;
+}
+.home-service-card--compact .home-service-visual{
+  grid-column:2;
+  grid-row:2;
+  align-self:center;
+  min-height:84px;
+}
+.conversion-flow{
+  position:relative;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:7px;
+  width:100%;
+  height:86px;
+}
+.conversion-flow span{
+  display:block;
+  height:15px;
+  border:1px solid #a69ab8;
+  background:linear-gradient(90deg,#cfc5df,#f6f3f5);
+  transform:skewX(-22deg);
+}
+.conversion-flow span:nth-child(1){width:88%;opacity:.55}
+.conversion-flow span:nth-child(2){width:66%;opacity:.75}
+.conversion-flow span:nth-child(3){width:43%;background:linear-gradient(90deg,#a995c9,#e9e2f1)}
+.conversion-flow i{
+  position:absolute;
+  right:5px;
+  top:8px;
+  width:7px;height:7px;
+  border-top:1px solid #7d689c;
+  border-right:1px solid #7d689c;
+  transform:rotate(45deg);
+}
+.commerce-object{
+  position:relative;
+  width:86px;height:82px;
+  border:1px solid #bcb2c9;
+  background:linear-gradient(145deg,#f9f7f2,#e0d9e9);
+  box-shadow:10px 10px 0 rgba(122,105,148,.12);
+}
+.commerce-object:before{
+  content:"";
+  position:absolute;left:50%;top:13px;
+  width:39px;height:39px;
+  border:1px solid #9a89b2;
+  border-radius:50%;
+  transform:translateX(-50%);
+  background:radial-gradient(circle at 34% 28%,#fff,#c2b4d7 42%,#78688f 100%);
+}
+.commerce-object span{
+  position:absolute;left:10px;right:10px;bottom:14px;
+  height:1px;background:#b7adbe;
+}
+.commerce-object i{
+  position:absolute;left:10px;bottom:7px;width:23px;height:2px;background:#8b779f;
+}
+.commerce-object b{
+  position:absolute;right:10px;bottom:7px;width:12px;height:12px;
+  border:1px solid #9a89b2;border-radius:50%;
+}
+.product-dashboard{
+  position:relative;
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  align-items:end;
+  gap:6px;
+  width:100px;height:82px;
+  padding:12px 10px 11px;
+  border:1px solid #bcb2c9;
+  background:linear-gradient(145deg,#f7f5f2,#e0d9e9);
+  box-shadow:10px 10px 0 rgba(122,105,148,.12);
+}
+.product-dashboard:before{
+  content:"";
+  position:absolute;top:9px;left:10px;right:10px;
+  height:1px;background:#bdb4c8;
+}
+.product-dashboard span{
+  display:block;
+  height:18px;
+  border:1px solid #c3bacb;
+  background:linear-gradient(180deg,#c7b9dd,#f9f7f4);
+}
+.product-dashboard span:nth-child(2){height:30px}
+.product-dashboard span:nth-child(3){height:24px}
+.product-dashboard i{
+  position:absolute;left:10px;right:10px;bottom:9px;
+  height:15px;
+  border-bottom:1px solid #88759f;
+  clip-path:polygon(0 76%,25% 30%,43% 58%,66% 8%,100% 38%,100% 48%,66% 18%,43% 68%,25% 40%,0 86%);
+  background:#88759f;
+}
+@media(max-width:900px){
+  .home-services-head{grid-template-columns:1fr minmax(220px,.65fr)}
+  .home-services-grid{grid-template-columns:minmax(0,1fr);grid-template-rows:auto}
+  .home-service-card--featured{
+    grid-column:1;grid-row:auto;
+    min-height:430px;
+  }
+  .home-service-card--compact{grid-column:1;min-height:145px}
+}
+@media(max-width:600px){
+  .home-services-head{display:block;margin-bottom:28px}
+  .home-services-head .section-note{margin-top:17px}
+  .home-services-grid{gap:10px}
+  .home-service-card--featured{
+    grid-template-columns:minmax(0,1fr);
+    grid-template-rows:auto auto 220px;
+    gap:18px;
+    min-height:0;
+    padding:23px 20px 18px;
+  }
+  .home-service-card--featured .home-service-meta span:last-child{display:none}
+  .home-service-card--featured .home-service-body h3{font-size:39px}
+  .home-service-card--featured .home-service-body a{margin-top:17px}
+  .home-service-card--featured .home-service-visual{min-height:0}
+  .presence-window{width:92%;transform:rotateY(-4deg) rotateX(2deg)}
+  .presence-window-main{min-height:178px;padding:13px 9px 10px}
+  .presence-window-copy b{font-size:23px;margin:12px 0}
+  .home-service-card--compact{
+    grid-template-columns:minmax(0,1fr) 88px;
+    column-gap:8px;
+    min-height:145px;
+    padding:16px 15px;
+  }
+  .home-service-card--compact .home-service-meta{font-size:6px;letter-spacing:.07em}
+  .home-service-card--compact .home-service-meta span:last-child{display:none}
+  .home-service-card--compact .home-service-body h3{font-size:22px}
+  .home-service-card--compact .home-service-body p{font-size:8px}
+  .home-service-card--compact .home-service-visual{min-height:72px}
+  .commerce-object{transform:scale(.84)}
+  .product-dashboard{transform:scale(.85);transform-origin:center right}
+}
+@media(prefers-reduced-motion:reduce){
+  .home-service-card,.presence-window,.home-service-body a{transition:none!important}
+}
