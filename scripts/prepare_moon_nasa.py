@@ -10,8 +10,9 @@ Output:
   normal.webp                   tangent-space normals generated from real LOLA heights
   moon-preview-nasa.png         lit sphere preview for visual approval
 
-Usage:
-  py scripts/prepare_moon_nasa.py --color "$env:TEMP\vespera-moon-nasa\lroc_color_16bit_srgb_4k.tif" --height "$env:TEMP\vespera-moon-nasa\ldem_16.tif" --out ".\assets\moon-nasa\2048" --size 2048
+Usage (PowerShell, after downloading the two NASA files into the TEMP folder):
+  $dataDir = Join-Path $env:TEMP "vespera-moon-nasa"
+  py scripts/prepare_moon_nasa.py --color "$dataDir\lroc_color_2k.jpg" --height "$dataDir\ldem_4.tif" --out ".\assets\moon-nasa\2048" --size 2048
 
 Dependencies: numpy, Pillow. No SciPy.
 """
