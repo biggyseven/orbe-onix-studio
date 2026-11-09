@@ -5,8 +5,8 @@ Creates a restrained, cratered cool-grey/lavender Moon.
 Outputs: color.webp, normal.webp, moon-preview-v3.png.
 
 Usage:
-  py scripts/make_moon_textures_v3.py 1024 assets/moon/1024
-  py scripts/make_moon_textures_v3.py 2048 assets/moon/2048
+  py scripts/make_moon_textures_v3.py 1024 assets/moon-v3/1024
+  py scripts/make_moon_textures_v3.py 2048 assets/moon-v3/2048
 
 Dependencies: numpy, Pillow.
 """
@@ -317,7 +317,7 @@ def main() -> None:
     args = parser.parse_args()
     if args.width not in (1024, 2048):
         parser.error("width must be 1024 or 2048")
-    out_dir = args.out_dir or os.path.join("assets", "moon", str(args.width))
+    out_dir = args.out_dir or os.path.join("assets", "moon-v3", str(args.width))
     generate(args.width, out_dir)
 
 
