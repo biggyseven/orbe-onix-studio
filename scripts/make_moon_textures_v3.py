@@ -226,6 +226,7 @@ def generate(width: int, out_dir: str) -> None:
         core = warped_r < 1.75
         if np.any(core):
             rc = warped_r[core]
+            core_indices = np.flatnonzero(region)[core]
             # Concave bowl, low broken rim, shallow ejecta apron.
             bowl = -(1.0 - smooth(0.035, 0.94, rc)) * 0.60
             rim_breakup = 0.90 + 0.10 * np.sin(7.0 * azimuth[core] + phase * 0.5)
@@ -235,17 +236,17 @@ def generate(width: int, out_dir: str) -> None:
             central_peak = np.exp(-(rc / 0.17) ** 2) * 0.052 * peak_strength
             depth = 0.020 + 0.118 * np.sqrt(crater_radius / 0.17)
             profile = bowl + rim + outer_apron + central_peak
-            base_height[region][core] += profile * depth
-            crater_basin[region][core] = np.maximum(
-                crater_basin[region][core],
+            base_height.flat[core_indices] += profile * depth
+            crater_basin.flat[core_indices] = np.maximum(
+                crater_basin.flat[core_indices],
                 (1.0 - smooth(0.12, 0.92, rc)) * (0.30 + 0.22 * (crater_radius / 0.078))
             )
 
             if is_fresh:
                 # A subdued bright rim and asymmetric ejecta blanket, not a white outline.
                 fresh_rim = np.exp(-((rc - 1.04) / 0.19) ** 2) * 0.26
-                ejecta_field[region][core] = np.maximum(
-                    ejecta_field[region][core], fresh_rim.astype(np.float32)
+                ejecta_field.flat[core_indices] = np.maximum(
+                    ejecta_field.flat[core_indices], fresh_rim.astype(np.float32)
                 )
 
         if is_fresh:
