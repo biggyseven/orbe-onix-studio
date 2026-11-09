@@ -39,6 +39,35 @@ void main(){
   gl_Position = projectionMatrix * viewMatrix * wp;
 }`;
 
+const SUN_GLOW_VERT = /* glsl */ `
+varying vec2 vUv;
+void main(){
+  vUv = uv;
+  vec4 wp = modelMatrix * vec4(position, 1.0);
+  gl_Position = projectionMatrix * viewMatrix * wp;
+}`;
+
+const SUN_GLOW_FRAG = /* glsl */ `
+uniform float uStrength;
+varying vec2 vUv;
+${COMMON}
+void main(){
+  vec2 p = (vUv - 0.5) * 2.0;
+  float r = length(p);
+
+  // Small bright core, broad feathered glow and a very faint outer ring.
+  float core = 1.0 - smoothstep(0.075, 0.19, r);
+  float halo = exp(-r * 4.6);
+  float ring = exp(-pow((r - 0.34) / 0.11, 2.0));
+  float alpha = (core * 0.12 + halo * 0.085 + ring * 0.035) * uStrength;
+  if (alpha < 0.002) discard;
+
+  vec3 lavender = vec3(0.68, 0.57, 0.91);
+  vec3 warmIvory = vec3(1.0, 0.86, 0.73);
+  vec3 tint = mix(lavender, warmIvory, 1.0 - smoothstep(0.05, 0.72, r));
+  gl_FragColor = vec4(display(tint), clamp(alpha, 0.0, 0.20));
+}`;
+
 const PLANET_FRAG = /* glsl */ `
 uniform sampler2D uColor; uniform sampler2D uNormal; uniform sampler2D uOrm; uniform sampler2D uClouds;
 uniform vec3 uSun; uniform mat3 uModel; uniform mat3 uCloudInv; uniform float uSunPower;
@@ -175,13 +204,13 @@ void main(){
   gl_FragColor = vec4(display(acol * 0.95), a);
 }`;
 
-export const SHADERS = { COMMON, VERT, PLANET_FRAG, CLOUD_FRAG, ATMO_FRAG };
+export const SHADERS = { COMMON, VERT, PLANET_FRAG, CLOUD_FRAG, ATMO_FRAG, SUN_GLOW_VERT, SUN_GLOW_FRAG };
 
 /* ------------------------------------------------------------------ app */
 export const CONFIG = Object.freeze({
   clouds2: true,
   ozone: true,
-  sunGlare: false,
+  sunGlare: true,
   moon: false,
   satellites: false,
   ships: false
@@ -284,6 +313,17 @@ export async function mountVespera(container) {
     }
   });
 
+  // A tiny procedural halo. The camera-space placement below keeps it on the lit limb.
+  const sunGlowMat = CONFIG.sunGlare ? new THREE.ShaderMaterial({
+    vertexShader: SUN_GLOW_VERT,
+    fragmentShader: SUN_GLOW_FRAG,
+    transparent: true,
+    depthTest: true,
+    depthWrite: false,
+    blending: THREE.AdditiveBlending,
+    uniforms: { uStrength: { value: 0.85 } }
+  }) : null;
+
   const seg = coarse ? [128, 80] : [192, 112];
   const system = new THREE.Group();
   system.rotation.z = TILT;
@@ -293,6 +333,9 @@ export async function mountVespera(container) {
     ? new THREE.Mesh(new THREE.SphereGeometry(1.03, ...seg), clouds2Mat)
     : null;
   const atmo = new THREE.Mesh(new THREE.SphereGeometry(1.14, 96, 64), atmoMat);
+  const sunGlow = sunGlowMat
+    ? new THREE.Mesh(new THREE.PlaneGeometry(1, 1), sunGlowMat)
+    : null;
   clouds.renderOrder = 1;
   if (clouds2) {
     clouds2.renderOrder = 2;
@@ -300,10 +343,16 @@ export async function mountVespera(container) {
     clouds2.rotation.x = 0.012;
   }
   atmo.renderOrder = clouds2 ? 3 : 2;
+  if (sunGlow) {
+    sunGlow.renderOrder = 4;
+    sunGlow.frustumCulled = false;
+    sunGlow.scale.set(0.78, 0.78, 1);
+  }
   planet.rotation.y = 0.35;
   system.add(planet, clouds);
   if (clouds2) system.add(clouds2);
   scene.add(system, atmo);
+  if (sunGlow) scene.add(sunGlow);
 
   /* --- textures (1024 first for a fast reveal, then the final tier) --- */
   const loader = new THREE.TextureLoader();
@@ -344,6 +393,10 @@ export async function mountVespera(container) {
   /* --- loop --- */
   let raf = 0, running = false, last = 0, tx = 0, ty = 0, cx = 0, cy = 0, visible = false, ready = false;
   const m4 = new THREE.Matrix4();
+  const glowRight = new THREE.Vector3();
+  const glowUp = new THREE.Vector3();
+  const glowForward = new THREE.Vector3();
+  const glowScreenDir = new THREE.Vector2();
   const frame = (dt) => {
     if (!reduced.matches) {
       planet.rotation.y += SPIN * dt;
@@ -353,6 +406,24 @@ export async function mountVespera(container) {
     }
     camera.position.set(Math.sin(cx) * dist * Math.cos(cy), Math.sin(cy) * dist, Math.cos(cx) * dist * Math.cos(cy));
     camera.lookAt(0, 0, 0);
+    if (sunGlow) {
+      // Place the glow just behind the planet's projected edge. The depth buffer
+      // lets the planet hide its core, leaving only a restrained limb flare.
+      camera.updateMatrixWorld(true);
+      glowRight.setFromMatrixColumn(camera.matrixWorld, 0).normalize();
+      glowUp.setFromMatrixColumn(camera.matrixWorld, 1).normalize();
+      camera.getWorldDirection(glowForward);
+      glowScreenDir.set(sun.dot(glowRight), sun.dot(glowUp));
+      if (glowScreenDir.lengthSq() < 0.0001) glowScreenDir.set(1, 0);
+      glowScreenDir.normalize();
+      const glowDepth = dist + 2.6;
+      const projectedRadius = glowDepth / Math.sqrt(Math.max(dist * dist - 1.0, 1.0));
+      sunGlow.position.copy(camera.position)
+        .addScaledVector(glowForward, glowDepth)
+        .addScaledVector(glowRight, glowScreenDir.x * projectedRadius * 0.98)
+        .addScaledVector(glowUp, glowScreenDir.y * projectedRadius * 0.98);
+      sunGlow.quaternion.copy(camera.quaternion);
+    }
     system.updateMatrixWorld(true);
     uModel.value.setFromMatrix4(planet.matrixWorld);
     uCloudInv.value.setFromMatrix4(clouds.matrixWorld).invert();
