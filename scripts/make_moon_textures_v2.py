@@ -8,7 +8,7 @@ Usage:
   py scripts/make_moon_textures_v2.py 1024 assets/moon/1024
   py scripts/make_moon_textures_v2.py 2048 assets/moon/2048
 
-Dependencies: numpy, Pillow, scipy.
+Dependencies: numpy, Pillow.
 """
 from __future__ import annotations
 
@@ -18,12 +18,27 @@ import time
 
 import numpy as np
 from PIL import Image
-from scipy.ndimage import gaussian_filter
 
 
 def smooth(a: float, b: float, x: np.ndarray) -> np.ndarray:
     k = np.clip((x - a) / (b - a), 0.0, 1.0)
     return k * k * (3.0 - 2.0 * k)
+
+
+def soften_height(image: np.ndarray, sigma: float = 0.35) -> np.ndarray:
+    """Very light separable blur using NumPy only; wraps longitude and clamps poles."""
+    neighbor = float(np.exp(-0.5 / (sigma * sigma)))
+    norm = 1.0 + 2.0 * neighbor
+
+    horizontal = (
+        image
+        + neighbor * np.roll(image, 1, axis=1)
+        + neighbor * np.roll(image, -1, axis=1)
+    ) / norm
+
+    up = np.concatenate((horizontal[:1, :], horizontal[:-1, :]), axis=0)
+    down = np.concatenate((horizontal[1:, :], horizontal[-1:, :]), axis=0)
+    return (horizontal + neighbor * up + neighbor * down) / norm
 
 
 def hexc(value: str) -> np.ndarray:
@@ -214,7 +229,8 @@ def generate(width: int, out_dir: str) -> None:
     col = np.clip(col, 0.0, 1.0).astype(np.float32)
 
     # Smooth the height field very lightly before deriving normals to avoid harsh black rims.
-    soft_height = gaussian_filter(terrain, sigma=(0.35, 0.35), mode=("nearest", "wrap"))
+    # NumPy implementation keeps the generator free of a SciPy dependency.
+    soft_height = soften_height(terrain, sigma=0.35)
     hx = np.roll(soft_height, -1, axis=1) - np.roll(soft_height, 1, axis=1)
     hy = np.vstack([soft_height[1:2] - soft_height[0:1],
                     soft_height[2:] - soft_height[:-2],
