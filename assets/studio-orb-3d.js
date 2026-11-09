@@ -133,6 +133,7 @@ void main(){
 
 const ATMO_FRAG = /* glsl */ `
 uniform vec3 uSun;
+uniform float uOzoneStrength;
 varying vec3 vWorld;
 ${COMMON}
 void main(){
@@ -159,7 +160,17 @@ void main(){
   float phase = 0.6 + 0.4*(0.75*(1.0 + cosT*cosT)) + 1.1*hg;
   vec3 dayc = vec3(0.42, 0.52, 1.0), lavc = vec3(0.72, 0.58, 1.0), twic = vec3(1.0, 0.50, 0.80);
   vec3 acol = (dayc*(1.0 - 0.35*day) + lavc*0.35*day) * day + twic * (twi*0.55);
-  float a = clamp(opac * (0.04 + 0.96*clamp(day + 0.45*twi, 0.0, 1.0)) * phase * 0.60, 0.0, 1.0);
+
+  // A narrow ozone-rich layer near the atmospheric limb, softly lit by the sun.
+  // It is a restrained cyan-violet tint, not a second glow or a full-screen effect.
+  float tangentAltitude = max(b - Rp, 0.0);
+  float ozoneBand = exp(-pow((tangentAltitude - 0.016) / 0.010, 2.0));
+  float ozoneLight = smoothstep(-0.32, 0.22, s) * (0.65 + 0.35*day);
+  vec3 ozoneColor = vec3(0.34, 0.72, 0.92);
+  acol += ozoneColor * ozoneBand * ozoneLight * uOzoneStrength;
+
+  float a = clamp(opac * (0.04 + 0.96*clamp(day + 0.45*twi, 0.0, 1.0)) * phase * 0.60
+                + ozoneBand * ozoneLight * uOzoneStrength * 0.12, 0.0, 1.0);
   if (a < 0.002) discard;
   gl_FragColor = vec4(display(acol * 0.95), a);
 }`;
@@ -169,7 +180,7 @@ export const SHADERS = { COMMON, VERT, PLANET_FRAG, CLOUD_FRAG, ATMO_FRAG };
 /* ------------------------------------------------------------------ app */
 export const CONFIG = Object.freeze({
   clouds2: true,
-  ozone: false,
+  ozone: true,
   sunGlare: false,
   moon: false,
   satellites: false,
@@ -266,7 +277,11 @@ export async function mountVespera(container) {
   }) : null;
   const atmoMat = new THREE.ShaderMaterial({
     vertexShader: VERT, fragmentShader: ATMO_FRAG, transparent: true, depthWrite: false,
-    blending: THREE.AdditiveBlending, uniforms: { uSun: { value: sun } }
+    blending: THREE.AdditiveBlending,
+    uniforms: {
+      uSun: { value: sun },
+      uOzoneStrength: { value: CONFIG.ozone ? 0.18 : 0.0 }
+    }
   });
 
   const seg = coarse ? [128, 80] : [192, 112];
