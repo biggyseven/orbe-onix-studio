@@ -50,7 +50,6 @@ def add_ref(label, filename, location, rotation, size):
     empty.data = image
     empty.empty_display_size = size
     empty.empty_image_depth = 'BACK'
-    empty.empty_image_side = 'DOUBLE_SIDED'
     empty.color[3] = 0.72
     empty.location = location
     empty.rotation_euler = rotation
