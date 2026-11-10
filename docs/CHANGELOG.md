@@ -47,3 +47,15 @@
 - Added small luminous orbit markers so ring travel is visually trackable.
 - Animated each orbit on multiple axes with distinct counter-moving rhythms; the ring markers also travel around their own paths.
 - Refreshed the Lab cache key for the new orbital animation.
+
+
+## 0.2.3 — Form in Light physical motion
+- Replaced the study's flat orbital guide lines with depth-tested 3D elliptical paths, cyan and lavender satellites, and short luminous trails.
+- Added Kepler-based orbital motion so satellites accelerate naturally near periapsis.
+- Added pointer-drag angular inertia with a 0.8-second half-life and a critically damped return to the resting pose.
+- Set the resting sculpture rotation to independent 37-second and 53-second cycles, with a restrained vertical float.
+- Added critically damped cursor parallax and a slow white studio key-light drift to move reflections across the physical surfaces.
+- Refined the existing MeshPhysicalMaterial finishes with very subtle sheen and iridescence while retaining ACES tone mapping, sRGB output, and the current material palette.
+- Added a 1.6-second orbital trace-in and damped spring entrance for the rigid sculpture.
+- Preserved the capped pixel ratio, off-screen and hidden-tab pause behavior, and a static reduced-motion presentation with direct manipulation available.
+- Refreshed the Form in Light stylesheet and module cache keys.
