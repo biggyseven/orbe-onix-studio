@@ -23,3 +23,4 @@
 - Added solar lunar phases and subtle VESPERA-reflected illumination on the lunar night side.
 - Refreshed the preview cache key and documented the remaining visual validation gate.
 - Reconciled the public-site roadmap with the current state of Work, Services, case studies and Contact.
+- Configured the contact brief to prepare an email addressed to orbeonix@gmail.com; visitors review and send it from their own mail application.
