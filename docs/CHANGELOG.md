@@ -1,3 +1,10 @@
+## 0.2.5 — Homepage Open Experiments 3D artwork
+- Replaced the CSS-only focal sculpture in the homepage Lab feature with a dedicated Three.js scene using the Lab's physical chrome, glass and pearl material language.
+- Added true 3D orbital guides, studio reflections, subtle pointer response and restrained idle rotation.
+- Kept the homepage hero, VESPERA planet and full Lab engine isolated and unchanged.
+- Added intersection-aware rendering, reduced-motion support and a CSS fallback for unavailable WebGL.
+- Refreshed the homepage stylesheet and 3D module cache keys.
+
 ## 0.2.4 — Homepage Open Experiments feature
 - Replaced the old static Light in Motion teaser with a fully linked editorial feature that introduces the four Lab experiments.
 - Aligned the homepage Lab visual language with the new Open Experiments identity using a CSS orbital sculpture, material readouts and a responsive information layout.
