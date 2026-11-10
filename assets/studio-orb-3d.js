@@ -6,6 +6,7 @@
  */
 const THREE_URL = 'https://cdn.jsdelivr.net/npm/three@0.187.0/build/three.module.js';
 const BASE = new URL('./vespera-v2/', import.meta.url).href;
+const MOON_BASE = new URL('./moon-nasa/', import.meta.url).href;
 
 /* ------------------------------------------------------------------ GLSL */
 const COMMON = /* glsl */ `
@@ -204,14 +205,53 @@ void main(){
   gl_FragColor = vec4(display(acol * 0.95), a);
 }`;
 
-export const SHADERS = { COMMON, VERT, PLANET_FRAG, CLOUD_FRAG, ATMO_FRAG, SUN_GLOW_VERT, SUN_GLOW_FRAG };
+
+const MOON_FRAG = /* glsl */ `
+uniform sampler2D uMoonColor;
+uniform sampler2D uMoonNormal;
+uniform vec3 uSun;
+uniform mat3 uMoonModel;
+varying vec3 vObj;
+varying vec3 vWorld;
+${COMMON}
+void main(){
+  vec3 N = normalize(vObj);
+  vec2 uv = lonlat(N);
+  vec2 gx, gy;
+  seamGrad(uv, gx, gy);
+
+  vec3 albedo = texG(uMoonColor, uv, gx, gy).rgb;
+  vec3 nm = texG(uMoonNormal, uv, gx, gy).xyz * 2.0 - 1.0;
+
+  float lon = (uv.x - 0.5) * 2.0 * PI;
+  float lat = (0.5 - uv.y) * PI;
+  vec3 east = vec3(-sin(lon), 0.0, cos(lon));
+  vec3 north = vec3(-sin(lat)*cos(lon), cos(lat), -sin(lat)*sin(lon));
+  vec3 nLocal = normalize(nm.x*east + nm.y*north + nm.z*N);
+
+  vec3 nWorld = normalize(uMoonModel * nLocal);
+  vec3 L = normalize(uSun);
+  vec3 V = normalize(cameraPosition - vWorld);
+  float ndl = max(dot(nWorld, L), 0.0);
+  float day = smoothstep(-0.035, 0.16, dot(normalize(uMoonModel * N), L));
+
+  // Lunar regolith is matte: relief affects the terminator, with almost no specular.
+  vec3 ambient = vec3(0.018, 0.020, 0.030);
+  vec3 direct = vec3(1.0, 0.985, 0.97) * (0.58 * ndl * day);
+  float limb = pow(1.0 - clamp(dot(normalize(uMoonModel * N), V), 0.0, 1.0), 3.0);
+  vec3 color = albedo * (ambient + direct);
+  color += limb * vec3(0.035, 0.030, 0.055) * day * 0.25;
+  gl_FragColor = vec4(display(color), 1.0);
+}`;
+
+export const SHADERS = { COMMON, VERT, PLANET_FRAG, CLOUD_FRAG, ATMO_FRAG, SUN_GLOW_VERT, SUN_GLOW_FRAG, MOON_FRAG };
 
 /* ------------------------------------------------------------------ app */
 export const CONFIG = Object.freeze({
   clouds2: true,
   ozone: true,
   sunGlare: true,
-  moon: false,
+  moon: true,
   satellites: false,
   ships: false
 });
@@ -276,6 +316,7 @@ export async function mountVespera(container) {
   const uCloudInv = { value: new THREE.Matrix3() };
   const uCloudInv2 = { value: new THREE.Matrix3() };
   const uModel = { value: new THREE.Matrix3() };
+  const uMoonModel = { value: new THREE.Matrix3() };
   const uSunPower = { value: 2.0 };
   const placeholder = new THREE.Texture();
 
@@ -304,6 +345,17 @@ export async function mountVespera(container) {
       uLayerOpacity: { value: 0.16 }
     }
   }) : null;
+  const moonMat = CONFIG.moon ? new THREE.ShaderMaterial({
+    vertexShader: VERT,
+    fragmentShader: MOON_FRAG,
+    uniforms: {
+      uMoonColor: { value: placeholder },
+      uMoonNormal: { value: placeholder },
+      uSun: { value: sun },
+      uMoonModel
+    }
+  }) : null;
+
   const atmoMat = new THREE.ShaderMaterial({
     vertexShader: VERT, fragmentShader: ATMO_FRAG, transparent: true, depthWrite: false,
     blending: THREE.AdditiveBlending,
@@ -336,6 +388,18 @@ export async function mountVespera(container) {
   const sunGlow = sunGlowMat
     ? new THREE.Mesh(new THREE.PlaneGeometry(1, 1), sunGlowMat)
     : null;
+  const moonOrbit = CONFIG.moon ? new THREE.Group() : null;
+  const moon = moonMat
+    ? new THREE.Mesh(new THREE.SphereGeometry(0.272, coarse ? 96 : 128, coarse ? 64 : 80), moonMat)
+    : null;
+  if (moonOrbit && moon) {
+    // The local -X direction faces the planet; the orbit group carries this orientation.
+    moon.position.set(2.08, 0.035, 0.0);
+    moon.rotation.y = -Math.PI / 2;
+    moon.renderOrder = 5;
+    moonOrbit.rotation.z = TILT * 0.28;
+    moonOrbit.add(moon);
+  }
   clouds.renderOrder = 1;
   if (clouds2) {
     clouds2.renderOrder = 2;
@@ -352,6 +416,7 @@ export async function mountVespera(container) {
   system.add(planet, clouds);
   if (clouds2) system.add(clouds2);
   scene.add(system, atmo);
+  if (moonOrbit) scene.add(moonOrbit);
   if (sunGlow) scene.add(sunGlow);
 
   /* --- textures (1024 first for a fast reveal, then the final tier) --- */
@@ -425,6 +490,11 @@ export async function mountVespera(container) {
       sunGlow.quaternion.copy(camera.quaternion);
     }
     system.updateMatrixWorld(true);
+    if (moonOrbit) {
+      moonOrbit.rotation.y += 0.0032 * dt;
+      moonOrbit.updateMatrixWorld(true);
+      if (moon) uMoonModel.value.setFromMatrix4(moon.matrixWorld);
+    }
     uModel.value.setFromMatrix4(planet.matrixWorld);
     uCloudInv.value.setFromMatrix4(clouds.matrixWorld).invert();
     if (clouds2) uCloudInv2.value.setFromMatrix4(clouds2.matrixWorld).invert();
@@ -460,6 +530,23 @@ export async function mountVespera(container) {
   try {
     applySet(await loadSet(1024));
     ready = true; fit();
+    if (moonMat && moon) {
+      // Moon assets are optional: a missing map must never block the VESPERA planet.
+      Promise.all([
+        loadTex(`${MOON_BASE}2048/color.webp`, true),
+        loadTex(`${MOON_BASE}2048/normal.webp`)
+      ]).then(([moonColor, moonNormal]) => {
+        renderer.initTexture(moonColor);
+        renderer.initTexture(moonNormal);
+        moonMat.uniforms.uMoonColor.value = moonColor;
+        moonMat.uniforms.uMoonNormal.value = moonNormal;
+        moon.visible = true;
+        renderOnce();
+      }).catch((e) => {
+        moon.visible = false;
+        console.warn('[VESPERA] NASA Moon maps unavailable; planet remains active', e);
+      });
+    }
     container.classList.add('is-ready');
     sync();
     if (finalTier > 1024) {
