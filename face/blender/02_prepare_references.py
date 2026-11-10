@@ -50,6 +50,7 @@ def add_ref(label, filename, location, rotation, size):
     empty.data = image
     empty.empty_display_size = size
     empty.empty_image_depth = 'BACK'
+    empty.empty_image_side = 'DOUBLE_SIDED'
     empty.color[3] = 0.72
     empty.location = location
     empty.rotation_euler = rotation
@@ -75,7 +76,7 @@ for screen in bpy.data.screens:
         if area.type == 'VIEW_3D':
             space = area.spaces.active
             space.region_3d.view_perspective = 'ORTHO'
-            space.region_3d.view_rotation = (1, 0, 0, 0)
+            space.region_3d.view_rotation = (math.sqrt(0.5), math.sqrt(0.5), 0, 0)
             space.region_3d.view_location = (0, 0, 0)
             space.region_3d.view_distance = 3.2
             space.overlay.show_floor = True
@@ -86,6 +87,6 @@ bpy.ops.object.select_all(action='DESELECT')
 front.select_set(True)
 bpy.context.view_layer.objects.active = front
 
-print("ORBE & ONIX: three photo references loaded and packed.")
+print("ORBE & ONIX: three photo references loaded, double-sided, and packed.")
 print("Front: Numpad 1 | Profile: Numpad 3 | Top: Numpad 7")
 print("Toggle OO_REF_THREE_QUARTER in the Outliner when needed.")
