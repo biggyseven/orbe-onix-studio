@@ -6750,3 +6750,47 @@ body.door-reveal-active .site-header,body.door-reveal-active main,body.door-reve
   .home-lab-art-object,
   .home-lab-art-orbit{transition:none!important}
 }
+
+
+/* HOME / OPEN EXPERIMENTS · FACETED CRYSTAL FALLBACK */
+.home-lab-art-object{
+  width:clamp(150px,17vw,205px);
+  border:0;
+  border-radius:8px;
+  clip-path:polygon(50% 0,86% 13%,100% 43%,72% 100%,22% 92%,0 39%);
+  transform:translate(-50%,-50%) rotate(-15deg) rotateX(9deg) rotateY(-20deg);
+  background:
+    linear-gradient(151deg,transparent 0 48%,rgba(12,10,24,.44) 49% 100%),
+    linear-gradient(34deg,rgba(90,211,226,.28) 0 24%,transparent 25% 54%,rgba(255,255,255,.7) 55% 57%,transparent 58%),
+    linear-gradient(125deg,#fff 0%,#c6b9ea 18%,#4a4761 34%,#d9d2ed 48%,#7e719e 67%,#191923 82%,#f2eeff 100%);
+  box-shadow:none;
+  filter:drop-shadow(0 28px 35px rgba(0,0,0,.42)) drop-shadow(0 0 24px rgba(166,145,229,.18));
+}
+.home-lab-art-object:before,
+.home-lab-art-object:after{
+  inset:-12% -32%;
+  border:0;
+  border-radius:0;
+  clip-path:polygon(0 57%,8% 49%,87% 0,100% 5%,24% 65%,10% 100%);
+  transform:rotate(-18deg);
+  background:linear-gradient(90deg,rgba(255,255,255,.18),#f7f4ff 42%,#77718e 62%,rgba(255,255,255,.25));
+  box-shadow:none;
+}
+.home-lab-art-object:after{
+  inset:-8% -25%;
+  clip-path:polygon(0 9%,13% 0,100% 66%,91% 79%,16% 23%);
+  transform:rotate(14deg);
+  background:linear-gradient(90deg,rgba(105,218,230,.3),#d9d3ef 48%,rgba(255,255,255,.12));
+}
+.home-lab-art-object span{
+  width:32%;
+  border:0;
+  border-radius:0;
+  clip-path:polygon(50% 0,100% 45%,58% 100%,0 58%);
+  background:linear-gradient(145deg,#fff 0%,#d8f8fb 24%,#9486c2 62%,#272239 100%);
+  box-shadow:none;
+  color:#fff;
+  font-size:11px;
+  transform:rotate(25deg);
+}
+.home-lab-art-orbit{display:none!important}
