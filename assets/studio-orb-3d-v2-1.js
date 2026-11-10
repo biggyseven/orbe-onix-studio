@@ -360,7 +360,8 @@ export async function mountVespera(container) {
   const moonOrbit = new THREE.Group();
   const moon = new THREE.Mesh(new THREE.SphereGeometry(0.16, coarse ? 72 : 96, coarse ? 48 : 64), moonMat);
   moon.visible = false;
-  moon.position.set(1.40, 0.12, 0.0);
+  // The Moon follows an elliptical path in a slightly inclined orbital plane.
+  moon.position.set(1.64, 0.0, 0.0);
   moon.rotation.y = -Math.PI / 2;
   moon.renderOrder = 3;
   moonOrbit.rotation.z = TILT * 0.40;
@@ -405,7 +406,7 @@ export async function mountVespera(container) {
   };
 
   /* --- loop --- */
-  let raf = 0, running = false, last = 0, tx = 0, ty = 0, cx = 0, cy = 0, visible = false, ready = false;
+  let raf = 0, running = false, last = 0, tx = 0, ty = 0, cx = 0, cy = 0, visible = false, ready = false, moonAngle = 0;
   const m4 = new THREE.Matrix4();
   const frame = (dt) => {
     if (!reduced.matches) {
@@ -415,7 +416,13 @@ export async function mountVespera(container) {
     }
     camera.position.set(Math.sin(cx) * dist * Math.cos(cy), Math.sin(cy) * dist, Math.cos(cx) * dist * Math.cos(cy));
     camera.lookAt(0, 0, 0);
-    if (!reduced.matches) moonOrbit.rotation.y += 0.0032 * dt;
+    if (!reduced.matches) {
+      moonAngle += 0.0032 * dt;
+      // Ellipse: the far/near portions now have a visible depth change.
+      moon.position.set(1.64 * Math.cos(moonAngle), 0.0, 1.42 * Math.sin(moonAngle));
+      // Synchronous rotation keeps approximately the same lunar hemisphere facing VESPERA.
+      moon.rotation.y = -moonAngle - Math.PI / 2;
+    }
     system.updateMatrixWorld(true);
     moonOrbit.updateMatrixWorld(true);
     uMoonModel.value.setFromMatrix4(moon.matrixWorld);
