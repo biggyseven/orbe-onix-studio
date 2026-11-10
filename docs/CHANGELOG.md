@@ -1,3 +1,9 @@
+## 0.2.3 — Open Experiments visual refinement
+- Rebuilt the Lab introduction as an editorial split layout with a dedicated orbital study graphic and a clear four-experiment index.
+- Clarified the first material playground as the primary instrument and strengthened its technical status panel.
+- Refined the light, type and motion experiment cards with a more consistent grid, spacing, hierarchy and responsive behavior.
+- Added reduced-motion handling for the new decorative orbital animation and refreshed the Lab stylesheet cache key.
+
 ## 0.2.2 — Lab physical sculpture playground
 - Applied the isolated physical renderer to the Lab material playground, not to the Étude de forme page.
 - Added restrained iridescence and sheen, low-amplitude studio light drift, inertial drag and depth-aware 3D orbital guides.
