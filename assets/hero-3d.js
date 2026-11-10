@@ -265,14 +265,15 @@
 
       scene = new THREE.Scene();
       scene.environment = makeEnvironment(THREE);
+      const isStudyScene = stage.hasAttribute("data-sculpture-stage");
 
       // 3D orbital guides replace the former flat CSS ellipses.
       // Kepler's equation gives each satellite a natural speed increase at periapsis.
       const TAU = Math.PI * 2;
       let motionElapsed = 0;
       let entranceElapsed = 0;
-      let entranceActive = !reducedMotion;
-      let entranceScale = reducedMotion ? 1 : .001;
+      let entranceActive = isStudyScene && !reducedMotion;
+      let entranceScale = isStudyScene && !reducedMotion ? .001 : 1;
       let sculptureBaseScale = 1;
       const orbitStates = [];
       const clamp01 = value => Math.max(0, Math.min(1, value));
@@ -296,12 +297,13 @@
         const segments = 420;
         const radialSegments = 8;
         const trailCount = 22;
+        const semiMinor = config.a * Math.sqrt(1 - config.e * config.e);
         const points = [];
         for (let index = 0; index < segments; index += 1) {
           const eccentricAnomaly = TAU * index / segments;
           points.push(new THREE.Vector3(
             config.a * (Math.cos(eccentricAnomaly) - config.e),
-            config.b * Math.sin(eccentricAnomaly),
+            semiMinor * Math.sin(eccentricAnomaly),
             0
           ));
         }
@@ -351,7 +353,7 @@
         const state = {
           group, glowGeometry, coreGeometry, marker, markerGlow,
           trailGeometry, trailAttribute, trail,
-          semiMajor: config.a, semiMinor: config.b, eccentricity: config.e,
+          semiMajor: config.a, semiMinor, eccentricity: config.e,
           meanAnomaly: config.phase, meanMotion: TAU / config.period,
           direction: config.direction, drawDelay: config.drawDelay,
           drawDuration: config.drawDuration, baseRotation: config.rotation,
@@ -373,7 +375,7 @@
         return state;
       };
 
-      orbitStates.push(
+      if (isStudyScene) orbitStates.push(
         createOrbit({
           a: 1.92, b: 1.18, e: .18, period: 17.5, direction: 1,
           phase: .35, drawDelay: 0, drawDuration: .86,
@@ -385,7 +387,7 @@
           rotation: [-.62, .58, .3], precession: -.027, color: 0x70e5f5
         })
       );
-      stage.classList.add("has-3d-orbits");
+      if (isStudyScene) stage.classList.add("has-3d-orbits");
 
       const shadowCanvas = document.createElement("canvas");
       shadowCanvas.width = 512;
@@ -412,7 +414,6 @@
       resources.push(shadowTexture, shadowGeometry, shadowMaterial);
 
       camera = new THREE.PerspectiveCamera(33, 1, .1, 40);
-      const isStudyScene = stage.hasAttribute("data-sculpture-stage");
       camera.position.set(0, 0, isStudyScene ? 5.4 : 6.25);
       camera.lookAt(0, 0, 0);
       let targetCameraZ = camera.position.z;
@@ -556,10 +557,10 @@
         roughness: .11,
         clearcoat: 1,
         clearcoatRoughness: .02,
-        sheen: .08,
+        sheen: isStudyScene ? .08 : 0,
         sheenRoughness: .3,
         sheenColor: new THREE.Color(0xd8d0ff),
-        iridescence: .055,
+        iridescence: isStudyScene ? .055 : 0,
         iridescenceIOR: 1.25,
         iridescenceThicknessRange: [120, 220],
         envMapIntensity: 2.15
@@ -577,10 +578,10 @@
         clearcoatRoughness: .04,
         attenuationColor: new THREE.Color(0xa58be8),
         attenuationDistance: .9,
-        sheen: .12,
+        sheen: isStudyScene ? .12 : 0,
         sheenRoughness: .28,
         sheenColor: new THREE.Color(0xc7b8ff),
-        iridescence: .075,
+        iridescence: isStudyScene ? .075 : 0,
         iridescenceIOR: 1.28,
         iridescenceThicknessRange: [110, 260],
         envMapIntensity: 1.95
@@ -669,7 +670,7 @@
         roughness: .085,
         clearcoat: 1,
         clearcoatRoughness: .025,
-        iridescence: .045,
+        iridescence: isStudyScene ? .045 : 0,
         iridescenceIOR: 1.22,
         iridescenceThicknessRange: [130, 210],
         envMapIntensity: 2.3
@@ -990,7 +991,9 @@
         if (disposed || !visible || document.hidden || !renderer) return;
         timer.update(timestamp);
         const delta = Math.min(.05, Math.max(0, timer.getDelta()));
-        if (motionPlaying) motionElapsed += delta;
+        if (motionPlaying && isStudyScene) motionElapsed += delta;
+        const elapsed = isStudyScene ? motionElapsed : timer.getElapsed();
+        if (motionPlaying && !isStudyScene) rotationPhase = (rotationPhase + delta * rotationSpeed) % TAU;
 
         if (viewTransitionActive) {
           const transitionAmount = 1 - Math.exp(-delta * 3.4);
@@ -1015,8 +1018,8 @@
         if (lightTransitionActive) applyLighting(1 - Math.exp(-delta * 3.1));
         if (materialFocusActive) applyMaterialFocus(1 - Math.exp(-delta * 3.8));
 
-        // Critically damped cursor spring for soft parallax, with no CSS interpolation.
-        if (!reducedMotion) {
+        // Critically damped cursor spring is reserved for the Form in Light study.
+        if (!reducedMotion && isStudyScene) {
           const omega = 5.8;
           const accelerationX = omega * omega * (pointer.targetX - pointer.x) - 2 * omega * pointer.velocityX;
           const accelerationY = omega * omega * (pointer.targetY - pointer.y) - 2 * omega * pointer.velocityY;
@@ -1028,6 +1031,10 @@
             || Math.abs(pointer.targetY - pointer.y) > .001
             || Math.abs(pointer.velocityX) > .002
             || Math.abs(pointer.velocityY) > .002;
+        } else if (!reducedMotion && !isStudyScene) {
+          pointer.x += (pointer.targetX - pointer.x) * .025;
+          pointer.y += (pointer.targetY - pointer.y) * .025;
+          parallaxActive = Math.abs(pointer.targetX - pointer.x) > .001 || Math.abs(pointer.targetY - pointer.y) > .001;
         }
 
         // Exponential angular damping (0.8 s half-life), then critically damped return.
@@ -1116,19 +1123,19 @@
         // Rest cycles are 37 s (yaw) and 53 s (pitch) at 1×.
         // A drifting white key light moves highlights across the physical surfaces.
         const speedFactor = rotationSpeed / .16;
-        if (motionPlaying) {
+        if (motionPlaying && isStudyScene) {
           key.position.x = -3.5 + Math.sin(motionElapsed * TAU / 47) * .7;
           key.position.y = 4.5 + Math.cos(motionElapsed * TAU / 61) * .32;
           key.position.z = 5 + Math.sin(motionElapsed * TAU / 43) * .24;
         }
-        const restYaw = motionPlaying ? Math.sin(motionElapsed * TAU / 37 * speedFactor) * .16 : 0;
-        const restPitch = motionPlaying ? Math.sin(motionElapsed * TAU / 53 * speedFactor) * .095 : 0;
+        const restYaw = motionPlaying ? (isStudyScene ? Math.sin(motionElapsed * TAU / 37 * speedFactor) * .16 : rotationPhase) : 0;
+        const restPitch = motionPlaying ? (isStudyScene ? Math.sin(motionElapsed * TAU / 53 * speedFactor) * .095 : Math.sin(elapsed * .34) * .028) : 0;
         sculpture.rotation.set(
           viewRotation.x + restPitch + dragOffset.x - pointer.y * .028,
           viewRotation.y + restYaw + dragOffset.y + pointer.x * .04,
-          viewRotation.z + (motionPlaying ? Math.sin(motionElapsed * TAU / 29) * .012 : 0)
+          viewRotation.z + (motionPlaying ? (isStudyScene ? Math.sin(motionElapsed * TAU / 29) * .012 : Math.sin(elapsed * .23) * .018) : 0)
         );
-        sculpture.position.y = motionPlaying ? Math.sin(motionElapsed * TAU / 8.4) * .045 : 0;
+        sculpture.position.y = motionPlaying ? (isStudyScene ? Math.sin(motionElapsed * TAU / 8.4) * .045 : Math.sin(elapsed * .58) * .045) : 0;
         sculpture.scale.setScalar(sculptureBaseScale * entranceScale);
 
         renderer.render(scene, camera);
@@ -1181,6 +1188,7 @@
         const previousCameraZ = camera.position.z;
         const previousRotation = sculpture.rotation.clone();
         const previousPositionY = sculpture.position.y;
+        const previousScale = sculpture.scale.clone();
         const frames = [
           { key: "front", pose: viewPresets.front },
           { key: "three-quarter", pose: viewPresets["three-quarter"] },
@@ -1199,6 +1207,7 @@
             if (!image) return;
 
             sculpture.rotation.set(frame.pose.x, frame.pose.y, frame.pose.z);
+            sculpture.scale.setScalar(sculptureBaseScale);
             sculpture.position.y = 0;
             camera.position.set(0, 0, frame.pose.cameraZ);
             camera.aspect = width / height;
@@ -1238,6 +1247,7 @@
           camera.updateProjectionMatrix();
           sculpture.rotation.copy(previousRotation);
           sculpture.position.y = previousPositionY;
+          sculpture.scale.copy(previousScale);
           target.dispose();
           renderer.render(scene, camera);
         }
@@ -1624,10 +1634,13 @@
           const rect = stage.getBoundingClientRect();
           pointer.targetX = ((event.clientX - rect.left) / rect.width - .5) * 2;
           pointer.targetY = ((event.clientY - rect.top) / rect.height - .5) * 2;
+          parallaxActive = true;
+          startLoop();
         }, { passive: true });
         stage.addEventListener("pointerleave", () => {
           pointer.targetX = 0;
           pointer.targetY = 0;
+          if (parallaxActive) startLoop();
         }, { passive: true });
       }
       document.addEventListener("visibilitychange", () => {
