@@ -5394,3 +5394,142 @@ body.door-reveal-active .site-header,body.door-reveal-active main,body.door-reve
   object-fit:contain;
   pointer-events:none;
 }
+
+/* OPEN EXPERIMENTS 04 — field instruments */
+.lab-note-grid .lab-note-card{
+  display:flex;
+  flex-direction:column;
+  min-width:0;
+  padding:18px;
+  border:1px solid rgba(255,255,255,.13);
+  border-radius:6px;
+  background:linear-gradient(155deg,rgba(255,255,255,.055),rgba(255,255,255,.015));
+}
+.lab-note-card>span.lab-note-index{
+  color:#b9add2;
+  font:8px/1.5 var(--mono,"IBM Plex Mono",monospace);
+  letter-spacing:.14em;
+}
+.lab-note-card .note-art{
+  flex:0 0 auto;
+  height:205px;
+  margin:15px 0 20px;
+  border:1px solid rgba(255,255,255,.08);
+  border-radius:4px;
+}
+.lab-note-card h3{font-size:clamp(20px,2vw,25px);margin:0 0 9px}
+.lab-note-card>p{min-height:57px;margin:0;color:#aaa4b2;font-size:10px;line-height:1.8}
+.lab-note-card .note-light{isolation:isolate}
+.note-light .light-source{
+  position:absolute;inset:-12%;
+  z-index:0;pointer-events:none;
+  opacity:var(--lab-light-opacity,.55);
+  background:radial-gradient(ellipse at 54% 48%,rgba(229,216,255,.9),rgba(183,158,239,.22) 20%,transparent 56%);
+  transition:opacity .18s ease;
+}
+.note-light .light-readout{
+  position:absolute;right:13px;bottom:12px;z-index:1;
+  color:#e7def7;font:7px var(--mono,"IBM Plex Mono",monospace);
+  letter-spacing:.12em;
+}
+.note-light .light-readout b{font-weight:400;color:#fff}
+.note-type[data-type-style="editorial"] b{
+  font-family:var(--serif,"Cormorant Garamond",serif);font-weight:400;
+}
+.note-type[data-type-style="interface"] b{
+  font-family:var(--sans,"Space Grotesk",sans-serif);font-style:normal;font-weight:600;letter-spacing:-.12em;
+}
+.note-type[data-type-style="mono"] b{
+  font-family:var(--mono,"IBM Plex Mono",monospace);font-size:clamp(76px,8vw,112px);font-style:normal;font-weight:400;letter-spacing:-.12em;
+}
+.note-type .type-specimen-meta{
+  position:absolute;left:15px;top:14px;
+  color:#625b69;font:7px var(--mono,"IBM Plex Mono",monospace);letter-spacing:.12em;
+}
+.lab-experiment-control{
+  display:grid;grid-template-columns:1fr auto;align-items:center;gap:12px;
+  margin-top:auto;padding-top:18px;border-top:1px solid rgba(255,255,255,.12);
+}
+.lab-experiment-control>label,
+.lab-experiment-control>.control-label{
+  color:#bcb4c6;font:8px var(--mono,"IBM Plex Mono",monospace);letter-spacing:.09em;text-transform:uppercase;
+}
+.lab-experiment-control output{
+  color:#e8e1f4;font:9px var(--mono,"IBM Plex Mono",monospace);
+}
+.lab-experiment-control input[type="range"]{
+  grid-column:1/-1;width:100%;margin:0;accent-color:#c9c0ff;cursor:pointer;
+}
+.lab-experiment-control input[type="range"]:focus-visible,
+.lab-segmented button:focus-visible,
+.lab-run-button:focus-visible{
+  outline:2px solid #d3ef79;outline-offset:4px;
+}
+.lab-segmented{
+  grid-column:1/-1;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:5px;
+}
+.lab-segmented button{
+  min-width:0;min-height:42px;padding:8px 5px;
+  border:1px solid rgba(255,255,255,.16);border-radius:3px;
+  background:rgba(255,255,255,.025);color:#aaa4b2;
+  font:7px var(--mono,"IBM Plex Mono",monospace);letter-spacing:.04em;
+  cursor:pointer;transition:background .2s,border-color .2s,color .2s;
+}
+.lab-segmented button[aria-pressed="true"]{
+  border-color:#b8a8dc;background:rgba(185,166,230,.15);color:#f5f0fc;
+}
+.lab-motion-control{grid-template-columns:1fr;align-items:start;gap:10px}
+.lab-run-button{
+  display:flex;align-items:center;justify-content:space-between;gap:12px;
+  min-height:44px;padding:0 12px;
+  border:1px solid rgba(201,192,255,.5);border-radius:3px;
+  background:rgba(201,192,255,.08);color:#eee9f7;
+  font:8px var(--mono,"IBM Plex Mono",monospace);letter-spacing:.07em;
+  cursor:pointer;transition:background .2s,border-color .2s;
+}
+.lab-run-button:hover,.lab-run-button[aria-pressed="true"]{
+  background:rgba(201,192,255,.17);border-color:#c9c0ff;
+}
+.lab-run-button:disabled{opacity:.48;cursor:not-allowed}
+.lab-motion-control small{color:#888190;font-size:8px;line-height:1.6}
+.note-motion .motion-trace{
+  position:absolute;left:50%;top:50%;width:68%;height:54%;
+  border:1px solid rgba(207,192,255,.42);border-radius:50%;
+  transform:translate(-50%,-50%) rotate(-25deg);pointer-events:none;
+}
+.note-motion .motion-trace-b{width:48%;height:82%;transform:translate(-50%,-50%) rotate(55deg)}
+.note-motion span:not(.motion-readout){
+  z-index:2;left:50%;top:50%;transform:translate(-50%,-50%);
+}
+.note-motion .motion-readout{
+  position:absolute;right:12px;bottom:11px;z-index:3;
+  width:auto;height:auto;border:0;border-radius:0;background:none;box-shadow:none;
+  color:#d7cdec;font:7px var(--mono,"IBM Plex Mono",monospace);letter-spacing:.1em;
+}
+.note-motion.is-running:before{animation:lab-orbit-a 18s linear infinite}
+.note-motion.is-running:after{animation:lab-orbit-b 24s linear infinite reverse}
+.note-motion.is-running .motion-trace-a{animation:lab-orbit-a 21s linear infinite}
+.note-motion.is-running .motion-trace-b{animation:lab-orbit-b 27s linear infinite reverse}
+.note-motion.is-running span:not(.motion-readout){animation:lab-core-pulse 3.8s ease-in-out infinite}
+@keyframes lab-orbit-a{to{transform:rotate(335deg)}}
+@keyframes lab-orbit-b{to{transform:rotate(415deg)}}
+@keyframes lab-core-pulse{50%{box-shadow:0 0 56px #c9b8ff,0 0 90px #9f88dc66}}
+@media(max-width:980px){
+  .lab-note-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .lab-note-grid .lab-note-card:last-child{grid-column:1/-1}
+}
+@media(max-width:680px){
+  .lab-note-grid{grid-template-columns:minmax(0,1fr)}
+  .lab-note-grid .lab-note-card:last-child{grid-column:auto}
+  .lab-note-card .note-art{height:190px}
+  .lab-note-card>p{min-height:0;margin-bottom:18px}
+}
+@media(hover:none) and (pointer:coarse){
+  .lab-segmented button,.lab-run-button{min-height:44px}
+}
+@media(prefers-reduced-motion:reduce){
+  .note-light .light-source,.lab-segmented button,.lab-run-button{transition:none}
+  .note-motion.is-running:before,.note-motion.is-running:after,
+  .note-motion.is-running .motion-trace-a,.note-motion.is-running .motion-trace-b,
+  .note-motion.is-running span:not(.motion-readout){animation:none!important}
+}
