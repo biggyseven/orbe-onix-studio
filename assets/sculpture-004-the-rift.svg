@@ -71,10 +71,18 @@
       <feGaussianBlur stdDeviation="16"/>
     </filter>
   </defs>
+  <style>
+    #sculpture-motion { transform-box:fill-box; transform-origin:center; animation:rift-float 7s ease-in-out infinite; }
+    #crystal-aura { transform-box:fill-box; transform-origin:center; animation:crystal-breathe 5.8s ease-in-out infinite; }
+    @keyframes rift-float { 0%,100% { transform:translateY(0) rotate(0deg); } 50% { transform:translateY(-7px) rotate(.35deg); } }
+    @keyframes crystal-breathe { 0%,100% { opacity:.58; transform:scale(.94); } 50% { opacity:.98; transform:scale(1.07); } }
+    @media (prefers-reduced-motion:reduce) { #sculpture-motion,#crystal-aura { animation:none; } }
+  </style>
 
   <ellipse cx="450" cy="368" rx="350" ry="300" fill="url(#aura)"/>
   <ellipse cx="454" cy="610" rx="248" ry="34" fill="#05040A" opacity=".42" filter="url(#softShadow)"/>
 
+  <g id="sculpture-motion">
   <!-- Rear shell: a folded silver-glass wall turning around the open centre. -->
   <path d="M520 102C640 115 752 215 770 337C792 486 675 610 523 637C570 563 599 486 592 408C585 321 539 241 456 184C472 144 493 116 520 102Z"
         fill="#090811" opacity=".76" filter="url(#metalShadow)"/>
@@ -120,7 +128,7 @@
         stroke="#FFF" stroke-opacity=".55" stroke-width="1.5" stroke-linecap="round"/>
 
   <!-- The crystal is seated in the negative space, not suspended outside the form. -->
-  <ellipse cx="468" cy="358" rx="89" ry="93" fill="url(#crystalGlow)"/>
+  <ellipse id="crystal-aura" cx="468" cy="358" rx="89" ry="93" fill="url(#crystalGlow)"/>
   <path d="M465 278L526 333L510 419L464 449L411 397L416 324Z"
         fill="#A9E8EE" fill-opacity=".3" filter="url(#crystalBloom)"/>
   <path d="M465 278L526 333L510 419L464 449L411 397L416 324Z"
@@ -134,4 +142,5 @@
   <!-- Fine specular points, kept close to the object's materials. -->
   <path d="M704 221L713 235L728 244L713 253L704 268L695 253L680 244L695 235Z" fill="#FFF" fill-opacity=".74"/>
   <circle cx="232" cy="252" r="3" fill="#E9E0FF"/>
+  </g>
 </svg>
