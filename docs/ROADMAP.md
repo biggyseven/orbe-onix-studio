@@ -24,7 +24,9 @@ Ce document distingue ce qui est déjà intégré de ce qui doit encore être v�
 - [x] FORME : sélection locale d'objets, sans commande ni paiement.
 - [x] FLOWSTATE : navigation entre vues et synchronisation des tâches en mémoire de page.
 - [x] Contact : validation et génération d'un brief copiable dans le navigateur.
-- [ ] Choisir et confirmer le canal réel de réception des demandes (adresse e-mail ou service externe).
+- [x] Confirmer l’adresse de réception : orbeonix@gmail.com.
+- [x] Préparer le brief dans l’application de messagerie du visiteur via un lien mailto.
+- [ ] Tester le parcours d’envoi avec une vraie messagerie sur ordinateur et mobile.
 - [ ] Si une réception serveur est ajoutée plus tard, configurer et tester sa protection anti-spam.
 
 ## VESPERA et prototypes exposables
