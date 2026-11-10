@@ -38,3 +38,5 @@
 - Increased the main sculpture's orbital guide speed and added a restrained secondary tilt so the rings read as moving again.
 - Rebuilt the third Field instrument with two complete, smaller elliptical rings; removed the clipping mask and preserved safe margins inside the card.
 - Refreshed the Lab asset cache key for the orbit correction.
+
+- Separated the two main sculpture orbit guides and gave them distinct, gentle counter-rotation speeds so their movement is easier to perceive.
