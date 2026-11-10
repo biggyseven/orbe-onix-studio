@@ -5533,3 +5533,89 @@ body.door-reveal-active .site-header,body.door-reveal-active main,body.door-reve
   .note-motion.is-running .motion-trace-a,.note-motion.is-running .motion-trace-b,
   .note-motion.is-running span:not(.motion-readout){animation:none!important}
 }
+
+/* OPEN EXPERIMENTS 05 — high-contrast material stage and 3D canvas */
+.material-stage{
+  isolation:isolate;
+  min-height:550px;
+  background:
+    radial-gradient(ellipse at 48% 46%,rgba(128,105,190,.34),transparent 38%),
+    radial-gradient(ellipse at 72% 22%,rgba(66,191,220,.14),transparent 32%),
+    linear-gradient(135deg,#242033 0%,#11131d 58%,#171321 100%);
+  touch-action:pan-y;
+  cursor:grab;
+}
+.material-stage:active{cursor:grabbing}
+.material-canvas{
+  position:absolute;inset:0;z-index:1;
+  display:block;width:100%;height:100%;
+  outline:none;
+}
+.material-stage.has-webgl .material-orbit,
+.material-stage.has-webgl .material-object{display:none}
+.material-stage:before{opacity:.22}
+.material-coordinate{
+  z-index:3;
+  color:#eee8ff;
+  text-shadow:0 1px 8px rgba(4,5,12,.95);
+  font-size:8px;
+}
+.material-controls{
+  background:linear-gradient(155deg,#1d1a29 0%,#14131c 100%);
+  border-left-color:rgba(211,201,255,.22);
+}
+.material-current>span{color:#c9b8ff;font-size:9px}
+.material-current h3{color:#fff;font-size:clamp(30px,3vw,38px)}
+.material-current p{color:#d1ccdb;font-size:11px}
+.material-choice{
+  min-height:48px;
+  border-color:rgba(220,211,255,.26);
+  background:rgba(255,255,255,.045);
+  color:#eeeaf7;
+  font-size:9px;
+}
+.material-choice i{box-shadow:0 0 14px rgba(201,192,255,.2)}
+.material-choice[aria-pressed=true]{
+  border-color:#c9c0ff;
+  background:rgba(177,153,255,.22);
+  color:#fff;
+  box-shadow:inset 3px 0 #c9c0ff,0 0 20px rgba(177,153,255,.08);
+}
+.material-choice:focus-visible{outline:2px solid #d3ef79;outline-offset:3px}
+.lab-note-card{
+  border-color:rgba(219,208,255,.22);
+  background:linear-gradient(155deg,rgba(124,105,164,.16),rgba(255,255,255,.025));
+}
+.lab-note-card>span.lab-note-index{color:#d2c3ff}
+.lab-note-card h3{color:#fff}
+.lab-note-card>p{color:#d0cad9}
+.lab-experiment-control>label,
+.lab-experiment-control>.control-label{color:#e0d7f4}
+.lab-experiment-control output{color:#fff}
+.lab-experiment-control input[type="range"]{
+  height:8px;accent-color:#b9a3ff;
+}
+.lab-segmented button{color:#d5cede;border-color:rgba(222,211,255,.24);background:#ffffff0a}
+.lab-segmented button[aria-pressed=true]{
+  color:#fff;border-color:#bba8ff;
+  background:rgba(164,137,235,.27);
+  box-shadow:inset 0 -2px #c9c0ff;
+}
+.lab-run-button{color:#fff;border-color:#c9b8ff;background:rgba(154,127,226,.18)}
+.lab-run-button:hover,.lab-run-button[aria-pressed=true]{
+  color:#fff;background:rgba(164,137,235,.32);border-color:#e0d5ff;
+}
+.lab-motion-control small{color:#c5bdce}
+.lab-note-card .note-art{background-color:#242031}
+@media(max-width:980px){
+  .material-stage{min-height:460px}
+  .material-controls{border-left:0;border-top:1px solid rgba(211,201,255,.22)}
+}
+@media(max-width:680px){
+  .material-stage{min-height:390px}
+  .material-coordinate{font-size:7px}
+  .material-controls{padding:26px 22px}
+}
+@media(prefers-reduced-motion:reduce){
+  .material-stage{cursor:default}
+}
