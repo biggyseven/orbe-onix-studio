@@ -156,23 +156,25 @@
       const mailto = 'mailto:orbeonix@gmail.com?subject=' + subject + '&body=' + body;
 
       const fallback = one('[data-brief-output]');
-      if (fallback) fallback.value = brief;
+      if (fallback) {
+        fallback.hidden = false;
+        fallback.value = brief;
+      }
 
       if (navigator.clipboard && window.isSecureContext) {
         navigator.clipboard.writeText(brief).catch(() => {
           if (fallback) {
-            fallback.hidden = false;
             fallback.focus();
             fallback.select();
           }
         });
       } else if (fallback) {
-        fallback.hidden = false;
-        fallback.value = brief;
+        fallback.focus();
+        fallback.select();
       }
 
       if (briefStatus) {
-        briefStatus.textContent = 'Votre messagerie va s’ouvrir avec le brief adressé à orbeonix@gmail.com. Relisez-le puis envoyez-le. Si rien ne s’ouvre, le brief peut être copié depuis le champ affiché.';
+        briefStatus.textContent = 'Votre messagerie va s’ouvrir avec le brief adressé à orbeonix@gmail.com. Relisez-le puis envoyez-le. Le texte complet reste également visible ci-dessous en solution de secours.';
       }
       window.location.href = mailto;
     });
