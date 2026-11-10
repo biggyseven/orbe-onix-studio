@@ -26,3 +26,5 @@
 - Configured the contact brief to prepare an email addressed to orbeonix@gmail.com; visitors review and send it from their own mail application.
 - Replaced the static Field notes on the Lab page with three interactive experiments: light intensity, typographic registers and motion control.
 - Added accessible labels, live readouts, touch-sized controls and reduced-motion handling for the new Lab experiments.
+- Added a Three.js Torus Knot sculpture with glass, liquid-metal and veil material states, pointer rotation, responsive framing and CSS fallback.
+- Increased contrast across the Lab material stage, labels, choices and experiment controls.
