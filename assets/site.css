@@ -6720,3 +6720,33 @@ body.door-reveal-active .site-header,body.door-reveal-active main,body.door-reve
   .home-lab-feature,.home-lab-cta b{transition:none!important}
   .home-lab-feature:hover{transform:none}
 }
+
+
+/* HOME / OPEN EXPERIMENTS · LIVE 3D */
+.home-lab-3d-canvas{
+  position:absolute;
+  inset:0;
+  z-index:1;
+  display:block;
+  width:100%;
+  height:100%;
+  opacity:0;
+  pointer-events:none;
+  transition:opacity .7s ease;
+}
+.home-lab-art.is-ready .home-lab-3d-canvas{opacity:1}
+.home-lab-art.is-ready .home-lab-art-object{
+  opacity:0;
+  transition:opacity .55s ease;
+}
+.home-lab-art.is-ready .home-lab-art-orbit{
+  opacity:0;
+  animation-play-state:paused;
+  transition:opacity .45s ease;
+}
+.home-lab-art.is-fallback .home-lab-3d-canvas{display:none}
+@media(prefers-reduced-motion:reduce){
+  .home-lab-3d-canvas,
+  .home-lab-art-object,
+  .home-lab-art-orbit{transition:none!important}
+}
