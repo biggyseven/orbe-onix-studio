@@ -12,7 +12,7 @@ An independent creative practice exploring the intersection of digital design, w
 - `project.html` — dynamic concept case-study template
 - `services.html` — services, delivery process and FAQs
 - `studio.html` — studio point of view and principles
-- `lab.html` — interactive material playground and visual field notes
+- `lab.html` — interactive 3D material playground and open experiments
 - `contact.html` — project brief builder (client-side only)
 
 ## Design documentation
@@ -25,6 +25,7 @@ An independent creative practice exploring the intersection of digital design, w
 - Semantic HTML
 - CSS custom properties, responsive layouts, glass and material studies
 - Vanilla JavaScript for navigation, filters, scroll progress, material controls and brief generation
+- Three.js for the Lab's interactive 3D sculpture and VESPERA planetary studies
 - Hand-authored SVG and CSS artwork; no generated raster imagery
 
 ## Open the website
