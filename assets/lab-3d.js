@@ -48,7 +48,9 @@ if(host){
   const warm=new THREE.PointLight(0xffd8ad,7,7,2);warm.position.set(.2,2.8,-2);scene.add(warm);
   const sculpture=new THREE.Group();sculpture.scale.setScalar(.9);scene.add(sculpture);
   // Orbit guides live behind the sculpture, never inside its geometry.
+  // Separate rigs let each ring move gently at its own pace.
   const orbitRig=new THREE.Group();orbitRig.position.set(0,0,-1.55);scene.add(orbitRig);
+  const orbitRigB=new THREE.Group();orbitRigB.position.set(0,0,-1.55);scene.add(orbitRigB);
   const geometry=new THREE.TorusKnotGeometry(.78,.205,384,48,2,3);
   const materials={
    glass:new THREE.MeshPhysicalMaterial({color:0xd8d0ff,metalness:.025,roughness:.045,transmission:.78,thickness:1.0,ior:1.47,clearcoat:1,clearcoatRoughness:.035,attenuationColor:0xa99bdf,attenuationDistance:2.8}),
@@ -62,14 +64,14 @@ if(host){
   ringA.rotation.set(.42,.12,-.22);orbitRig.add(ringA);
   const ringB=new THREE.Mesh(new THREE.TorusGeometry(1.86,.004,8,320),
     new THREE.MeshBasicMaterial({color:0x66ddec,transparent:true,opacity:.28,depthTest:true,depthWrite:false}));
-  ringB.rotation.set(.58,-.28,.34);orbitRig.add(ringB);
+  ringB.rotation.set(.58,-.28,.34);orbitRigB.add(ringB);
   host.addEventListener('lab:materialchange',e=>{const m=e.detail?.material;if(materials[m]){knot.material=materials[m];core.material.emissiveIntensity=m==='veil'?.5:.34;ringMat.opacity=m==='liquid'?.82:.58;}});
   let w=1,h=1,raf=0,running=false,last=0,elapsed=0,drag=false,px=0,py=0,rx=0,ry=0;
   const reduced=matchMedia('(prefers-reduced-motion: reduce)');
   const render=()=>renderer.render(scene,camera);
   const resize=()=>{w=Math.max(1,host.clientWidth);h=Math.max(1,host.clientHeight);renderer.setSize(w,h,false);camera.aspect=w/h;camera.position.z=w<560?5.35:5.05;camera.updateProjectionMatrix();render();};
   const frame=now=>{if(!running)return;const dt=Math.min(.05,(now-last)/1000);last=now;elapsed+=dt;
-   if(!reduced.matches){if(!drag)ry+=.045*dt;sculpture.rotation.y+=(ry-sculpture.rotation.y)*Math.min(1,dt*3);sculpture.rotation.x+=(rx-sculpture.rotation.x)*Math.min(1,dt*3);knot.rotation.z=Math.sin(elapsed*.32)*.07;core.rotation.y-=.24*dt;orbitRig.rotation.z+=.12*dt;orbitRig.rotation.x=Math.sin(elapsed*.18)*.045;}
+   if(!reduced.matches){if(!drag)ry+=.045*dt;sculpture.rotation.y+=(ry-sculpture.rotation.y)*Math.min(1,dt*3);sculpture.rotation.x+=(rx-sculpture.rotation.x)*Math.min(1,dt*3);knot.rotation.z=Math.sin(elapsed*.32)*.07;core.rotation.y-=.24*dt;orbitRig.rotation.z+=.23*dt;orbitRigB.rotation.z-=.16*dt;orbitRig.rotation.x=Math.sin(elapsed*.18)*.045;orbitRigB.rotation.x=-Math.sin(elapsed*.15)*.035;}
    render();raf=requestAnimationFrame(frame);
   };
   const start=()=>{if(running)return;render();if(reduced.matches)return;running=true;last=performance.now();raf=requestAnimationFrame(frame);};
