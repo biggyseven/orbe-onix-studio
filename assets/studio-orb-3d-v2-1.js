@@ -407,6 +407,10 @@ export async function mountVespera(container) {
 
   /* --- loop --- */
   let raf = 0, running = false, last = 0, tx = 0, ty = 0, cx = 0, cy = 0, visible = false, ready = false, moonAngle = 0;
+  // Stylised lunar orbit using a realistic low eccentricity (e ≈ 0.055).
+  const MOON_SEMI_MAJOR = 1.64;
+  const MOON_ECCENTRICITY = 0.055;
+  const MOON_SEMI_MINOR = MOON_SEMI_MAJOR * Math.sqrt(1 - MOON_ECCENTRICITY * MOON_ECCENTRICITY);
   const m4 = new THREE.Matrix4();
   const frame = (dt) => {
     if (!reduced.matches) {
@@ -417,10 +421,25 @@ export async function mountVespera(container) {
     camera.position.set(Math.sin(cx) * dist * Math.cos(cy), Math.sin(cy) * dist, Math.cos(cx) * dist * Math.cos(cy));
     camera.lookAt(0, 0, 0);
     if (!reduced.matches) {
-      moonAngle += 0.0032 * dt;
-      // Ellipse: the far/near portions now have a visible depth change.
-      moon.position.set(1.64 * Math.cos(moonAngle), 0.0, 1.42 * Math.sin(moonAngle));
-      // Synchronous rotation keeps approximately the same lunar hemisphere facing VESPERA.
+      moonAngle = (moonAngle + 0.0032 * dt) % (Math.PI * 2);
+
+      // Solve Kepler's equation M = E - e sin(E) with Newton iterations.
+      // The small eccentricity keeps the orbit close to circular, as for the real Moon.
+      let eccentricAnomaly = moonAngle;
+      for (let i = 0; i < 4; i++) {
+        eccentricAnomaly -= (eccentricAnomaly - MOON_ECCENTRICITY * Math.sin(eccentricAnomaly) - moonAngle)
+          / (1 - MOON_ECCENTRICITY * Math.cos(eccentricAnomaly));
+      }
+
+      const cosE = Math.cos(eccentricAnomaly);
+      const sinE = Math.sin(eccentricAnomaly);
+      moon.position.set(
+        MOON_SEMI_MAJOR * (cosE - MOON_ECCENTRICITY),
+        0.0,
+        MOON_SEMI_MINOR * sinE
+      );
+
+      // Uniform spin gives synchronous rotation; the slight offset creates natural optical libration.
       moon.rotation.y = -moonAngle - Math.PI / 2;
     }
     system.updateMatrixWorld(true);
