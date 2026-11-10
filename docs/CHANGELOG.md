@@ -1,3 +1,8 @@
+## 0.2.6 — Distinct homepage crystal sculpture
+- Replaced the homepage Lab feature's interlocking ring sculpture with a faceted glass monolith, open chrome sweeps and floating crystal fragments.
+- Removed the circular orbit geometry from this composition and differentiated its CSS fallback to preserve the new silhouette without WebGL.
+- Kept the hero, VESPERA and Lab sculptures unchanged; refreshed the homepage module and stylesheet cache keys.
+
 ## 0.2.5 — Homepage Open Experiments 3D artwork
 - Replaced the CSS-only focal sculpture in the homepage Lab feature with a dedicated Three.js scene using the Lab's physical chrome, glass and pearl material language.
 - Added true 3D orbital guides, studio reflections, subtle pointer response and restrained idle rotation.
