@@ -6794,3 +6794,48 @@ body.door-reveal-active .site-header,body.door-reveal-active main,body.door-reve
   transform:rotate(25deg);
 }
 .home-lab-art-orbit{display:none!important}
+
+
+/* HOME / OPEN EXPERIMENTS · FOLDED GLASS SCULPTURE FALLBACK */
+.home-lab-art-object{
+  width:clamp(154px,16vw,202px);
+  aspect-ratio:.76;
+  border:1px solid rgba(245,241,255,.55);
+  border-radius:0;
+  clip-path:polygon(47% 0,67% 7%,82% 23%,96% 47%,86% 65%,69% 83%,43% 100%,22% 84%,10% 61%,16% 37%,33% 13%);
+  transform:translate(-50%,-50%) rotate(-13deg) rotateX(12deg) rotateY(-18deg);
+  background:
+    linear-gradient(118deg,transparent 0 25%,rgba(255,255,255,.52) 26%,rgba(255,255,255,.05) 37%,transparent 48%),
+    linear-gradient(72deg,rgba(54,45,86,.72) 0%,rgba(167,148,220,.82) 28%,rgba(222,215,248,.9) 46%,rgba(123,107,171,.84) 67%,rgba(46,43,65,.84) 100%);
+  box-shadow:inset 13px 3px 28px rgba(255,255,255,.18),0 30px 55px rgba(0,0,0,.34);
+  filter:drop-shadow(0 0 22px rgba(166,145,229,.16));
+}
+.home-lab-art-object:before,
+.home-lab-art-object:after{
+  content:"";
+  position:absolute;
+  inset:-4% -34%;
+  border:0;
+  border-radius:0;
+  clip-path:polygon(0 66%,7% 51%,31% 34%,63% 13%,93% 0,100% 8%,73% 27%,43% 48%,13% 79%,4% 100%);
+  transform:rotate(-23deg);
+  background:linear-gradient(90deg,rgba(255,255,255,.1),#fff 35%,#77718d 55%,#e9e3ff 70%,rgba(255,255,255,.12));
+  box-shadow:none;
+}
+.home-lab-art-object:after{
+  inset:4% -26%;
+  clip-path:polygon(0 15%,12% 0,42% 17%,76% 52%,100% 77%,89% 91%,55% 65%,23% 36%);
+  transform:rotate(18deg);
+  background:linear-gradient(100deg,rgba(99,213,224,.22),#dcd4f5 42%,rgba(120,105,170,.64) 76%);
+}
+.home-lab-art-object span{
+  width:27%;
+  aspect-ratio:1;
+  border:1px solid rgba(255,255,255,.76);
+  border-radius:4px;
+  clip-path:polygon(50% 0,100% 44%,58% 100%,0 58%);
+  background:radial-gradient(circle at 30% 20%,#fff 0,#d9f7f8 25%,#9d8ccd 62%,#302842 100%);
+  box-shadow:0 0 23px rgba(155,229,235,.35);
+  color:transparent;
+  transform:rotate(25deg);
+}
