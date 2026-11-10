@@ -67,12 +67,12 @@
   let pearl;
   let orbit;
   let envTexture;
-  const pointer = { x: 0, y: 0, targetX: 0, targetY: 0 };
+  const pointer = { x: 0, y: 0, targetX: 0, targetY: 0, velocityX: 0, velocityY: 0 };
   const resources = [];
 
   const fallback = error => {
     debug3D("fallback", error ? { error: errorText(error) } : null);
-    host.classList.remove("is-ready");
+    host.classList.remove("is-ready", "has-3d-orbits");
     host.classList.add("is-fallback");
     if (renderer) {
       renderer.dispose();
@@ -266,6 +266,127 @@
       scene = new THREE.Scene();
       scene.environment = makeEnvironment(THREE);
 
+      // 3D orbital guides replace the former flat CSS ellipses.
+      // Kepler's equation gives each satellite a natural speed increase at periapsis.
+      const TAU = Math.PI * 2;
+      let motionElapsed = 0;
+      let entranceElapsed = 0;
+      let entranceActive = !reducedMotion;
+      let entranceScale = reducedMotion ? 1 : .001;
+      let sculptureBaseScale = 1;
+      const orbitStates = [];
+      const clamp01 = value => Math.max(0, Math.min(1, value));
+      const smoothStep = value => {
+        const t = clamp01(value);
+        return t * t * (3 - 2 * t);
+      };
+      const solveOrbitPosition = (state, meanAnomaly) => {
+        let eccentricAnomaly = meanAnomaly;
+        for (let iteration = 0; iteration < 7; iteration += 1) {
+          const error = eccentricAnomaly - state.eccentricity * Math.sin(eccentricAnomaly) - meanAnomaly;
+          eccentricAnomaly -= error / (1 - state.eccentricity * Math.cos(eccentricAnomaly));
+        }
+        return new THREE.Vector3(
+          state.semiMajor * (Math.cos(eccentricAnomaly) - state.eccentricity),
+          state.semiMinor * Math.sin(eccentricAnomaly),
+          0
+        );
+      };
+      const createOrbit = config => {
+        const segments = 420;
+        const radialSegments = 8;
+        const trailCount = 22;
+        const points = [];
+        for (let index = 0; index < segments; index += 1) {
+          const eccentricAnomaly = TAU * index / segments;
+          points.push(new THREE.Vector3(
+            config.a * (Math.cos(eccentricAnomaly) - config.e),
+            config.b * Math.sin(eccentricAnomaly),
+            0
+          ));
+        }
+        const curve = new THREE.CatmullRomCurve3(points, true, "centripetal", .5);
+        const group = new THREE.Group();
+        group.rotation.set(config.rotation[0], config.rotation[1], config.rotation[2]);
+        scene.add(group);
+
+        const glowGeometry = new THREE.TubeGeometry(curve, segments, .022, radialSegments, true);
+        const coreGeometry = new THREE.TubeGeometry(curve, segments, .007, radialSegments, true);
+        const glowMaterial = new THREE.MeshBasicMaterial({
+          color: config.color, transparent: true, opacity: .17,
+          depthTest: true, depthWrite: false, toneMapped: false
+        });
+        const coreMaterial = new THREE.MeshBasicMaterial({
+          color: config.color, transparent: true, opacity: .78,
+          depthTest: true, depthWrite: false, toneMapped: false
+        });
+        const glowRing = new THREE.Mesh(glowGeometry, glowMaterial);
+        const coreRing = new THREE.Mesh(coreGeometry, coreMaterial);
+        group.add(glowRing, coreRing);
+
+        const markerGeometry = new THREE.SphereGeometry(.034, 20, 16);
+        const markerMaterial = new THREE.MeshBasicMaterial({ color: config.color, toneMapped: false });
+        const marker = new THREE.Mesh(markerGeometry, markerMaterial);
+        const markerGlowGeometry = new THREE.SphereGeometry(.082, 16, 12);
+        const markerGlowMaterial = new THREE.MeshBasicMaterial({
+          color: config.color, transparent: true, opacity: .2,
+          depthTest: true, depthWrite: false, toneMapped: false
+        });
+        const markerGlow = new THREE.Mesh(markerGlowGeometry, markerGlowMaterial);
+        group.add(markerGlow, marker);
+
+        const trailGeometry = new THREE.BufferGeometry();
+        const trailAttribute = new THREE.BufferAttribute(new Float32Array(trailCount * 3), 3);
+        trailAttribute.setUsage(THREE.DynamicDrawUsage);
+        trailGeometry.setAttribute("position", trailAttribute);
+        trailGeometry.setDrawRange(0, trailCount);
+        const trailMaterial = new THREE.LineBasicMaterial({
+          color: config.color, transparent: true, opacity: .48,
+          depthTest: true, depthWrite: false, toneMapped: false
+        });
+        const trail = new THREE.Line(trailGeometry, trailMaterial);
+        trail.frustumCulled = false;
+        group.add(trail);
+
+        const state = {
+          group, glowGeometry, coreGeometry, marker, markerGlow,
+          trailGeometry, trailAttribute, trail,
+          semiMajor: config.a, semiMinor: config.b, eccentricity: config.e,
+          meanAnomaly: config.phase, meanMotion: TAU / config.period,
+          direction: config.direction, drawDelay: config.drawDelay,
+          drawDuration: config.drawDuration, baseRotation: config.rotation,
+          precession: config.precession, segments, radialSegments, trailCount
+        };
+        const initialPosition = solveOrbitPosition(state, state.meanAnomaly);
+        marker.position.copy(initialPosition);
+        markerGlow.position.copy(initialPosition);
+        glowGeometry.setDrawRange(0, reducedMotion ? glowGeometry.index.count : 0);
+        coreGeometry.setDrawRange(0, reducedMotion ? coreGeometry.index.count : 0);
+        marker.visible = reducedMotion;
+        markerGlow.visible = reducedMotion;
+        trail.visible = false;
+        resources.push(
+          glowGeometry, coreGeometry, glowMaterial, coreMaterial,
+          markerGeometry, markerMaterial, markerGlowGeometry, markerGlowMaterial,
+          trailGeometry, trailMaterial
+        );
+        return state;
+      };
+
+      orbitStates.push(
+        createOrbit({
+          a: 1.92, b: 1.18, e: .18, period: 17.5, direction: 1,
+          phase: .35, drawDelay: 0, drawDuration: .86,
+          rotation: [.76, .18, -.38], precession: .035, color: 0xbba7ff
+        }),
+        createOrbit({
+          a: 1.7, b: 1.42, e: .24, period: 22.5, direction: -1,
+          phase: 2.2, drawDelay: .16, drawDuration: .92,
+          rotation: [-.62, .58, .3], precession: -.027, color: 0x70e5f5
+        })
+      );
+      stage.classList.add("has-3d-orbits");
+
       const shadowCanvas = document.createElement("canvas");
       shadowCanvas.width = 512;
       shadowCanvas.height = 384;
@@ -435,6 +556,12 @@
         roughness: .11,
         clearcoat: 1,
         clearcoatRoughness: .02,
+        sheen: .08,
+        sheenRoughness: .3,
+        sheenColor: new THREE.Color(0xd8d0ff),
+        iridescence: .055,
+        iridescenceIOR: 1.25,
+        iridescenceThicknessRange: [120, 220],
         envMapIntensity: 2.15
       });
       resources.push(chromeMaterial);
@@ -450,6 +577,12 @@
         clearcoatRoughness: .04,
         attenuationColor: new THREE.Color(0xa58be8),
         attenuationDistance: .9,
+        sheen: .12,
+        sheenRoughness: .28,
+        sheenColor: new THREE.Color(0xc7b8ff),
+        iridescence: .075,
+        iridescenceIOR: 1.28,
+        iridescenceThicknessRange: [110, 260],
         envMapIntensity: 1.95
       });
       resources.push(glassMaterial);
@@ -536,6 +669,9 @@
         roughness: .085,
         clearcoat: 1,
         clearcoatRoughness: .025,
+        iridescence: .045,
+        iridescenceIOR: 1.22,
+        iridescenceThicknessRange: [130, 210],
         envMapIntensity: 2.3
       });
       resources.push(bridgeGeometry, bridgeMaterial);
@@ -628,9 +764,11 @@
         // 520 × 420 px is the reference frame; small screens scale down smoothly.
         if (isStudyScene) {
           const responsiveScale = Math.max(.42, Math.min(1, width / 520, height / 420));
-          sculpture.scale.setScalar(responsiveScale);
+          sculptureBaseScale = responsiveScale;
+          sculpture.scale.setScalar(responsiveScale * entranceScale);
         } else {
-          sculpture.scale.setScalar(1);
+          sculptureBaseScale = 1;
+          sculpture.scale.setScalar(entranceScale);
         }
         cameraFramingScale = 1;
         camera.position.z = targetCameraZ;
@@ -687,6 +825,13 @@
       let viewRotation = { x: -.12, y: .08, z: -.08 };
       let targetViewRotation = { ...viewRotation };
       let viewTransitionActive = false;
+      const drag = { active: false, pointerId: null, x: 0, y: 0, lastTime: 0, velocityX: 0, velocityY: 0 };
+      const dragOffset = { x: 0, y: 0 };
+      let dragGliding = false;
+      let dragReturning = false;
+      let dragReturnVelocityX = 0;
+      let dragReturnVelocityY = 0;
+      let parallaxActive = false;
       const motionControls = document.querySelector("[data-sculpture-controls]");
       const exhibitionViewer = document.querySelector("[data-exhibition-viewer]");
       const fullscreenButton = document.querySelector("[data-exhibition-fullscreen]");
@@ -729,7 +874,7 @@
         side: { x: -.04, y: 1.48, z: -.035, cameraZ: targetCameraZ + .28 }
       };
 
-      const hasActiveAnimation = () => motionPlaying || viewTransitionActive || lightTransitionActive || materialFocusActive;
+      const hasActiveAnimation = () => motionPlaying || entranceActive || drag.active || dragGliding || dragReturning || parallaxActive || viewTransitionActive || lightTransitionActive || materialFocusActive;
       const approachAngle = (current, target, amount) => {
         const difference = Math.atan2(Math.sin(target - current), Math.cos(target - current));
         return current + difference * amount;
@@ -740,8 +885,9 @@
           motionToggle.setAttribute("aria-pressed", String(motionPlaying));
           motionToggle.classList.toggle("is-playing", motionPlaying);
         }
-        if (motionLabel) motionLabel.textContent = motionPlaying ? "Mettre en pause" : "Reprendre le mouvement";
-        if (motionStatus) motionStatus.textContent = motionPlaying ? "Mouvement actif" : "Mouvement en pause";
+        if (motionLabel) motionLabel.textContent = reducedMotion ? "Mouvement réduit" : (motionPlaying ? "Mettre en pause" : "Reprendre le mouvement");
+        if (motionStatus) motionStatus.textContent = reducedMotion ? "Mode mouvement réduit" : (motionPlaying ? "Mouvement actif" : "Mouvement en pause");
+        if (motionToggle) motionToggle.disabled = reducedMotion;
         speedButtons.forEach(button => {
           button.setAttribute("aria-pressed", String(Number(button.dataset.motionSpeed) === rotationSpeed));
         });
@@ -842,10 +988,9 @@
       const renderFrame = timestamp => {
         animationFrame = 0;
         if (disposed || !visible || document.hidden || !renderer) return;
-
         timer.update(timestamp);
-        const elapsed = timer.getElapsed();
         const delta = Math.min(.05, Math.max(0, timer.getDelta()));
+        if (motionPlaying) motionElapsed += delta;
 
         if (viewTransitionActive) {
           const transitionAmount = 1 - Math.exp(-delta * 3.4);
@@ -854,7 +999,6 @@
           viewRotation.z = approachAngle(viewRotation.z, targetViewRotation.z, transitionAmount);
           const fittedCameraZ = targetCameraZ * cameraFramingScale;
           camera.position.z += (fittedCameraZ - camera.position.z) * transitionAmount;
-
           const rotationRemaining = Math.max(
             Math.abs(Math.atan2(Math.sin(targetViewRotation.x - viewRotation.x), Math.cos(targetViewRotation.x - viewRotation.x))),
             Math.abs(Math.atan2(Math.sin(targetViewRotation.y - viewRotation.y), Math.cos(targetViewRotation.y - viewRotation.y))),
@@ -871,18 +1015,121 @@
         if (lightTransitionActive) applyLighting(1 - Math.exp(-delta * 3.1));
         if (materialFocusActive) applyMaterialFocus(1 - Math.exp(-delta * 3.8));
 
-        if (motionPlaying) {
-          pointer.x += (pointer.targetX - pointer.x) * .025;
-          pointer.y += (pointer.targetY - pointer.y) * .025;
-          rotationPhase = (rotationPhase + delta * rotationSpeed) % (Math.PI * 2);
+        // Critically damped cursor spring for soft parallax, with no CSS interpolation.
+        if (!reducedMotion) {
+          const omega = 5.8;
+          const accelerationX = omega * omega * (pointer.targetX - pointer.x) - 2 * omega * pointer.velocityX;
+          const accelerationY = omega * omega * (pointer.targetY - pointer.y) - 2 * omega * pointer.velocityY;
+          pointer.velocityX += accelerationX * delta;
+          pointer.velocityY += accelerationY * delta;
+          pointer.x += pointer.velocityX * delta;
+          pointer.y += pointer.velocityY * delta;
+          parallaxActive = Math.abs(pointer.targetX - pointer.x) > .001
+            || Math.abs(pointer.targetY - pointer.y) > .001
+            || Math.abs(pointer.velocityX) > .002
+            || Math.abs(pointer.velocityY) > .002;
         }
 
+        // Exponential angular damping (0.8 s half-life), then critically damped return.
+        if (!drag.active && dragGliding) {
+          dragOffset.x += drag.velocityX * delta;
+          dragOffset.y += drag.velocityY * delta;
+          const damping = Math.exp(-Math.LN2 * delta / .8);
+          drag.velocityX *= damping;
+          drag.velocityY *= damping;
+          if (Math.hypot(drag.velocityX, drag.velocityY) < .018) {
+            drag.velocityX = 0;
+            drag.velocityY = 0;
+            dragGliding = false;
+            dragReturning = true;
+            dragReturnVelocityX = 0;
+            dragReturnVelocityY = 0;
+          }
+        }
+        if (!drag.active && dragReturning) {
+          const omega = 3.1;
+          const accelerationX = -2 * omega * dragReturnVelocityX - omega * omega * dragOffset.x;
+          const accelerationY = -2 * omega * dragReturnVelocityY - omega * omega * dragOffset.y;
+          dragReturnVelocityX += accelerationX * delta;
+          dragReturnVelocityY += accelerationY * delta;
+          dragOffset.x += dragReturnVelocityX * delta;
+          dragOffset.y += dragReturnVelocityY * delta;
+          if (
+            Math.abs(dragOffset.x) < .001 && Math.abs(dragOffset.y) < .001
+            && Math.abs(dragReturnVelocityX) < .002 && Math.abs(dragReturnVelocityY) < .002
+          ) {
+            dragOffset.x = 0;
+            dragOffset.y = 0;
+            dragReturnVelocityX = 0;
+            dragReturnVelocityY = 0;
+            dragReturning = false;
+          }
+        }
+
+        // Trace the 3D ellipses; depth testing decides which arc passes in front.
+        orbitStates.forEach(state => {
+          const rawProgress = reducedMotion ? 1 : (entranceElapsed - state.drawDelay) / state.drawDuration;
+          const progress = smoothStep(rawProgress);
+          const indexCount = Math.floor(state.segments * progress) * state.radialSegments * 6;
+          state.glowGeometry.setDrawRange(0, Math.min(indexCount, state.glowGeometry.index.count));
+          state.coreGeometry.setDrawRange(0, Math.min(indexCount, state.coreGeometry.index.count));
+          state.marker.visible = progress >= .78;
+          state.markerGlow.visible = progress >= .78;
+          state.trail.visible = motionPlaying && progress >= .9;
+          if (motionPlaying) {
+            state.meanAnomaly += state.direction * state.meanMotion * delta;
+            state.group.rotation.x = state.baseRotation[0] + Math.sin(motionElapsed * .19 + state.drawDelay) * .055;
+            state.group.rotation.y = state.baseRotation[1] + Math.cos(motionElapsed * .15 + state.drawDelay) * .07;
+            state.group.rotation.z += state.precession * delta;
+          }
+          const markerPosition = solveOrbitPosition(state, state.meanAnomaly);
+          state.marker.position.copy(markerPosition);
+          state.markerGlow.position.copy(markerPosition);
+          for (let index = 0; index < state.trailCount; index += 1) {
+            const trailAge = index / (state.trailCount - 1) * .42;
+            const trailPosition = solveOrbitPosition(
+              state, state.meanAnomaly - state.direction * state.meanMotion * trailAge
+            );
+            state.trailAttribute.setXYZ(index, trailPosition.x, trailPosition.y, trailPosition.z);
+          }
+          state.trailAttribute.needsUpdate = true;
+        });
+
+        // Orbit draw-in, followed by a spring reveal with a small overshoot.
+        if (entranceActive) {
+          entranceElapsed += delta;
+          const popTime = clamp01((entranceElapsed - .28) / 1.32);
+          const dampingRatio = .64;
+          const angularFrequency = 7.2;
+          const dampedFrequency = angularFrequency * Math.sqrt(1 - dampingRatio * dampingRatio);
+          const springResponse = 1 - Math.exp(-dampingRatio * angularFrequency * popTime) * (
+            Math.cos(dampedFrequency * popTime)
+            + (dampingRatio / Math.sqrt(1 - dampingRatio * dampingRatio)) * Math.sin(dampedFrequency * popTime)
+          );
+          entranceScale = Math.max(.001, springResponse);
+          if (popTime >= 1) {
+            entranceScale = 1;
+            entranceActive = false;
+          }
+        }
+
+        // Rest cycles are 37 s (yaw) and 53 s (pitch) at 1×.
+        // A drifting white key light moves highlights across the physical surfaces.
+        const speedFactor = rotationSpeed / .16;
+        if (motionPlaying) {
+          key.position.x = -3.5 + Math.sin(motionElapsed * TAU / 47) * .7;
+          key.position.y = 4.5 + Math.cos(motionElapsed * TAU / 61) * .32;
+          key.position.z = 5 + Math.sin(motionElapsed * TAU / 43) * .24;
+        }
+        const restYaw = motionPlaying ? Math.sin(motionElapsed * TAU / 37 * speedFactor) * .16 : 0;
+        const restPitch = motionPlaying ? Math.sin(motionElapsed * TAU / 53 * speedFactor) * .095 : 0;
         sculpture.rotation.set(
-          viewRotation.x + (motionPlaying ? Math.sin(elapsed * .34) * .028 - pointer.y * .035 : 0),
-          viewRotation.y + rotationPhase + (motionPlaying ? pointer.x * .045 : 0),
-          viewRotation.z + (motionPlaying ? Math.sin(elapsed * .23) * .018 : 0)
+          viewRotation.x + restPitch + dragOffset.x - pointer.y * .028,
+          viewRotation.y + restYaw + dragOffset.y + pointer.x * .04,
+          viewRotation.z + (motionPlaying ? Math.sin(motionElapsed * TAU / 29) * .012 : 0)
         );
-        sculpture.position.y = motionPlaying ? Math.sin(elapsed * .58) * .045 : 0;
+        sculpture.position.y = motionPlaying ? Math.sin(motionElapsed * TAU / 8.4) * .045 : 0;
+        sculpture.scale.setScalar(sculptureBaseScale * entranceScale);
 
         renderer.render(scene, camera);
         revealCanvasWhenDrawn();
@@ -1119,6 +1366,7 @@
 
       if (motionToggle) {
         motionToggle.addEventListener("click", () => {
+          if (reducedMotion) return;
           motionPlaying = !motionPlaying;
           timer.reset();
           if (hasActiveAnimation()) startLoop();
@@ -1150,6 +1398,9 @@
         };
         rotationPhase = 0;
         activeView = nextView;
+        dragOffset.x = 0; dragOffset.y = 0;
+        drag.velocityX = 0; drag.velocityY = 0;
+        dragGliding = false; dragReturning = false;
         targetViewRotation = { x: preset.x, y: preset.y, z: preset.z };
         targetCameraZ = preset.cameraZ;
         viewTransitionActive = !reducedMotion;
@@ -1179,6 +1430,9 @@
           };
           rotationPhase = 0;
           activeView = "front";
+          dragOffset.x = 0; dragOffset.y = 0;
+          drag.velocityX = 0; drag.velocityY = 0;
+          dragGliding = false; dragReturning = false;
           targetViewRotation = { ...viewPresets.front };
           targetCameraZ = viewPresets.front.cameraZ;
           viewTransitionActive = !reducedMotion;
@@ -1268,10 +1522,8 @@
       }
 
       if (stage.hasAttribute("data-sculpture-stage")) {
-        const drag = { active: false, pointerId: null, x: 0, y: 0 };
         stage.style.touchAction = "pan-y";
         stage.style.cursor = "grab";
-
         stage.addEventListener("pointerdown", event => {
           if (event.pointerType === "mouse" && event.button !== 0) return;
           if (event.target.closest("button, a")) return;
@@ -1279,18 +1531,15 @@
           drag.pointerId = event.pointerId;
           drag.x = event.clientX;
           drag.y = event.clientY;
-
-          viewRotation = {
-            x: sculpture.rotation.x,
-            y: sculpture.rotation.y,
-            z: sculpture.rotation.z
-          };
-          targetViewRotation = { ...viewRotation };
+          drag.lastTime = performance.now();
+          drag.velocityX = 0;
+          drag.velocityY = 0;
+          dragGliding = false;
+          dragReturning = false;
           targetCameraZ = camera.position.z / cameraFramingScale;
           rotationPhase = 0;
           viewTransitionActive = false;
           activeView = "custom";
-          motionPlaying = false;
           pointer.targetX = 0;
           pointer.targetY = 0;
           stage.classList.remove("is-view-transitioning");
@@ -1298,34 +1547,46 @@
           stage.style.cursor = "grabbing";
           if (stage.setPointerCapture) stage.setPointerCapture(event.pointerId);
           updateMotionControls();
-          if (hasActiveAnimation()) startLoop();
-          else stopLoop();
+          startLoop();
         });
 
         stage.addEventListener("pointermove", event => {
           if (drag.active && drag.pointerId === event.pointerId) {
+            const now = performance.now();
+            const sampleDelta = Math.max(.008, Math.min(.08, (now - drag.lastTime) / 1000 || .016));
             const deltaX = event.clientX - drag.x;
             const deltaY = event.clientY - drag.y;
             drag.x = event.clientX;
             drag.y = event.clientY;
-            viewRotation.y += deltaX * .009;
-            viewRotation.x = Math.max(-1.05, Math.min(1.05, viewRotation.x + deltaY * .008));
-            targetViewRotation = { ...viewRotation };
-            activeView = "custom";
-            sculpture.rotation.set(viewRotation.x, viewRotation.y, viewRotation.z);
-            sculpture.position.y = 0;
-            renderer.render(scene, camera);
+            drag.lastTime = now;
+            const pitchDelta = deltaY * .008;
+            const yawDelta = deltaX * .009;
+            dragOffset.x = Math.max(-1.15, Math.min(1.15, dragOffset.x + pitchDelta));
+            dragOffset.y += yawDelta;
+            if (!reducedMotion) {
+              const pitchVelocity = pitchDelta / sampleDelta;
+              const yawVelocity = yawDelta / sampleDelta;
+              drag.velocityX = Math.max(-2.8, Math.min(2.8, pitchVelocity * .34 + drag.velocityX * .66));
+              drag.velocityY = Math.max(-2.8, Math.min(2.8, yawVelocity * .34 + drag.velocityY * .66));
+              startLoop();
+            } else {
+              sculpture.rotation.set(viewRotation.x + dragOffset.x, viewRotation.y + dragOffset.y, viewRotation.z);
+              renderer.render(scene, camera);
+            }
             return;
           }
           if (finePointer && !reducedMotion) {
             const rect = stage.getBoundingClientRect();
             pointer.targetX = ((event.clientX - rect.left) / rect.width - .5) * 2;
             pointer.targetY = ((event.clientY - rect.top) / rect.height - .5) * 2;
+            parallaxActive = true;
+            startLoop();
           }
         }, { passive: true });
 
         const finishDrag = event => {
           if (!drag.active || (event && event.pointerId !== drag.pointerId)) return;
+          const cancelled = event?.type === "pointercancel";
           drag.active = false;
           drag.pointerId = null;
           stage.classList.remove("is-dragging");
@@ -1333,9 +1594,20 @@
           if (stage.hasPointerCapture && stage.hasPointerCapture(event.pointerId)) {
             stage.releasePointerCapture(event.pointerId);
           }
+          if (!reducedMotion && !cancelled) {
+            dragGliding = Math.hypot(drag.velocityX, drag.velocityY) > .035;
+            dragReturning = !dragGliding && (Math.abs(dragOffset.x) > .001 || Math.abs(dragOffset.y) > .001);
+            dragReturnVelocityX = 0;
+            dragReturnVelocityY = 0;
+          } else {
+            drag.velocityX = 0;
+            drag.velocityY = 0;
+            dragGliding = false;
+            dragReturning = false;
+          }
           updateMotionControls();
           if (hasActiveAnimation()) startLoop();
-          renderer.render(scene, camera);
+          else renderer.render(scene, camera);
         };
         stage.addEventListener("pointerup", finishDrag);
         stage.addEventListener("pointercancel", finishDrag);
@@ -1344,6 +1616,7 @@
           if (!drag.active) {
             pointer.targetX = 0;
             pointer.targetY = 0;
+            if (parallaxActive) startLoop();
           }
         }, { passive: true });
       } else if (finePointer && !reducedMotion) {
