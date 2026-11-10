@@ -19,7 +19,6 @@
   let scene;
   let camera;
   let rig;
-  let orbitGroup;
   let previousTime = 0;
   const pointer = { x: 0, y: 0, targetX: 0, targetY: 0 };
 
@@ -103,13 +102,17 @@
 
   // A broad, softly cambered shell swept along a curve. Unlike a tube,
   // the surface has a readable front face, folded edges and a changing width.
+  // A thick, cambered shell with a controlled ridge through its face.
+  // The relief gives the material a folded, formed-metal / optical-glass reading.
   const makeFoldedRibbonGeometry = (THREE, coordinates, width, options = {}) => {
-    const segments = options.segments || 160;
-    const across = options.across || 24;
-    const twist = options.twist || 0;
-    const thickness = options.thickness || .025;
-    const camber = options.camber || .06;
-    const taper = options.taper || .72;
+    const segments = options.segments || 192;
+    const across = options.across || 32;
+    const twist = options.twist ?? 0;
+    const thickness = options.thickness ?? .05;
+    const camber = options.camber ?? .12;
+    const taper = options.taper ?? .62;
+    const fold = options.fold ?? .08;
+    const phase = options.phase ?? 0;
     const curve = new THREE.CatmullRomCurve3(
       coordinates.map(([x, y, z]) => new THREE.Vector3(x, y, z)),
       false,
@@ -129,17 +132,26 @@
       const tangent = frames.tangents[i];
       const side = frames.normals[i].clone().applyAxisAngle(
         tangent,
-        twist * Math.sin(Math.PI * 2 * u)
+        twist * Math.sin(Math.PI * 2 * u + phase)
       ).normalize();
       const depth = tangent.clone().cross(side).normalize();
       const center = curve.getPointAt(u);
-      const widthProfile = Math.pow(Math.max(0, Math.sin(Math.PI * u)), taper)
-        * (1 + .1 * Math.sin(Math.PI * 2 * u + twist));
+      const endTaper = Math.pow(Math.max(0, Math.sin(Math.PI * u)), taper);
+      const widthPulse = 1 + .055 * Math.sin(Math.PI * 2 * u + phase);
+
       for (let j = 0; j < columns; j += 1) {
         const v = j / across;
         const acrossValue = v * 2 - 1;
-        const point = center.clone().addScaledVector(side, acrossValue * width * widthProfile);
-        point.addScaledVector(depth, camber * (1 - acrossValue * acrossValue) * Math.sin(Math.PI * u));
+        const centerRidge = fold * Math.pow(Math.max(0, 1 - Math.abs(acrossValue)), 2);
+        const edgeRoll = .018 * Math.pow(Math.abs(acrossValue), 3);
+        const point = center.clone().addScaledVector(
+          side,
+          acrossValue * width * endTaper * widthPulse
+        );
+        const relief = (
+          camber * (1 - acrossValue * acrossValue) + centerRidge - edgeRoll
+        ) * Math.sin(Math.PI * u);
+        point.addScaledVector(depth, relief);
         const frontPoint = point.clone().addScaledVector(depth, thickness * .5);
         const backPoint = point.clone().addScaledVector(depth, -thickness * .5);
         front.push(frontPoint.x, frontPoint.y, frontPoint.z);
@@ -318,103 +330,93 @@
       envMapIntensity: 2.25
     }));
 
-    // FORM STUDY 002: a folded glass object with broad, overlapping surfaces.
-    // Its silhouette is built from leaves and a metal inlay, not circular links.
+    // SCULPTURE 004 — THE RIFT
+    // Two thick opposing shells form one silhouette around a deliberate aperture.
+    // A broad chrome seam follows the front fold; a faceted crystal sits in the void.
     const glassPetalMaterial = glass.clone();
-    glassPetalMaterial.color.setHex(0x9c8bd7);
-    glassPetalMaterial.transmission = .84;
-    glassPetalMaterial.roughness = .075;
-    glassPetalMaterial.thickness = .72;
+    glassPetalMaterial.color.setHex(0x9b8bd3);
+    glassPetalMaterial.transmission = .78;
+    glassPetalMaterial.roughness = .068;
+    glassPetalMaterial.thickness = 1.18;
     glassPetalMaterial.side = THREE.DoubleSide;
     track(glassPetalMaterial);
 
     const pearlPetalMaterial = pearlMaterial.clone();
-    pearlPetalMaterial.color.setHex(0xc7dce5);
-    pearlPetalMaterial.metalness = .14;
-    pearlPetalMaterial.roughness = .19;
-    pearlPetalMaterial.transmission = .24;
+    pearlPetalMaterial.color.setHex(0xd1d8e4);
+    pearlPetalMaterial.metalness = .28;
+    pearlPetalMaterial.roughness = .22;
+    pearlPetalMaterial.transmission = .12;
     pearlPetalMaterial.side = THREE.DoubleSide;
     track(pearlPetalMaterial);
 
+    // Front shell: the lower left sweep turns toward the upper centre.
     const mainPetalGeometry = track(makeFoldedRibbonGeometry(THREE, [
-      [-.18, -1.02, -.18],
-      [-.48, -.62, -.12],
-      [-.4, -.08, .02],
-      [-.08, .43, .16],
-      [.36, .96, .1]
-    ], .67, { twist: .62, thickness: .035, camber: .12, taper: .64 }));
+      [-.78, -1.02, .12],
+      [-.82, -.54, .2],
+      [-.43, -.04, .27],
+      [.12, .28, .12],
+      [.61, .68, -.08],
+      [.4, 1.08, -.24]
+    ], .72, {
+      twist: .94, thickness: .082, camber: .19, taper: .55,
+      fold: .105, phase: .22
+    }));
     const mainPetal = new THREE.Mesh(mainPetalGeometry, glassPetalMaterial);
-    mainPetal.rotation.set(.04, -.12, -.08);
+    mainPetal.rotation.set(.035, -.16, -.075);
     sculpture.add(mainPetal);
 
+    // Rear shell turns in the opposite direction and frames the central opening.
     const rearPetalGeometry = track(makeFoldedRibbonGeometry(THREE, [
-      [.12, -.82, -.48],
-      [.48, -.42, -.36],
-      [.3, .03, -.28],
-      [.18, .46, -.12],
-      [.54, .86, -.04]
-    ], .39, { twist: -.82, thickness: .026, camber: .085, taper: .72 }));
+      [.78, -.9, -.38],
+      [.53, -.48, -.25],
+      [.08, -.08, -.1],
+      [-.36, .3, .1],
+      [-.16, .74, .28],
+      [.5, 1.03, .2]
+    ], .49, {
+      twist: -.88, thickness: .068, camber: .145, taper: .59,
+      fold: .075, phase: -.3
+    }));
     const rearPetal = new THREE.Mesh(rearPetalGeometry, pearlPetalMaterial);
-    rearPetal.rotation.set(-.08, .12, .1);
+    rearPetal.rotation.set(-.075, .2, .105);
     sculpture.add(rearPetal);
 
-    // A single wide chrome inlay follows the fold of the glass instead of
-    // crossing the sculpture as a thin cylindrical rod.
+    // A wide chrome inlay follows the front fold as a structural seam.
     const chromeBladeGeometry = track(makeFoldedRibbonGeometry(THREE, [
-      [-.88, -.9, .36],
-      [-.62, -.48, .43],
-      [-.28, -.04, .39],
-      [.12, .38, .31],
-      [.56, .75, .16],
-      [.96, .84, .04]
-    ], .105, { twist: .35, thickness: .032, camber: .025, taper: .82 }));
-    const chromeBlade = new THREE.Mesh(chromeBladeGeometry, chrome);
+      [-.92, -.94, .43],
+      [-.61, -.53, .49],
+      [-.2, -.12, .43],
+      [.28, .2, .29],
+      [.69, .59, .08],
+      [.94, .91, -.06]
+    ], .145, {
+      twist: .28, thickness: .06, camber: .04, taper: .78,
+      fold: .018, phase: .12
+    }));
+    const chromeBlade = new THREE.Mesh(chromeBladeGeometry, silver);
     sculpture.add(chromeBlade);
 
-    const coreGeometry = track(new THREE.OctahedronGeometry(.235, 1));
+    // One crisp crystal is seated in the negative space, not floating around it.
+    const coreGeometry = track(new THREE.OctahedronGeometry(.255, 0));
     const coreMaterial = track(new THREE.MeshPhysicalMaterial({
-      color: 0xe8f7fb,
-      metalness: .28,
-      roughness: .13,
+      color: 0xe5f4f4,
+      metalness: .34,
+      roughness: .105,
       clearcoat: 1,
-      clearcoatRoughness: .025,
-      iridescence: .2,
+      clearcoatRoughness: .02,
+      iridescence: .24,
       iridescenceIOR: 1.32,
       iridescenceThicknessMinimum: 190,
-      iridescenceThicknessMaximum: 520,
-      emissive: 0x244c5a,
-      emissiveIntensity: .16,
-      envMapIntensity: 2
+      iridescenceThicknessMaximum: 540,
+      emissive: 0x29465a,
+      emissiveIntensity: .13,
+      envMapIntensity: 2.1
     }));
     const core = new THREE.Mesh(coreGeometry, coreMaterial);
-    core.position.set(.06, -.02, .44);
-    core.rotation.set(.22, .38, -.24);
+    core.position.set(.035, -.015, .54);
+    core.scale.set(.76, 1.22, .72);
+    core.rotation.set(.16, .42, -.22);
     sculpture.add(core);
-
-    // Small facets sit close to the main form, like chips from the same material.
-    orbitGroup = new THREE.Group();
-    scene.add(orbitGroup);
-    const fragmentGeometry = track(new THREE.TetrahedronGeometry(.105, 0));
-    const fragmentSmallGeometry = track(new THREE.OctahedronGeometry(.075, 0));
-    const fragments = [
-      { geometry: fragmentGeometry, material: pearlMaterial, position: [.9, .63, .02], rotation: [.3, .1, -.25], speed: .16 },
-      { geometry: fragmentSmallGeometry, material: chrome, position: [-.88, -.48, .22], rotation: [.2, -.4, .15], speed: -.21 },
-      { geometry: fragmentGeometry, material: glassPetalMaterial, position: [.76, -.86, -.16], rotation: [-.3, .2, .4], speed: .12 }
-    ];
-    fragments.forEach(fragment => {
-      const mesh = new THREE.Mesh(fragment.geometry, fragment.material);
-      mesh.position.set(...fragment.position);
-      mesh.rotation.set(...fragment.rotation);
-      mesh.userData.spin = fragment.speed;
-      orbitGroup.add(mesh);
-    });
-
-    const glint = new THREE.Mesh(
-      track(new THREE.SphereGeometry(.028, 20, 16)),
-      track(new THREE.MeshBasicMaterial({ color: 0xa6f3f8, toneMapped: false }))
-    );
-    glint.position.set(1.05, -.1, .3);
-    orbitGroup.add(glint);
     return { sculpture };
   };
 
@@ -438,18 +440,10 @@
 
     pointer.x += (pointer.targetX - pointer.x) * .045;
     pointer.y += (pointer.targetY - pointer.y) * .045;
-    if (!reducedMotion && rig && orbitGroup) {
-      rig.rotation.y += delta * .045;
-      rig.rotation.x = -.02 + Math.sin(time * .00027) * .026 + pointer.y * .045;
-      rig.rotation.y += pointer.x * .0011;
-      orbitGroup.rotation.z += delta * -.012;
-      orbitGroup.rotation.y = Math.sin(time * .00018) * .07;
-      orbitGroup.children.forEach(fragment => {
-        if (fragment.userData.spin) {
-          fragment.rotation.x += delta * fragment.userData.spin;
-          fragment.rotation.y += delta * fragment.userData.spin * .72;
-        }
-      });
+    if (!reducedMotion && rig) {
+      rig.rotation.y += delta * .026;
+      rig.rotation.x = -.035 + Math.sin(time * .00024) * .022 + pointer.y * .04;
+      rig.rotation.z = pointer.x * -.025;
     }
 
     renderer.render(scene, camera);
