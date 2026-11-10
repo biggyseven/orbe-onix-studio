@@ -202,7 +202,8 @@
       clearcoatRoughness: .025,
       iridescence: .055,
       iridescenceIOR: 1.3,
-      iridescenceThicknessRange: [300, 440],
+      iridescenceThicknessMinimum: 300,
+      iridescenceThicknessMaximum: 440,
       envMapIntensity: 2.2
     }));
 
@@ -219,7 +220,8 @@
       attenuationDistance: .9,
       iridescence: .14,
       iridescenceIOR: 1.32,
-      iridescenceThicknessRange: [175, 470],
+      iridescenceThicknessMinimum: 175,
+      iridescenceThicknessMaximum: 470,
       sheen: .09,
       sheenColor: new THREE.Color(0xb8a8f0),
       sheenRoughness: .35,
@@ -234,7 +236,8 @@
       clearcoatRoughness: .055,
       iridescence: .12,
       iridescenceIOR: 1.3,
-      iridescenceThicknessRange: [210, 440],
+      iridescenceThicknessMinimum: 210,
+      iridescenceThicknessMaximum: 440,
       sheen: .07,
       sheenColor: new THREE.Color(0xcfc5ff),
       sheenRoughness: .4,
