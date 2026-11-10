@@ -32,3 +32,9 @@
 - Increased renderer pixel density and knot geometry detail; added brighter studio reflection panels for sharper material highlights.
 - Reworked the three Field instrument cards for stronger surface contrast, a light typographic specimen, and a single clean animated orbit.
 - Corrected the Lab study CTA and strengthened active/inactive button states.
+
+
+## 0.2.1 — Lab orbit and motion framing
+- Increased the main sculpture's orbital guide speed and added a restrained secondary tilt so the rings read as moving again.
+- Rebuilt the third Field instrument with two complete, smaller elliptical rings; removed the clipping mask and preserved safe margins inside the card.
+- Refreshed the Lab asset cache key for the orbit correction.
