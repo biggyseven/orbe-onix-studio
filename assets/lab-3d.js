@@ -15,6 +15,24 @@ if(host){
   renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.12;
   const scene=new THREE.Scene(),camera=new THREE.PerspectiveCamera(34,1,.1,40);
   camera.position.set(0,0,4.65);
+
+  // Procedural studio environment: bright softboxes give glass and metal readable reflections.
+  const envCanvas=document.createElement('canvas');
+  envCanvas.width=1024;envCanvas.height=512;
+  const envCtx=envCanvas.getContext('2d');
+  const envGradient=envCtx.createLinearGradient(0,0,0,512);
+  envGradient.addColorStop(0,'#293044');envGradient.addColorStop(.48,'#11131d');envGradient.addColorStop(1,'#3a2c4b');
+  envCtx.fillStyle=envGradient;envCtx.fillRect(0,0,1024,512);
+  const softbox=(x,y,rx,ry,color)=>{const g=envCtx.createRadialGradient(x,y,2,x,y,rx);g.addColorStop(0,color);g.addColorStop(1,'rgba(0,0,0,0)');envCtx.save();envCtx.scale(1,ry/rx);envCtx.fillStyle=g;envCtx.beginPath();envCtx.arc(x,y*rx/ry,rx,0,Math.PI*2);envCtx.fill();envCtx.restore();};
+  softbox(220,170,175,80,'rgba(232,224,255,.95)');
+  softbox(730,205,190,95,'rgba(94,211,239,.78)');
+  softbox(500,65,130,60,'rgba(255,224,194,.62)');
+  softbox(850,410,190,90,'rgba(162,128,236,.7)');
+  const environment=new THREE.CanvasTexture(envCanvas);
+  environment.mapping=THREE.EquirectangularReflectionMapping;
+  environment.colorSpace=THREE.SRGBColorSpace;
+  scene.environment=environment;scene.environmentIntensity=1.15;
+
   scene.add(new THREE.HemisphereLight(0xe8e0ff,0x17121e,1.45));
   const key=new THREE.DirectionalLight(0xffffff,3.2);key.position.set(-3.2,3.5,4);scene.add(key);
   const lilac=new THREE.PointLight(0xb59aff,26,9,2);lilac.position.set(2.8,.8,2);scene.add(lilac);
@@ -48,11 +66,11 @@ if(host){
   document.addEventListener('visibilitychange',()=>document.hidden?stop():start());
   reduced.addEventListener('change',()=>reduced.matches?(stop(),render()):start());
   host.addEventListener('pointerdown',e=>{drag=true;px=e.clientX;py=e.clientY;host.setPointerCapture?.(e.pointerId);});
-  host.addEventListener('pointermove',e=>{if(!drag||reduced.matches)return;ry+=(e.clientX-px)*.008;rx=Math.max(-.72,Math.min(.72,rx+(e.clientY-py)*.006));px=e.clientX;py=e.clientY;});
+  host.addEventListener('pointermove',e=>{if(!drag)return;ry+=(e.clientX-px)*.008;rx=Math.max(-.72,Math.min(.72,rx+(e.clientY-py)*.006));px=e.clientX;py=e.clientY;if(reduced.matches)render();});
   ['pointerup','pointercancel','lostpointercapture'].forEach(t=>host.addEventListener(t,()=>drag=false));
   new ResizeObserver(resize).observe(host);host.classList.add('has-webgl');
   const active=document.querySelector('[data-material][aria-pressed="true"]')?.dataset.material||host.dataset.materialStage||'glass';
   if(materials[active])knot.material=materials[active];resize();start();
-  addEventListener('pagehide',()=>{stop();io.disconnect();geometry.dispose();renderer.dispose();},{once:true});
+  addEventListener('pagehide',()=>{stop();io.disconnect();geometry.dispose();renderer.dispose();environment.dispose();},{once:true});
  }).catch(e=>{fallback();console.warn('[Lab 3D] Module indisponible; CSS fallback retained.',e);});
 }
