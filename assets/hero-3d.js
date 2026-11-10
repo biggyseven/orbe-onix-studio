@@ -78,6 +78,13 @@
       renderer.dispose();
       renderer = null;
     }
+    resources.splice(0).forEach(resource => {
+      if (resource && typeof resource.dispose === "function") {
+        try { resource.dispose(); } catch (disposeError) {
+          debug3D("fallback-dispose-warning", { error: errorText(disposeError) });
+        }
+      }
+    });
     if (animationFrame) cancelAnimationFrame(animationFrame);
     animationFrame = 0;
   };
