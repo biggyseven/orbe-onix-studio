@@ -1,34 +1,47 @@
 # ORBE & ONIX — Finalisation et qualité
 
+Ce document distingue ce qui est déjà intégré de ce qui doit encore être vérifié avant de considérer la vitrine comme prête à présenter.
+
 ## Socle public
-- [x] Site statique multi-pages publié sur GitHub Pages.
-- [x] Identité SVG, système typographique et palette cohérente.
+- [x] Site statique multi-pages et déploiement GitHub Pages.
+- [x] Identité SVG, système typographique, palette et composants partagés.
 - [x] Pages Accueil, Travaux, Services, Studio, Lab, Contact et études de cas.
-- [x] Trois concepts indépendants clairement identifiés.
-- [x] Navigation mobile, filtres portfolio et expériences interactives locales.
-- [x] Respect de la préférence de mouvement réduit dans les animations principales.
-- [ ] Vérification physique sur plusieurs mobiles et navigateurs.
+- [x] Navigation mobile, filtres du portfolio et interactions locales.
+- [x] Prise en compte de `prefers-reduced-motion` dans les animations principales.
+- [ ] Revue visuelle réelle sur mobile, tablette et ordinateur.
+- [ ] Contrôle clavier, focus visibles, contrastes et lisibilité.
 
-## Conception des pages Travaux et Services
-- [x] Proposition desktop et mobile documentée dans docs/WORK_SERVICES_DESIGN.md.
-- [x] Filtres, cartes, études de cas, livrables, limites, processus et FAQ définis.
-- [x] Concepts indépendants et limites du brief de contact explicitement préservés.
-- [ ] Arbitrer les points commerciaux avant intégration.
-- [ ] Intégrer les évolutions visuelles et éditoriales dans work.html, project.html et services.html.
-- [ ] Vérifier les pages sur appareils réels après intégration.
+## Travaux, Services et études de cas
+- [x] Archive des trois concepts avec filtres et périmètres explorés.
+- [x] Quatre familles de services, livrables, limites, processus et FAQ.
+- [x] Études de cas adaptées à NAYA HOUSE, FORME et FLOWSTATE.
+- [x] Prototypes locaux présentés comme démonstrations, sans prétendre à des fonctions connectées.
+- [ ] Revue visuelle finale de ces pages sur plusieurs largeurs d'écran.
+- [ ] Vérifier les textes, liens et appels à l'action dans un parcours complet visiteur.
 
-## Fonctionnalités et limites
+## Fonctionnalités et transparence
 - [x] NAYA HOUSE : changement de scènes et résumé de séjour local, sans disponibilité ni réservation.
 - [x] FORME : sélection locale d'objets, sans commande ni paiement.
 - [x] FLOWSTATE : navigation entre vues et synchronisation des tâches en mémoire de page.
-- [x] Formulaire de contact : validation et génération/copie d'un brief dans le navigateur.
-- [ ] Relier le formulaire à une adresse ou un service de réception confirmé par le propriétaire.
-- [ ] Ajouter une protection anti-spam si une réception serveur est activée.
+- [x] Contact : validation et génération d'un brief copiable dans le navigateur.
+- [ ] Choisir et confirmer le canal réel de réception des demandes (adresse e-mail ou service externe).
+- [ ] Si une réception serveur est ajoutée plus tard, configurer et tester sa protection anti-spam.
 
-## Qualité
-- [x] Contrôles automatiques de structure, liens, repères HTML et intégrité CSS à chaque publication.
-- [ ] Audit clavier et contraste.
-- [ ] Vérification manuelle des mises en page sur appareils réels.
+## VESPERA et prototypes exposables
+- [x] VESPERA 2.0 conservée comme référence de comparaison.
+- [x] VESPERA 2.1 : relief, nuages, diffusion atmosphérique et bande d'ozone.
+- [x] Lune basée sur les textures NASA préparées localement et intégrées au dépôt.
+- [x] Orbite lunaire elliptique simplifiée, trajectoire discrète et rotation synchrone.
+- [x] Phases lunaires par éclairage solaire et faible lumière réfléchie par VESPERA.
+- [ ] Vérifier le rendu 2.1 sur ordinateur et mobile, y compris le chargement des textures et la console WebGL.
+- [ ] Décider séparément si VESPERA 2.1 devient la version montrée sur la page d'accueil.
+- [ ] Définir la sélection finale des prototypes à mettre en avant sur la vitrine.
 
-## À ne pas prétendre
-Aucun CRM, stockage de prospects, compte utilisateur, paiement, réservation, CMS ou service de messagerie n'est connecté dans cette version. Les concepts ne sont pas des missions clients livrées et leurs données sont fictives.
+## Livraison
+- [x] Contrôle automatique de structure, liens locaux, repères HTML et intégrité CSS dans le workflow.
+- [ ] Obtenir un résultat vert du contrôle sur la version finale de la branche.
+- [ ] Faire la revue finale de la version publiée avant toute mise à jour de `main`.
+- [ ] Ne fusionner ou publier les changements qu'après validation explicite.
+
+## Limites à conserver dans la communication
+Aucun CRM, stockage de prospects, compte utilisateur, paiement, réservation, CMS ou service de messagerie n'est connecté dans cette version. NAYA HOUSE, FORME et FLOWSTATE restent des concepts indépendants, pas des missions clients livrées. Les données des démonstrations sont fictives.
