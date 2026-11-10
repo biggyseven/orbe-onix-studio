@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Face 3D — aperçu du projet</title>
+<script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
+<style>
+:root{color-scheme:dark}*{box-sizing:border-box}body{margin:0;background:#101318;color:#f3f4f6;font:16px/1.5 system-ui,sans-serif}
+main{max-width:1000px;margin:auto;padding:24px}h1{font-size:clamp(1.6rem,4vw,2.4rem);margin:.2em 0}p{color:#b8c0cc}
+.panel{background:#191f28;border:1px solid #303947;border-radius:18px;padding:18px;margin:18px 0}
+model-viewer{width:100%;height:min(68vh,620px);min-height:340px;background:radial-gradient(circle at 50% 35%,#303946,#151a22);border-radius:12px}
+.gallery{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}
+figure{margin:0;background:#11161d;border-radius:12px;overflow:hidden;border:1px solid #303947}
+figure img{width:100%;aspect-ratio:1/1;object-fit:cover;display:block}figcaption{padding:10px;color:#cbd5e1;font-size:.9rem}
+.badge{display:inline-block;border:1px solid #b58b45;color:#f2cf8d;padding:5px 10px;border-radius:99px;font-size:.8rem}
+.note{font-size:.9rem;color:#aeb8c6}
+</style>
+</head>
+<body><main>
+<span class="badge">PROJET EN CONSTRUCTION</span>
+<h1>Ton visage 3D · Football Life 27</h1>
+<p>Cette page est le lien de visualisation du projet. Les photos servent de références de sculpture. Le modèle 3D final sera affiché ici dès que le maillage aura été créé et contrôlé.</p>
+<section class="panel">
+<h2>Visualiseur 3D</h2>
+<model-viewer id="viewer" src="../model/face.glb" camera-controls auto-rotate rotation-per-second="15deg" shadow-intensity="1" exposure="1" environment-image="neutral" alt="Modèle 3D du visage en cours de création"></model-viewer>
+<p id="status" class="note" aria-live="polite">Le fichier 3D face.glb n'est pas encore disponible. Pour l'instant, consulte les références ci-dessous. Aucun visage générique n'est présenté comme étant le tien.</p>
+</section>
+<section class="panel">
+<h2>Photos de référence</h2>
+<div class="gallery">
+<figure><img src="../../20261110_221139.jpg" alt="Photo de référence de face"><figcaption>Vue de face</figcaption></figure>
+<figure><img src="../../20261110_221314.jpg" alt="Photo de référence trois-quarts"><figcaption>Vue trois-quarts</figcaption></figure>
+<figure><img src="../../20261110_221347.jpg" alt="Photo de référence de profil"><figcaption>Vue de profil</figcaption></figure>
+</div>
+</section>
+<p class="note">Cible de livraison : maillage 3D réel, UV et textures. L'intégration Football Life 27 sera validée séparément dans le jeu.</p>
+</main>
+<script>
+const mv=document.querySelector('model-viewer'),st=document.getElementById('status');
+mv.addEventListener('load',()=>{st.textContent='Modèle 3D chargé. Fais glisser pour tourner, pince pour zoomer.'});
+mv.addEventListener('error',()=>{st.textContent='Modèle 3D non encore publié : le fichier face.glb sera ajouté après la sculpture et la validation.'});
+</script></body></html>
