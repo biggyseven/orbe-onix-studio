@@ -28,3 +28,7 @@
 - Added accessible labels, live readouts, touch-sized controls and reduced-motion handling for the new Lab experiments.
 - Added a Three.js Torus Knot sculpture with glass, liquid-metal and veil material states, pointer rotation, responsive framing and CSS fallback.
 - Increased contrast across the Lab material stage, labels, choices and experiment controls.
+- Repositioned the Lab orbital guides behind the 3D sculpture and increased their depth-tested separation.
+- Increased renderer pixel density and knot geometry detail; added brighter studio reflection panels for sharper material highlights.
+- Reworked the three Field instrument cards for stronger surface contrast, a light typographic specimen, and a single clean animated orbit.
+- Corrected the Lab study CTA and strengthened active/inactive button states.
