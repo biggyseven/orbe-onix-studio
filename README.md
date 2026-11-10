@@ -45,7 +45,7 @@ Then visit `http://localhost:8000`.
 
 NAYA HOUSE, FORME and FLOWSTATE are **independent concept projects**, not client commissions. The studio is in its early public-building stage.
 
-The contact page currently generates a copyable brief in the browser. It does not transmit or store personal data. No contact API, CRM, payment flow, analytics, CMS or client portal is connected.
+The contact page prepares a prefilled email to orbeonix@gmail.com in the visitor's configured mail application. The visitor must review and send it; the site does not transmit or store form data. No contact API, CRM, payment flow, analytics, CMS or client portal is connected.
 
 ## Principles
 
