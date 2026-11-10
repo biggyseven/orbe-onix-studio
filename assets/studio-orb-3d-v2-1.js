@@ -364,8 +364,29 @@ export async function mountVespera(container) {
   moon.position.set(1.64, 0.0, 0.0);
   moon.rotation.y = -Math.PI / 2;
   moon.renderOrder = 3;
+
+  // A restrained orbital guide follows the same focus-offset ellipse as the Moon.
+  const orbitPoints = [];
+  for (let i = 0; i < 192; i++) {
+    const E = (i / 192) * Math.PI * 2;
+    orbitPoints.push(new THREE.Vector3(
+      1.64 * (Math.cos(E) - 0.055),
+      0.0,
+      1.64 * Math.sqrt(1 - 0.055 * 0.055) * Math.sin(E)
+    ));
+  }
+  const orbitGeometry = new THREE.BufferGeometry().setFromPoints(orbitPoints);
+  const orbitMaterial = new THREE.LineBasicMaterial({
+    color: 0x9b8bc8,
+    transparent: true,
+    opacity: 0.15,
+    depthWrite: false
+  });
+  const orbitGuide = new THREE.LineLoop(orbitGeometry, orbitMaterial);
+  orbitGuide.renderOrder = 2.5;
+
   moonOrbit.rotation.z = TILT * 0.40;
-  moonOrbit.add(moon);
+  moonOrbit.add(orbitGuide, moon);
   clouds.renderOrder = 1; atmo.renderOrder = 2;
   planet.rotation.y = 0.35;
   system.add(planet, clouds); scene.add(system, atmo, moonOrbit);
