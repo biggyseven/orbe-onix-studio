@@ -69,7 +69,7 @@ if(host){
   const render=()=>renderer.render(scene,camera);
   const resize=()=>{w=Math.max(1,host.clientWidth);h=Math.max(1,host.clientHeight);renderer.setSize(w,h,false);camera.aspect=w/h;camera.position.z=w<560?5.35:5.05;camera.updateProjectionMatrix();render();};
   const frame=now=>{if(!running)return;const dt=Math.min(.05,(now-last)/1000);last=now;elapsed+=dt;
-   if(!reduced.matches){if(!drag)ry+=.045*dt;sculpture.rotation.y+=(ry-sculpture.rotation.y)*Math.min(1,dt*3);sculpture.rotation.x+=(rx-sculpture.rotation.x)*Math.min(1,dt*3);knot.rotation.z=Math.sin(elapsed*.32)*.07;core.rotation.y-=.24*dt;orbitRig.rotation.z+=.018*dt;}
+   if(!reduced.matches){if(!drag)ry+=.045*dt;sculpture.rotation.y+=(ry-sculpture.rotation.y)*Math.min(1,dt*3);sculpture.rotation.x+=(rx-sculpture.rotation.x)*Math.min(1,dt*3);knot.rotation.z=Math.sin(elapsed*.32)*.07;core.rotation.y-=.24*dt;orbitRig.rotation.z+=.12*dt;orbitRig.rotation.x=Math.sin(elapsed*.18)*.045;}
    render();raf=requestAnimationFrame(frame);
   };
   const start=()=>{if(running)return;render();if(reduced.matches)return;running=true;last=performance.now();raf=requestAnimationFrame(frame);};
