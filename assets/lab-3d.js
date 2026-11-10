@@ -68,6 +68,17 @@ if(host){
   host.addEventListener('pointerdown',e=>{drag=true;px=e.clientX;py=e.clientY;host.setPointerCapture?.(e.pointerId);});
   host.addEventListener('pointermove',e=>{if(!drag)return;ry+=(e.clientX-px)*.008;rx=Math.max(-.72,Math.min(.72,rx+(e.clientY-py)*.006));px=e.clientX;py=e.clientY;if(reduced.matches)render();});
   ['pointerup','pointercancel','lostpointercapture'].forEach(t=>host.addEventListener(t,()=>drag=false));
+  host.addEventListener('keydown',event=>{
+   const step=.12;
+   if(event.key==='ArrowLeft')ry-=step;
+   else if(event.key==='ArrowRight')ry+=step;
+   else if(event.key==='ArrowUp')rx=Math.max(-.72,rx-step);
+   else if(event.key==='ArrowDown')rx=Math.min(.72,rx+step);
+   else return;
+   event.preventDefault();
+   if(reduced.matches)render();
+  });
+
   new ResizeObserver(resize).observe(host);host.classList.add('has-webgl');
   const active=document.querySelector('[data-material][aria-pressed="true"]')?.dataset.material||host.dataset.materialStage||'glass';
   if(materials[active])knot.material=materials[active];resize();start();
