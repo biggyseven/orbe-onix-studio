@@ -125,6 +125,7 @@
     const key = button.dataset.material;
     if (!materialCopy[key] || !materialStage) return;
     materialStage.dataset.materialStage = key;
+    materialStage.dispatchEvent(new CustomEvent('lab:materialchange', { detail: { material: key } }));
     materialButtons.forEach(item => item.setAttribute('aria-pressed', String(item === button)));
     if (materialName) materialName.textContent = materialCopy[key][0];
     if (materialDescription) materialDescription.textContent = materialCopy[key][1];
