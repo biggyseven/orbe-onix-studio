@@ -101,24 +101,12 @@
     return texture;
   };
 
-  const makeLoop = (THREE, radius, depth, phase, irregularity) => {
-    const points = [];
-    const samples = 96;
-    for (let index = 0; index < samples; index += 1) {
-      const angle = index / samples * Math.PI * 2;
-      const radial = 1
-        + irregularity * Math.sin(angle * 3 + phase)
-        + irregularity * .34 * Math.cos(angle * 5 - phase);
-      const z = depth * Math.sin(angle * 2 + phase)
-        + depth * .24 * Math.sin(angle * 3 - phase * .7);
-      points.push(new THREE.Vector3(
-        Math.cos(angle) * radius * radial,
-        Math.sin(angle) * radius * radial,
-        z
-      ));
-    }
-    return new THREE.CatmullRomCurve3(points, true, "centripetal", .36);
-  };
+  const makeOpenCurve = (THREE, coordinates) => new THREE.CatmullRomCurve3(
+    coordinates.map(([x, y, z]) => new THREE.Vector3(x, y, z)),
+    false,
+    "centripetal",
+    .42
+  );
 
   const buildScene = THREE => {
     scene = new THREE.Scene();
@@ -255,68 +243,94 @@
       envMapIntensity: 2.25
     }));
 
-    const chromeCurve = makeLoop(THREE, 1.12, .25, -.3, .027);
-    const chromeGeometry = track(new THREE.TubeGeometry(chromeCurve, 360, .145, 28, true));
-    const chromeRing = new THREE.Mesh(chromeGeometry, chrome);
-    chromeRing.rotation.set(1.02, .26, -.24);
-    chromeRing.position.z = .22;
-    sculpture.add(chromeRing);
+    // FORM STUDY 002: a faceted glass monolith, not another interlocking loop.
+    const prismGeometry = track(new THREE.CylinderGeometry(.13, .66, 1.72, 5, 1, false));
+    const prism = new THREE.Mesh(prismGeometry, glass);
+    prism.position.set(-.02, .02, -.04);
+    prism.rotation.set(.12, .42, -.16);
+    prism.scale.set(.82, 1.08, .74);
+    sculpture.add(prism);
 
-    const glassCurve = makeLoop(THREE, .98, .3, 1.35, .04);
-    const glassGeometry = track(new THREE.TubeGeometry(glassCurve, 360, .19, 32, true));
-    const glassRing = new THREE.Mesh(glassGeometry, glass);
-    glassRing.rotation.set(-.68, .7, .48);
-    glassRing.position.z = -.42;
-    glassRing.scale.setScalar(1.04);
-    sculpture.add(glassRing);
-
-    const bridgeCurve = makeLoop(THREE, .78, .18, .75, .03);
-    const bridgeGeometry = track(new THREE.TubeGeometry(bridgeCurve, 320, .062, 24, true));
-    const bridge = new THREE.Mesh(bridgeGeometry, silver);
-    bridge.rotation.set(.38, -.88, .22);
-    bridge.scale.set(1.1, .78, 1);
-    sculpture.add(bridge);
-
-    const pearlGeometry = track(new THREE.SphereGeometry(.19, 72, 52));
-    const pearl = new THREE.Mesh(pearlGeometry, pearlMaterial);
-    pearl.position.set(-.08, .08, .08);
-    sculpture.add(pearl);
-
-    const orbitMaterial = track(new THREE.MeshBasicMaterial({
-      color: 0xcfc8ea,
+    // Fine metallic edges make the crystal's cut planes legible in studio light.
+    const edgeGeometry = track(new THREE.EdgesGeometry(prismGeometry, 8));
+    const edgeMaterial = track(new THREE.LineBasicMaterial({
+      color: 0xf1edff,
       transparent: true,
-      opacity: .68,
-      toneMapped: false
+      opacity: .48
     }));
-    const orbitAccentMaterial = track(new THREE.MeshBasicMaterial({
-      color: 0x58c4cf,
-      transparent: true,
-      opacity: .76,
-      toneMapped: false
+    const prismEdges = new THREE.LineSegments(edgeGeometry, edgeMaterial);
+    prismEdges.position.copy(prism.position);
+    prismEdges.rotation.copy(prism.rotation);
+    prismEdges.scale.copy(prism.scale);
+    sculpture.add(prismEdges);
+
+    // Two open, swept chrome blades cross the monolith at different depths.
+    const bladeCurveA = makeOpenCurve(THREE, [
+      [-1.05, -.94, .42], [-.78, -.42, .72], [-.42, .08, .55],
+      [-.08, .56, .18], [.42, .98, -.12], [.88, 1.06, -.26]
+    ]);
+    const bladeA = new THREE.Mesh(
+      track(new THREE.TubeGeometry(bladeCurveA, 220, .052, 18, false)),
+      chrome
+    );
+    bladeA.rotation.z = -.06;
+    sculpture.add(bladeA);
+
+    const bladeCurveB = makeOpenCurve(THREE, [
+      [1.02, -.84, -.38], [.75, -.45, -.62], [.32, -.06, -.68],
+      [-.1, .32, -.52], [-.48, .72, -.12], [-.68, 1.08, .2]
+    ]);
+    const bladeB = new THREE.Mesh(
+      track(new THREE.TubeGeometry(bladeCurveB, 220, .035, 16, false)),
+      silver
+    );
+    sculpture.add(bladeB);
+
+    // A smaller luminous crystal sits inside the glass body, offset from its axis.
+    const innerGeometry = track(new THREE.OctahedronGeometry(.29, 0));
+    const innerMaterial = track(new THREE.MeshPhysicalMaterial({
+      color: 0xe8fbff,
+      metalness: .34,
+      roughness: .12,
+      clearcoat: 1,
+      clearcoatRoughness: .025,
+      iridescence: .22,
+      iridescenceIOR: 1.32,
+      iridescenceThicknessMinimum: 190,
+      iridescenceThicknessMaximum: 520,
+      emissive: 0x244c5a,
+      emissiveIntensity: .18,
+      envMapIntensity: 2
     }));
+    const innerCrystal = new THREE.Mesh(innerGeometry, innerMaterial);
+    innerCrystal.position.set(.12, -.04, .36);
+    innerCrystal.rotation.set(.28, .3, -.2);
+    sculpture.add(innerCrystal);
+
+    // Detached facets create a little depth around the main vertical form.
     orbitGroup = new THREE.Group();
     scene.add(orbitGroup);
+    const fragmentGeometry = track(new THREE.TetrahedronGeometry(.16, 0));
+    const fragmentGeometrySmall = track(new THREE.OctahedronGeometry(.105, 0));
+    const fragments = [
+      { geometry: fragmentGeometry, material: pearlMaterial, position: [1.05, .58, .18], rotation: [.3, .1, -.25], speed: .22 },
+      { geometry: fragmentGeometrySmall, material: chrome, position: [-.98, -.58, .28], rotation: [.2, -.4, .15], speed: -.3 },
+      { geometry: fragmentGeometry, material: glass, position: [.82, -.82, -.3], rotation: [-.3, .2, .4], speed: .17 }
+    ];
+    fragments.forEach(fragment => {
+      const mesh = new THREE.Mesh(fragment.geometry, fragment.material);
+      mesh.position.set(...fragment.position);
+      mesh.rotation.set(...fragment.rotation);
+      mesh.userData.spin = fragment.speed;
+      orbitGroup.add(mesh);
+    });
 
-    const orbitA = new THREE.Mesh(track(new THREE.TorusGeometry(1.48, .006, 6, 180)), orbitMaterial);
-    orbitA.rotation.set(.9, .25, -.3);
-    orbitGroup.add(orbitA);
-
-    const orbitB = new THREE.Mesh(track(new THREE.TorusGeometry(1.35, .0055, 6, 180)), orbitAccentMaterial);
-    orbitB.scale.set(1, .53, 1);
-    orbitB.rotation.set(.35, -.72, .62);
-    orbitGroup.add(orbitB);
-
-    const markerMaterial = track(new THREE.MeshBasicMaterial({ color: 0xa6f3f8, toneMapped: false }));
-    const marker = new THREE.Mesh(track(new THREE.SphereGeometry(.035, 20, 16)), markerMaterial);
-    marker.position.set(1.31, .22, .16);
-    orbitGroup.add(marker);
-
-    const pearlMarker = new THREE.Mesh(
-      track(new THREE.SphereGeometry(.025, 16, 12)),
-      track(new THREE.MeshBasicMaterial({ color: 0xffffff, toneMapped: false }))
+    const glint = new THREE.Mesh(
+      track(new THREE.SphereGeometry(.035, 20, 16)),
+      track(new THREE.MeshBasicMaterial({ color: 0xa6f3f8, toneMapped: false }))
     );
-    pearlMarker.position.set(-1.02, -.68, -.26);
-    orbitGroup.add(pearlMarker);
+    glint.position.set(1.12, .12, .28);
+    orbitGroup.add(glint);
 
     return { sculpture };
   };
@@ -345,8 +359,14 @@
       rig.rotation.y += delta * .085;
       rig.rotation.x = -.035 + Math.sin(time * .00031) * .045 + pointer.y * .075;
       rig.rotation.y += pointer.x * .0018;
-      orbitGroup.rotation.z += delta * -.025;
-      orbitGroup.rotation.y = Math.sin(time * .00018) * .08;
+      orbitGroup.rotation.z += delta * -.018;
+      orbitGroup.rotation.y = Math.sin(time * .00018) * .07;
+      orbitGroup.children.forEach(fragment => {
+        if (fragment.userData.spin) {
+          fragment.rotation.x += delta * fragment.userData.spin;
+          fragment.rotation.y += delta * fragment.userData.spin * .72;
+        }
+      });
     }
 
     renderer.render(scene, camera);
