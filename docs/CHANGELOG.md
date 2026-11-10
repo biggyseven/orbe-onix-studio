@@ -1,3 +1,9 @@
+## 0.2.7 — Homepage sculpture art direction refinement
+- Replaced the cone-like monolith and crossing cylindrical rods with two broad, curved folded-glass shells and one integrated chrome ribbon.
+- Added closed ribbon surfaces with camber, taper, controlled twist and material thickness for a more sculptural silhouette.
+- Reduced the scale and orbit drift of the floating facets, keeping them compositionally close to the main form.
+- Updated the WebGL fallback to echo the folded-shell composition and refreshed homepage cache keys.
+
 ## 0.2.6 — Distinct homepage crystal sculpture
 - Replaced the homepage Lab feature's interlocking ring sculpture with a faceted glass monolith, open chrome sweeps and floating crystal fragments.
 - Removed the circular orbit geometry from this composition and differentiated its CSS fallback to preserve the new silhouette without WebGL.
