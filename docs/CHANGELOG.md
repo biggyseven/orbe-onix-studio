@@ -15,3 +15,11 @@
 - Preserved the existing art-directed page and prototype rules to avoid visual regressions.
 - Kept the static site integrity checks in the deployment workflow.
 - Declared explicit button types on every page.
+
+## 0.2.0 — VESPERA 2.1 study and showcase closeout
+- Added the NASA-derived Moon maps to the isolated VESPERA 2.1 preview.
+- Added a restrained ozone-rich atmospheric limb band.
+- Refined the Moon path with a low-eccentricity Keplerian orbit, an orbital guide and synchronous orientation.
+- Added solar lunar phases and subtle VESPERA-reflected illumination on the lunar night side.
+- Refreshed the preview cache key and documented the remaining visual validation gate.
+- Reconciled the public-site roadmap with the current state of Work, Services, case studies and Contact.
