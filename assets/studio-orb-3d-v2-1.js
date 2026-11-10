@@ -400,7 +400,7 @@ export async function mountVespera(container) {
     renderer.setSize(w, h, false);
     camera.aspect = w / h; 
     const half = Math.tan(THREE.MathUtils.degToRad(camera.fov / 2));
-    dist = 1.62 / Math.min(half, half * camera.aspect);
+    dist = 1.92 / Math.min(half, half * camera.aspect);
     camera.updateProjectionMatrix();
     renderOnce();
   };
