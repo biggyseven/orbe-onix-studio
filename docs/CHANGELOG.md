@@ -1,3 +1,9 @@
+## 0.2.9 — Sculpture 004 delivered as SVG
+- Replaced the homepage Lab WebGL canvas with a hand-authored vector illustration of The Rift.
+- Preserved the folded glass shells, integrated chrome seam and central faceted crystal in scalable SVG gradients and paths.
+- Removed the homepage Lab Three.js module from the page; the artwork no longer depends on WebGL.
+- Kept responsive framing, editorial readouts and the existing homepage hero / VESPERA renderers untouched.
+
 ## 0.2.8 — Sculpture 004: The Rift
 - Replaced the homepage Lab petal-and-orbit composition with two thick opposing folded shells framing a deliberate central opening.
 - Integrated a broad chrome seam into the front fold and seated one faceted crystal inside the negative space.
