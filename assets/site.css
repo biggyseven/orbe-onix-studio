@@ -5830,8 +5830,3 @@ body.door-reveal-active .site-header,body.door-reveal-active main,body.door-reve
   .lab-note-card .note-motion.is-running .motion-trace-a,
   .lab-note-card .note-motion.is-running .motion-trace-b{animation:none!important}
 }
-
-/* STUDY 001 — use the depth-tested Three.js ellipses once the scene is ready. */
-.form-study-page .study-3d-stage.has-3d-orbits>.hero-stage-orbit{
-  display:none!important;
-}
