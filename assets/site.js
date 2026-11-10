@@ -130,12 +130,12 @@
     if (materialDescription) materialDescription.textContent = materialCopy[key][1];
   }));
 
-  // Contact brief: no fake submission. Everything stays in the browser until
-  // an actual delivery channel is configured.
+  // Contact brief: prepare an email in the visitor's mail application.
+  // No message is sent automatically and no form data reaches this website.
   const briefForm = one('[data-brief-form]');
   const briefStatus = one('[data-brief-status]');
   if (briefForm) {
-    briefForm.addEventListener('submit', async event => {
+    briefForm.addEventListener('submit', event => {
       event.preventDefault();
       if (!briefForm.reportValidity()) return;
       const data = new FormData(briefForm);
@@ -151,19 +151,30 @@
         data.get('message') || ''
       ];
       const brief = lines.join('\n');
-      try {
-        await navigator.clipboard.writeText(brief);
-        if (briefStatus) briefStatus.textContent = 'Brief copié. Vous pouvez maintenant le coller dans votre application de messagerie.';
-      } catch {
-        const fallback = one('[data-brief-output]');
-        if (fallback) {
-          fallback.hidden = false;
-          fallback.value = brief;
-          fallback.focus();
-          fallback.select();
-        }
-        if (briefStatus) briefStatus.textContent = 'Sélectionnez et copiez le brief affiché ci-dessous.';
+      const subject = encodeURIComponent('Demande de projet — ORBE & ONIX');
+      const body = encodeURIComponent(brief);
+      const mailto = 'mailto:orbeonix@gmail.com?subject=' + subject + '&body=' + body;
+
+      const fallback = one('[data-brief-output]');
+      if (fallback) fallback.value = brief;
+
+      if (navigator.clipboard && window.isSecureContext) {
+        navigator.clipboard.writeText(brief).catch(() => {
+          if (fallback) {
+            fallback.hidden = false;
+            fallback.focus();
+            fallback.select();
+          }
+        });
+      } else if (fallback) {
+        fallback.hidden = false;
+        fallback.value = brief;
       }
+
+      if (briefStatus) {
+        briefStatus.textContent = 'Votre messagerie va s’ouvrir avec le brief adressé à orbeonix@gmail.com. Relisez-le puis envoyez-le. Si rien ne s’ouvre, le brief peut être copié depuis le champ affiché.';
+      }
+      window.location.href = mailto;
     });
   }
 
