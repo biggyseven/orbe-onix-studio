@@ -393,6 +393,8 @@ export async function mountVespera(container) {
     ? new THREE.Mesh(new THREE.SphereGeometry(0.272, coarse ? 96 : 128, coarse ? 64 : 80), moonMat)
     : null;
   if (moonOrbit && moon) {
+    // Keep the moon hidden until both NASA maps have loaded successfully.
+    moon.visible = false;
     // The local -X direction faces the planet; the orbit group carries this orientation.
     moon.position.set(2.08, 0.035, 0.0);
     moon.rotation.y = -Math.PI / 2;
