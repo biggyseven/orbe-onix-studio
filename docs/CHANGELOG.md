@@ -1,3 +1,11 @@
+## 0.2.2 — Study 001 isolated physical renderer
+- Added a dedicated `assets/hero-3d-study.js` engine for the interactive form study; the homepage keeps using the stable shared hero engine.
+- Added restrained physical iridescence and sheen using the Three.js r187 material properties.
+- Added low-amplitude studio key/fill light drift alongside environment reflection rotation.
+- Unified gallery and PNG export still-state handling so exports omit orbit guides and entrance transforms.
+- Added idempotent cleanup for partially initialized GPU resources on fallback and page exit.
+- Restored the dedicated Étude de forme page in the feature branch and connected it to the isolated renderer.
+
 # Changelog
 
 ## 0.1.0 — Initial repository release
