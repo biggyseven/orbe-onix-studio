@@ -40,3 +40,10 @@
 - Refreshed the Lab asset cache key for the orbit correction.
 
 - Separated the two main sculpture orbit guides and gave them distinct, gentle counter-rotation speeds so their movement is easier to perceive.
+
+
+## 0.2.2 — More legible orbital motion
+- Increased the main orbital rings' thickness, luminance and contrast while keeping depth testing behind the sculpture.
+- Added small luminous orbit markers so ring travel is visually trackable.
+- Animated each orbit on multiple axes with distinct counter-moving rhythms; the ring markers also travel around their own paths.
+- Refreshed the Lab cache key for the new orbital animation.
