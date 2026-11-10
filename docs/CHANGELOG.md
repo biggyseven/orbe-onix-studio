@@ -1,3 +1,9 @@
+## 0.2.8 — Sculpture 004: The Rift
+- Replaced the homepage Lab petal-and-orbit composition with two thick opposing folded shells framing a deliberate central opening.
+- Integrated a broad chrome seam into the front fold and seated one faceted crystal inside the negative space.
+- Removed detached rotating fragments and decorative orbital guides so the artwork reads as one coherent object.
+- Added a matching no-WebGL fallback and refreshed the homepage cache keys.
+
 ## 0.2.7 — Homepage sculpture art direction refinement
 - Replaced the cone-like monolith and crossing cylindrical rods with two broad, curved folded-glass shells and one integrated chrome ribbon.
 - Added closed ribbon surfaces with camber, taper, controlled twist and material thickness for a more sculptural silhouette.
