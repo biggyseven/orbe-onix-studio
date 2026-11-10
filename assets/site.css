@@ -6839,3 +6839,61 @@ body.door-reveal-active .site-header,body.door-reveal-active main,body.door-reve
   color:transparent;
   transform:rotate(25deg);
 }
+
+
+/* HOME / OPEN EXPERIMENTS · SCULPTURE 004 FALLBACK */
+.home-lab-art-orbit{display:none!important}
+.home-lab-art-object{
+  width:clamp(166px,19vw,226px);
+  aspect-ratio:.78;
+  border:1px solid rgba(244,240,255,.56);
+  border-radius:0;
+  clip-path:polygon(31% 0,59% 6%,82% 22%,96% 45%,83% 65%,57% 100%,27% 86%,8% 61%,13% 32%);
+  transform:translate(-50%,-50%) rotate(9deg) rotateX(13deg) rotateY(-16deg);
+  background:
+    linear-gradient(125deg,transparent 0 27%,rgba(255,255,255,.68) 28%,rgba(255,255,255,.06) 39%,transparent 51%),
+    linear-gradient(52deg,#211a35 0%,#6e5b9a 25%,#c8bce8 45%,#f4f1fb 52%,#8475b2 72%,#242130 100%);
+  box-shadow:inset 10px 4px 25px rgba(255,255,255,.2),0 28px 54px rgba(0,0,0,.42);
+  filter:drop-shadow(0 0 24px rgba(166,145,229,.19));
+}
+.home-lab-art-object:before,
+.home-lab-art-object:after{
+  content:"";
+  position:absolute;
+  border:0;
+  border-radius:0;
+  box-shadow:0 9px 20px rgba(0,0,0,.2);
+}
+.home-lab-art-object:before{
+  inset:4% -28% 8% -17%;
+  clip-path:polygon(0 77%,8% 55%,36% 34%,72% 10%,100% 0,92% 18%,61% 42%,29% 68%,8% 100%);
+  transform:rotate(-13deg);
+  background:linear-gradient(95deg,rgba(255,255,255,.12),#fff 32%,#9992aa 52%,#f8f6ff 68%,rgba(255,255,255,.18));
+}
+.home-lab-art-object:after{
+  inset:12% -12% 2% 9%;
+  clip-path:polygon(7% 0,31% 8%,100% 62%,91% 83%,42% 44%,0 15%);
+  transform:rotate(18deg);
+  background:linear-gradient(105deg,rgba(129,111,184,.18),rgba(224,216,247,.9) 43%,rgba(107,91,154,.82) 76%);
+}
+.home-lab-art-object span{
+  position:absolute;
+  left:43%;
+  top:39%;
+  display:block;
+  width:20%;
+  aspect-ratio:.72;
+  border:1px solid rgba(255,255,255,.88);
+  border-radius:2px;
+  clip-path:polygon(50% 0,94% 34%,62% 100%,8% 73%,13% 28%);
+  background:linear-gradient(145deg,#fff 0%,#d9f7f8 26%,#a995e8 63%,#312944 100%);
+  box-shadow:0 0 25px rgba(181,223,232,.42);
+  color:transparent;
+  transform:rotate(16deg);
+}
+@media(max-width:760px){
+  .home-lab-art-object{width:clamp(140px,43vw,195px)}
+}
+@media(prefers-reduced-motion:reduce){
+  .home-lab-art-object{transition:none!important}
+}
