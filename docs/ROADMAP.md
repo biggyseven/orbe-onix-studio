@@ -8,6 +8,7 @@ Ce document distingue ce qui est déjà intégré de ce qui doit encore être v�
 - [x] Pages Accueil, Travaux, Services, Studio, Lab, Contact et études de cas.
 - [x] Navigation mobile, filtres du portfolio et interactions locales.
 - [x] Prise en compte de `prefers-reduced-motion` dans les animations principales.
+- [x] Lab / Open experiments : réglage de lumière, registres typographiques et commande de mouvement interactifs.
 - [ ] Revue visuelle réelle sur mobile, tablette et ordinateur.
 - [ ] Contrôle clavier, focus visibles, contrastes et lisibilité.
 
@@ -23,7 +24,7 @@ Ce document distingue ce qui est déjà intégré de ce qui doit encore être v�
 - [x] NAYA HOUSE : changement de scènes et résumé de séjour local, sans disponibilité ni réservation.
 - [x] FORME : sélection locale d'objets, sans commande ni paiement.
 - [x] FLOWSTATE : navigation entre vues et synchronisation des tâches en mémoire de page.
-- [x] Contact : validation et génération d'un brief copiable dans le navigateur.
+- [x] Contact : validation locale et préparation d'un e-mail avec brief prérempli.
 - [x] Confirmer l’adresse de réception : orbeonix@gmail.com.
 - [x] Préparer le brief dans l’application de messagerie du visiteur via un lien mailto.
 - [ ] Tester le parcours d’envoi avec une vraie messagerie sur ordinateur et mobile.
