@@ -59,19 +59,25 @@ if(host){
   };
   const knot=new THREE.Mesh(geometry,materials.glass);sculpture.add(knot);
   const core=new THREE.Mesh(new THREE.IcosahedronGeometry(.255,4),new THREE.MeshPhysicalMaterial({color:0xe7ddff,metalness:.18,roughness:.18,emissive:0x5b438f,emissiveIntensity:.34,clearcoat:1}));sculpture.add(core);
-  const ringMat=new THREE.MeshBasicMaterial({color:0xded7ff,transparent:true,opacity:.56,depthTest:true,depthWrite:false});
-  const ringA=new THREE.Mesh(new THREE.TorusGeometry(1.68,.006,10,320),ringMat);
+  // Brighter, thicker orbit lines remain depth-tested behind the sculpture.
+  const ringMat=new THREE.MeshBasicMaterial({color:0xe8e0ff,transparent:true,opacity:.86,depthTest:true,depthWrite:false,toneMapped:false});
+  const ringMatB=new THREE.MeshBasicMaterial({color:0x69e5f4,transparent:true,opacity:.76,depthTest:true,depthWrite:false,toneMapped:false});
+  const ringA=new THREE.Mesh(new THREE.TorusGeometry(1.68,.014,12,384),ringMat);
   ringA.rotation.set(.42,.12,-.22);orbitRig.add(ringA);
-  const ringB=new THREE.Mesh(new THREE.TorusGeometry(1.86,.004,8,320),
-    new THREE.MeshBasicMaterial({color:0x66ddec,transparent:true,opacity:.28,depthTest:true,depthWrite:false}));
+  const ringB=new THREE.Mesh(new THREE.TorusGeometry(1.86,.011,12,384),ringMatB);
   ringB.rotation.set(.58,-.28,.34);orbitRigB.add(ringB);
+  // Small luminous markers make each ring's travel direction immediately readable.
+  const markerA=new THREE.Mesh(new THREE.SphereGeometry(.038,18,14),new THREE.MeshBasicMaterial({color:0xffffff,toneMapped:false}));
+  markerA.position.set(1.68,0,0);ringA.add(markerA);
+  const markerB=new THREE.Mesh(new THREE.SphereGeometry(.032,18,14),new THREE.MeshBasicMaterial({color:0xb9fbff,toneMapped:false}));
+  markerB.position.set(1.86,0,0);ringB.add(markerB);
   host.addEventListener('lab:materialchange',e=>{const m=e.detail?.material;if(materials[m]){knot.material=materials[m];core.material.emissiveIntensity=m==='veil'?.5:.34;ringMat.opacity=m==='liquid'?.82:.58;}});
   let w=1,h=1,raf=0,running=false,last=0,elapsed=0,drag=false,px=0,py=0,rx=0,ry=0;
   const reduced=matchMedia('(prefers-reduced-motion: reduce)');
   const render=()=>renderer.render(scene,camera);
   const resize=()=>{w=Math.max(1,host.clientWidth);h=Math.max(1,host.clientHeight);renderer.setSize(w,h,false);camera.aspect=w/h;camera.position.z=w<560?5.35:5.05;camera.updateProjectionMatrix();render();};
   const frame=now=>{if(!running)return;const dt=Math.min(.05,(now-last)/1000);last=now;elapsed+=dt;
-   if(!reduced.matches){if(!drag)ry+=.045*dt;sculpture.rotation.y+=(ry-sculpture.rotation.y)*Math.min(1,dt*3);sculpture.rotation.x+=(rx-sculpture.rotation.x)*Math.min(1,dt*3);knot.rotation.z=Math.sin(elapsed*.32)*.07;core.rotation.y-=.24*dt;orbitRig.rotation.z+=.23*dt;orbitRigB.rotation.z-=.16*dt;orbitRig.rotation.x=Math.sin(elapsed*.18)*.045;orbitRigB.rotation.x=-Math.sin(elapsed*.15)*.035;}
+   if(!reduced.matches){if(!drag)ry+=.045*dt;sculpture.rotation.y+=(ry-sculpture.rotation.y)*Math.min(1,dt*3);sculpture.rotation.x+=(rx-sculpture.rotation.x)*Math.min(1,dt*3);knot.rotation.z=Math.sin(elapsed*.32)*.07;core.rotation.y-=.24*dt;orbitRig.rotation.x=.08+Math.sin(elapsed*.52)*.23;orbitRig.rotation.y=.05+Math.cos(elapsed*.39)*.34;orbitRig.rotation.z+=.19*dt;orbitRigB.rotation.x=-.06+Math.sin(elapsed*.43+1.1)*.26;orbitRigB.rotation.y=.02+Math.cos(elapsed*.34+.8)*.31;orbitRigB.rotation.z-=.15*dt;ringA.rotation.z+=.72*dt;ringB.rotation.z-=.58*dt;}
    render();raf=requestAnimationFrame(frame);
   };
   const start=()=>{if(running)return;render();if(reduced.matches)return;running=true;last=performance.now();raf=requestAnimationFrame(frame);};
