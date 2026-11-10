@@ -1,3 +1,9 @@
+## 0.2.4 — Homepage Open Experiments feature
+- Replaced the old static Light in Motion teaser with a fully linked editorial feature that introduces the four Lab experiments.
+- Aligned the homepage Lab visual language with the new Open Experiments identity using a CSS orbital sculpture, material readouts and a responsive information layout.
+- Added clear navigation into the Lab and reduced-motion handling without loading another 3D engine.
+- Refreshed the homepage stylesheet cache key.
+
 ## 0.2.3 — Open Experiments visual refinement
 - Rebuilt the Lab introduction as an editorial split layout with a dedicated orbital study graphic and a clear four-experiment index.
 - Clarified the first material playground as the primary instrument and strengthened its technical status panel.
