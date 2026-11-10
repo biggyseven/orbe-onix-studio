@@ -9,6 +9,7 @@ Ce document distingue ce qui est déjà intégré de ce qui doit encore être v�
 - [x] Navigation mobile, filtres du portfolio et interactions locales.
 - [x] Prise en compte de `prefers-reduced-motion` dans les animations principales.
 - [x] Lab / Open experiments : réglage de lumière, registres typographiques et commande de mouvement interactifs.
+- [x] Sculpture 3D Three.js manipulable à la souris ou au doigt, avec trois matières physiques et repli CSS.
 - [ ] Revue visuelle réelle sur mobile, tablette et ordinateur.
 - [ ] Contrôle clavier, focus visibles, contrastes et lisibilité.
 
