@@ -5619,3 +5619,4 @@ body.door-reveal-active .site-header,body.door-reveal-active main,body.door-reve
 @media(prefers-reduced-motion:reduce){
   .material-stage{cursor:default}
 }
+.material-stage:focus-visible{outline:2px solid #c9c0ff;outline-offset:4px}
