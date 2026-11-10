@@ -101,12 +101,87 @@
     return texture;
   };
 
-  const makeOpenCurve = (THREE, coordinates) => new THREE.CatmullRomCurve3(
-    coordinates.map(([x, y, z]) => new THREE.Vector3(x, y, z)),
-    false,
-    "centripetal",
-    .42
-  );
+  // A broad, softly cambered shell swept along a curve. Unlike a tube,
+  // the surface has a readable front face, folded edges and a changing width.
+  const makeFoldedRibbonGeometry = (THREE, coordinates, width, options = {}) => {
+    const segments = options.segments || 160;
+    const across = options.across || 24;
+    const twist = options.twist || 0;
+    const thickness = options.thickness || .025;
+    const camber = options.camber || .06;
+    const taper = options.taper || .72;
+    const curve = new THREE.CatmullRomCurve3(
+      coordinates.map(([x, y, z]) => new THREE.Vector3(x, y, z)),
+      false,
+      "centripetal",
+      .42
+    );
+    const frames = curve.computeFrenetFrames(segments, false);
+    const front = [];
+    const back = [];
+    const uvs = [];
+    const indices = [];
+    const rows = segments + 1;
+    const columns = across + 1;
+
+    for (let i = 0; i < rows; i += 1) {
+      const u = i / segments;
+      const tangent = frames.tangents[i];
+      const side = frames.normals[i].clone().applyAxisAngle(
+        tangent,
+        twist * Math.sin(Math.PI * 2 * u)
+      ).normalize();
+      const depth = tangent.clone().cross(side).normalize();
+      const center = curve.getPointAt(u);
+      const widthProfile = Math.pow(Math.max(0, Math.sin(Math.PI * u)), taper)
+        * (1 + .1 * Math.sin(Math.PI * 2 * u + twist));
+      for (let j = 0; j < columns; j += 1) {
+        const v = j / across;
+        const acrossValue = v * 2 - 1;
+        const point = center.clone().addScaledVector(side, acrossValue * width * widthProfile);
+        point.addScaledVector(depth, camber * (1 - acrossValue * acrossValue) * Math.sin(Math.PI * u));
+        const frontPoint = point.clone().addScaledVector(depth, thickness * .5);
+        const backPoint = point.clone().addScaledVector(depth, -thickness * .5);
+        front.push(frontPoint.x, frontPoint.y, frontPoint.z);
+        back.push(backPoint.x, backPoint.y, backPoint.z);
+        uvs.push(v, u);
+      }
+    }
+
+    const vertexCount = rows * columns;
+    const positions = [...front, ...back];
+    const offset = vertexCount;
+    for (let i = 0; i < segments; i += 1) {
+      for (let j = 0; j < across; j += 1) {
+        const a = i * columns + j;
+        const b = (i + 1) * columns + j;
+        const c = b + 1;
+        const d = a + 1;
+        indices.push(a, b, d, b, c, d);
+        indices.push(offset + a, offset + d, offset + b, offset + b, offset + d, offset + c);
+      }
+      for (const j of [0, across]) {
+        const a = i * columns + j;
+        const b = (i + 1) * columns + j;
+        indices.push(a, offset + a, b, b, offset + a, offset + b);
+      }
+    }
+    for (let j = 0; j < across; j += 1) {
+      const a = j;
+      const b = j + 1;
+      indices.push(a, b, offset + a, b, offset + b, offset + a);
+      const end = segments * columns + j;
+      indices.push(end, offset + end, end + 1, end + 1, offset + end, offset + end + 1);
+    }
+
+    const geometry = new THREE.BufferGeometry();
+    geometry.setAttribute("position", new THREE.Float32BufferAttribute(positions, 3));
+    geometry.setAttribute("uv", new THREE.Float32BufferAttribute([...uvs, ...uvs], 2));
+    geometry.setIndex(indices);
+    geometry.computeVertexNormals();
+    geometry.computeBoundingSphere();
+    return geometry;
+  };
 
   const buildScene = THREE => {
     scene = new THREE.Scene();
@@ -243,79 +318,88 @@
       envMapIntensity: 2.25
     }));
 
-    // FORM STUDY 002: a faceted glass monolith, not another interlocking loop.
-    const prismGeometry = track(new THREE.CylinderGeometry(.13, .66, 1.72, 5, 1, false));
-    const prism = new THREE.Mesh(prismGeometry, glass);
-    prism.position.set(-.02, .02, -.04);
-    prism.rotation.set(.12, .42, -.16);
-    prism.scale.set(.82, 1.08, .74);
-    sculpture.add(prism);
+    // FORM STUDY 002: a folded glass object with broad, overlapping surfaces.
+    // Its silhouette is built from leaves and a metal inlay, not circular links.
+    const glassPetalMaterial = glass.clone();
+    glassPetalMaterial.color.setHex(0x9c8bd7);
+    glassPetalMaterial.transmission = .84;
+    glassPetalMaterial.roughness = .075;
+    glassPetalMaterial.thickness = .72;
+    glassPetalMaterial.side = THREE.DoubleSide;
+    track(glassPetalMaterial);
 
-    // Fine metallic edges make the crystal's cut planes legible in studio light.
-    const edgeGeometry = track(new THREE.EdgesGeometry(prismGeometry, 8));
-    const edgeMaterial = track(new THREE.LineBasicMaterial({
-      color: 0xf1edff,
-      transparent: true,
-      opacity: .48
-    }));
-    const prismEdges = new THREE.LineSegments(edgeGeometry, edgeMaterial);
-    prismEdges.position.copy(prism.position);
-    prismEdges.rotation.copy(prism.rotation);
-    prismEdges.scale.copy(prism.scale);
-    sculpture.add(prismEdges);
+    const pearlPetalMaterial = pearlMaterial.clone();
+    pearlPetalMaterial.color.setHex(0xc7dce5);
+    pearlPetalMaterial.metalness = .14;
+    pearlPetalMaterial.roughness = .19;
+    pearlPetalMaterial.transmission = .24;
+    pearlPetalMaterial.side = THREE.DoubleSide;
+    track(pearlPetalMaterial);
 
-    // Two open, swept chrome blades cross the monolith at different depths.
-    const bladeCurveA = makeOpenCurve(THREE, [
-      [-1.05, -.94, .42], [-.78, -.42, .72], [-.42, .08, .55],
-      [-.08, .56, .18], [.42, .98, -.12], [.88, 1.06, -.26]
-    ]);
-    const bladeA = new THREE.Mesh(
-      track(new THREE.TubeGeometry(bladeCurveA, 220, .052, 18, false)),
-      chrome
-    );
-    bladeA.rotation.z = -.06;
-    sculpture.add(bladeA);
+    const mainPetalGeometry = track(makeFoldedRibbonGeometry(THREE, [
+      [-.18, -1.02, -.18],
+      [-.48, -.62, -.12],
+      [-.4, -.08, .02],
+      [-.08, .43, .16],
+      [.36, .96, .1]
+    ], .67, { twist: .62, thickness: .035, camber: .12, taper: .64 }));
+    const mainPetal = new THREE.Mesh(mainPetalGeometry, glassPetalMaterial);
+    mainPetal.rotation.set(.04, -.12, -.08);
+    sculpture.add(mainPetal);
 
-    const bladeCurveB = makeOpenCurve(THREE, [
-      [1.02, -.84, -.38], [.75, -.45, -.62], [.32, -.06, -.68],
-      [-.1, .32, -.52], [-.48, .72, -.12], [-.68, 1.08, .2]
-    ]);
-    const bladeB = new THREE.Mesh(
-      track(new THREE.TubeGeometry(bladeCurveB, 220, .035, 16, false)),
-      silver
-    );
-    sculpture.add(bladeB);
+    const rearPetalGeometry = track(makeFoldedRibbonGeometry(THREE, [
+      [.12, -.82, -.48],
+      [.48, -.42, -.36],
+      [.3, .03, -.28],
+      [.18, .46, -.12],
+      [.54, .86, -.04]
+    ], .39, { twist: -.82, thickness: .026, camber: .085, taper: .72 }));
+    const rearPetal = new THREE.Mesh(rearPetalGeometry, pearlPetalMaterial);
+    rearPetal.rotation.set(-.08, .12, .1);
+    sculpture.add(rearPetal);
 
-    // A smaller luminous crystal sits inside the glass body, offset from its axis.
-    const innerGeometry = track(new THREE.OctahedronGeometry(.29, 0));
-    const innerMaterial = track(new THREE.MeshPhysicalMaterial({
-      color: 0xe8fbff,
-      metalness: .34,
-      roughness: .12,
+    // A single wide chrome inlay follows the fold of the glass instead of
+    // crossing the sculpture as a thin cylindrical rod.
+    const chromeBladeGeometry = track(makeFoldedRibbonGeometry(THREE, [
+      [-.88, -.9, .36],
+      [-.62, -.48, .43],
+      [-.28, -.04, .39],
+      [.12, .38, .31],
+      [.56, .75, .16],
+      [.96, .84, .04]
+    ], .105, { twist: .35, thickness: .032, camber: .025, taper: .82 }));
+    const chromeBlade = new THREE.Mesh(chromeBladeGeometry, chrome);
+    sculpture.add(chromeBlade);
+
+    const coreGeometry = track(new THREE.OctahedronGeometry(.235, 1));
+    const coreMaterial = track(new THREE.MeshPhysicalMaterial({
+      color: 0xe8f7fb,
+      metalness: .28,
+      roughness: .13,
       clearcoat: 1,
       clearcoatRoughness: .025,
-      iridescence: .22,
+      iridescence: .2,
       iridescenceIOR: 1.32,
       iridescenceThicknessMinimum: 190,
       iridescenceThicknessMaximum: 520,
       emissive: 0x244c5a,
-      emissiveIntensity: .18,
+      emissiveIntensity: .16,
       envMapIntensity: 2
     }));
-    const innerCrystal = new THREE.Mesh(innerGeometry, innerMaterial);
-    innerCrystal.position.set(.12, -.04, .36);
-    innerCrystal.rotation.set(.28, .3, -.2);
-    sculpture.add(innerCrystal);
+    const core = new THREE.Mesh(coreGeometry, coreMaterial);
+    core.position.set(.06, -.02, .44);
+    core.rotation.set(.22, .38, -.24);
+    sculpture.add(core);
 
-    // Detached facets create a little depth around the main vertical form.
+    // Small facets sit close to the main form, like chips from the same material.
     orbitGroup = new THREE.Group();
     scene.add(orbitGroup);
-    const fragmentGeometry = track(new THREE.TetrahedronGeometry(.16, 0));
-    const fragmentGeometrySmall = track(new THREE.OctahedronGeometry(.105, 0));
+    const fragmentGeometry = track(new THREE.TetrahedronGeometry(.105, 0));
+    const fragmentSmallGeometry = track(new THREE.OctahedronGeometry(.075, 0));
     const fragments = [
-      { geometry: fragmentGeometry, material: pearlMaterial, position: [1.05, .58, .18], rotation: [.3, .1, -.25], speed: .22 },
-      { geometry: fragmentGeometrySmall, material: chrome, position: [-.98, -.58, .28], rotation: [.2, -.4, .15], speed: -.3 },
-      { geometry: fragmentGeometry, material: glass, position: [.82, -.82, -.3], rotation: [-.3, .2, .4], speed: .17 }
+      { geometry: fragmentGeometry, material: pearlMaterial, position: [.9, .63, .02], rotation: [.3, .1, -.25], speed: .16 },
+      { geometry: fragmentSmallGeometry, material: chrome, position: [-.88, -.48, .22], rotation: [.2, -.4, .15], speed: -.21 },
+      { geometry: fragmentGeometry, material: glassPetalMaterial, position: [.76, -.86, -.16], rotation: [-.3, .2, .4], speed: .12 }
     ];
     fragments.forEach(fragment => {
       const mesh = new THREE.Mesh(fragment.geometry, fragment.material);
@@ -326,12 +410,11 @@
     });
 
     const glint = new THREE.Mesh(
-      track(new THREE.SphereGeometry(.035, 20, 16)),
+      track(new THREE.SphereGeometry(.028, 20, 16)),
       track(new THREE.MeshBasicMaterial({ color: 0xa6f3f8, toneMapped: false }))
     );
-    glint.position.set(1.12, .12, .28);
+    glint.position.set(1.05, -.1, .3);
     orbitGroup.add(glint);
-
     return { sculpture };
   };
 
@@ -356,10 +439,10 @@
     pointer.x += (pointer.targetX - pointer.x) * .045;
     pointer.y += (pointer.targetY - pointer.y) * .045;
     if (!reducedMotion && rig && orbitGroup) {
-      rig.rotation.y += delta * .085;
-      rig.rotation.x = -.035 + Math.sin(time * .00031) * .045 + pointer.y * .075;
-      rig.rotation.y += pointer.x * .0018;
-      orbitGroup.rotation.z += delta * -.018;
+      rig.rotation.y += delta * .045;
+      rig.rotation.x = -.02 + Math.sin(time * .00027) * .026 + pointer.y * .045;
+      rig.rotation.y += pointer.x * .0011;
+      orbitGroup.rotation.z += delta * -.012;
       orbitGroup.rotation.y = Math.sin(time * .00018) * .07;
       orbitGroup.children.forEach(fragment => {
         if (fragment.userData.spin) {
