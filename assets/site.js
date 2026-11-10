@@ -130,6 +130,62 @@
     if (materialDescription) materialDescription.textContent = materialCopy[key][1];
   }));
 
+  // Open Experiments: light response, typographic register and motion study.
+  const lightRange = one('[data-light-intensity]');
+  const lightStage = one('[data-light-stage]');
+  const lightOutput = one('[data-light-output]');
+  const lightValue = one('[data-light-value]');
+  const setLightIntensity = value => {
+    if (!lightStage) return;
+    const amount = Math.max(0, Math.min(100, Number(value) || 0));
+    lightStage.style.setProperty('--lab-light-opacity', String(amount / 100));
+    if (lightOutput) lightOutput.textContent = amount + ' %';
+    if (lightValue) lightValue.textContent = String(amount).padStart(2, '0');
+  };
+  if (lightRange && lightStage) {
+    lightRange.addEventListener('input', () => setLightIntensity(lightRange.value));
+    setLightIntensity(lightRange.value);
+  }
+
+  const typeStage = one('[data-type-stage]');
+  const typeButtons = all('[data-type-experiment] [data-type-style]');
+  const typeSpecimen = one('[data-type-specimen]');
+  const typeCaption = one('[data-type-caption]');
+  const typeSamples = {
+    editorial: ['Ag', 'Form / Feeling'],
+    interface: ['Aa', 'Clarity / Use'],
+    mono: ['01', 'Grid / System']
+  };
+  typeButtons.forEach(button => button.addEventListener('click', () => {
+    const style = button.dataset.typeStyle;
+    if (!typeSamples[style] || !typeStage) return;
+    typeStage.dataset.typeStyle = style;
+    typeButtons.forEach(item => item.setAttribute('aria-pressed', String(item === button)));
+    if (typeSpecimen) typeSpecimen.textContent = typeSamples[style][0];
+    if (typeCaption) typeCaption.textContent = typeSamples[style][1];
+  }));
+
+  const motionButton = one('[data-motion-toggle]');
+  const motionStage = one('[data-motion-stage]');
+  const motionLabel = one('[data-motion-button-label]');
+  const motionReadout = one('[data-motion-readout]');
+  const motionNote = one('[data-motion-note]');
+  if (motionButton && motionStage) {
+    if (reduceMotion) {
+      motionButton.disabled = true;
+      if (motionNote) motionNote.textContent = 'Animation désactivée par votre préférence système.';
+    } else {
+      motionButton.addEventListener('click', () => {
+        const running = motionButton.getAttribute('aria-pressed') !== 'true';
+        motionButton.setAttribute('aria-pressed', String(running));
+        motionStage.classList.toggle('is-running', running);
+        if (motionLabel) motionLabel.textContent = running ? 'Arrêter le mouvement' : 'Lancer le mouvement';
+        if (motionReadout) motionReadout.textContent = running ? 'ORBIT / ACTIVE' : 'STANDBY / 00';
+        if (motionNote) motionNote.textContent = running ? 'Orbite lente en cours.' : 'Animation arrêtée.';
+      });
+    }
+  }
+
   // Contact brief: prepare an email in the visitor's mail application.
   // No message is sent automatically and no form data reaches this website.
   const briefForm = one('[data-brief-form]');
