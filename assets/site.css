@@ -5830,3 +5830,44 @@ body.door-reveal-active .site-header,body.door-reveal-active main,body.door-reve
   .lab-note-card .note-motion.is-running .motion-trace-a,
   .lab-note-card .note-motion.is-running .motion-trace-b{animation:none!important}
 }
+
+
+/* Lab / physical sculpture renderer */
+.material-stage .lab-3d-stage{
+  inset:34px 3%;
+  width:94%;
+  height:auto;
+  min-height:0;
+  max-width:none;
+  overflow:visible;
+}
+.material-stage .lab-3d-stage .hero-stage-3d{
+  overflow:hidden;
+}
+.material-stage .lab-3d-stage .hero-stage-fallback{
+  inset:3%;
+}
+.material-current-meta{
+  display:grid;
+  gap:8px;
+  margin-top:20px;
+  padding-top:17px;
+  border-top:1px solid #ffffff20;
+}
+.material-current-meta span{
+  color:#aaa2b6;
+  font:8px/1.6 var(--mono);
+  letter-spacing:.08em;
+}
+.material-current-meta span:first-child{
+  color:#d9d0ee;
+}
+@media(max-width:760px){
+  .material-stage .lab-3d-stage{
+    inset:30px 0;
+    width:100%;
+  }
+  .material-current-meta{
+    gap:7px;
+  }
+}
