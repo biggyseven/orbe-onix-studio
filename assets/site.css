@@ -6375,3 +6375,16 @@ body.door-reveal-active .site-header,body.door-reveal-active main,body.door-reve
   .lab-hero-orbit-a,.lab-hero-orbit-b,.lab-hero-orbit-c{animation:none!important}
   .lab-hero-link,.lab-note-grid .lab-note-card,.material-choice{transition:none!important}
 }
+
+/* Lab hero copy specificity + medium viewport card balance. */
+.lab-hero .lab-hero-description{
+  max-width:450px;
+  margin:0;
+  color:#c0bbc8;
+  font-size:13px;
+  line-height:1.9;
+}
+@media(max-width:1050px){
+  .lab-note-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .lab-note-grid .lab-note-card:last-child{grid-column:1/-1}
+}
