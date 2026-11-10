@@ -5620,3 +5620,214 @@ body.door-reveal-active .site-header,body.door-reveal-active main,body.door-reve
   .material-stage{cursor:default}
 }
 .material-stage:focus-visible{outline:2px solid #c9c0ff;outline-offset:4px}
+
+/* OPEN EXPERIMENTS 08 — contrast, legibility and clean orbital diagrams */
+.lab-note-grid .lab-note-card{
+  border:1px solid rgba(205,190,238,.34);
+  background:linear-gradient(155deg,rgba(95,78,128,.24),rgba(31,27,43,.98) 58%);
+  box-shadow:0 16px 38px rgba(5,4,12,.22),inset 0 1px rgba(255,255,255,.045);
+}
+.lab-note-card>span.lab-note-index{
+  color:#e1d7ff;
+  font-size:9px;
+}
+.lab-note-card h3{color:#fff;font-size:clamp(21px,2.1vw,26px)}
+.lab-note-card>p{
+  color:#e0dbe8;
+  font-size:11px;
+  line-height:1.85;
+}
+.lab-note-card .note-art{
+  height:214px;
+  border:1px solid rgba(224,213,255,.20);
+  box-shadow:inset 0 1px rgba(255,255,255,.06);
+}
+
+/* 002 / LIGHT — clearer cyan/lavender energy and readable radial lines. */
+.lab-note-card .note-light{
+  background:
+    repeating-radial-gradient(ellipse at 54% 49%,transparent 0 18px,rgba(151,222,255,.44) 19px 20px,transparent 21px 27px),
+    radial-gradient(ellipse at 54% 49%,rgba(135,224,255,.28),transparent 38%),
+    linear-gradient(135deg,#152d49 0%,#2b2853 56%,#102b38 100%);
+}
+.lab-note-card .note-light .light-source{
+  background:radial-gradient(ellipse at 54% 49%,rgba(255,255,255,.98) 0%,rgba(157,225,255,.90) 7%,rgba(147,133,255,.52) 23%,rgba(96,191,230,.16) 42%,transparent 66%);
+  filter:blur(1px);
+  mix-blend-mode:screen;
+}
+.lab-note-card .note-light .light-readout{
+  color:#fff;
+  font-size:9px;
+  text-shadow:0 1px 8px #08101c;
+}
+
+/* 003 / TYPE — the specimen receives a light surface and dark, legible ink. */
+.lab-note-card .note-type{
+  background:linear-gradient(135deg,#f6f0ff 0%,#d9d0f4 54%,#b8cde4 100%);
+  color:#21172e;
+}
+.lab-note-card .note-type b{
+  color:#21172e;
+  text-shadow:0 9px 28px rgba(65,43,94,.14);
+}
+.lab-note-card .note-type i{
+  color:#49365f;
+  font-size:19px;
+}
+.lab-note-card .note-type .type-specimen-meta{
+  color:#443753;
+  font-size:8px;
+}
+.lab-note-card .note-type[data-type-style="mono"] b{
+  color:#21172e;
+}
+
+/* 004 / MOTION — remove the old double pseudo-rings; keep one orbit and one arc. */
+.lab-note-card .note-motion{
+  background:
+    radial-gradient(ellipse at 50% 50%,rgba(130,105,201,.23),transparent 34%),
+    linear-gradient(135deg,#151f32,#25203c 58%,#112c39);
+}
+.lab-note-card .note-motion:before,
+.lab-note-card .note-motion:after{
+  content:none!important;
+  display:none!important;
+  animation:none!important;
+}
+.lab-note-card .note-motion .motion-trace{
+  left:50%;top:50%;z-index:1;
+  width:72%;height:48%;
+  border:1.5px solid rgba(198,181,255,.78);
+  border-radius:50%;
+  transform:translate(-50%,-50%) rotate(-22deg);
+}
+.lab-note-card .note-motion .motion-trace-b{
+  width:78%;height:56%;
+  border:2px solid transparent;
+  border-top-color:rgba(105,225,239,.88);
+  border-right-color:rgba(105,225,239,.52);
+  clip-path:inset(0 0 43% 8%);
+  transform:translate(-50%,-50%) rotate(24deg);
+}
+.lab-note-card .note-motion span:not(.motion-readout){
+  width:42px;height:42px;
+  background:radial-gradient(circle at 30% 24%,#fff 0%,#e3d8ff 18%,#ad91f0 48%,#493a77 82%);
+  box-shadow:0 0 24px rgba(179,151,255,.9),0 0 54px rgba(90,202,235,.28);
+}
+.lab-note-card .note-motion .motion-readout{
+  color:#eafcff;
+  font-size:8px;
+  text-shadow:0 1px 8px #101622;
+}
+.lab-note-card .note-motion.is-running .motion-trace-a{
+  animation:lab-orbit-a 18s linear infinite;
+}
+.lab-note-card .note-motion.is-running .motion-trace-b{
+  animation:lab-orbit-b 25s linear infinite reverse;
+}
+@keyframes lab-orbit-a{
+  to{transform:translate(-50%,-50%) rotate(338deg)}
+}
+@keyframes lab-orbit-b{
+  to{transform:translate(-50%,-50%) rotate(384deg)}
+}
+
+/* Experiment controls: enlarge type and make active states unmistakable. */
+.lab-experiment-control{
+  border-top-color:rgba(220,208,255,.22);
+}
+.lab-experiment-control>label,
+.lab-experiment-control>.control-label{
+  color:#eee8f8;
+  font-size:9px;
+  line-height:1.5;
+}
+.lab-experiment-control output{
+  color:#fff;
+  font-size:10px;
+  font-weight:600;
+}
+.lab-experiment-control input[type="range"]{
+  accent-color:#c9c0ff;
+  cursor:pointer;
+}
+.lab-segmented button{
+  min-height:46px;
+  padding:9px 7px;
+  border-color:#786b8e;
+  background:#302a3e;
+  color:#f6f1ff;
+  font-size:9px;
+  font-weight:600;
+}
+.lab-segmented button[aria-pressed="true"]{
+  border-color:#e1d8ff;
+  background:#c9c0ff;
+  color:#191522;
+  box-shadow:inset 0 -3px #9d89da;
+}
+.lab-run-button{
+  min-height:48px;
+  padding:0 14px;
+  border:1px solid #ded4ff;
+  background:#c9c0ff;
+  color:#191522;
+  font-size:9px;
+  font-weight:700;
+}
+.lab-run-button:hover,
+.lab-run-button[aria-pressed="true"]{
+  background:#d3ef79;
+  border-color:#e8f9ac;
+  color:#171914;
+}
+.lab-motion-control small{
+  color:#ddd5e9;
+  font-size:9px;
+}
+
+/* Material choices: stronger inactive contrast and a clear lavender selected state. */
+.material-choice{
+  min-height:52px;
+  padding:13px 14px;
+  border-color:#776b8d;
+  background:#2b2638;
+  color:#f8f5ff;
+  font-size:10px;
+  font-weight:600;
+}
+.material-choice[aria-pressed="true"]{
+  background:#c9c0ff;
+  border-color:#e5ddff;
+  color:#191522;
+  box-shadow:inset 3px 0 #8068bf,0 0 22px rgba(185,163,255,.16);
+}
+.material-choice[aria-pressed="true"] i{
+  border-color:#44345f;
+  box-shadow:0 0 0 3px rgba(67,49,96,.14);
+}
+
+/* A ghost button belongs on dark surfaces, not on the Lab's ivory section. */
+.lab-section .lab-study-link.button.ghost{
+  border-color:#211d2b;
+  background:#211d2b;
+  color:#fff;
+  box-shadow:0 8px 22px rgba(24,19,34,.15);
+}
+.lab-section .lab-study-link.button.ghost:hover{
+  border-color:#574776;
+  background:#574776;
+  color:#fff;
+}
+.lab-section .lab-study-link.button.ghost:focus-visible{
+  outline:3px solid #8b75d2;
+  outline-offset:4px;
+}
+@media(max-width:680px){
+  .lab-note-card .note-art{height:198px}
+  .lab-segmented button{font-size:8px;padding-inline:4px}
+}
+@media(prefers-reduced-motion:reduce){
+  .lab-note-card .note-motion.is-running .motion-trace-a,
+  .lab-note-card .note-motion.is-running .motion-trace-b{animation:none!important}
+}
