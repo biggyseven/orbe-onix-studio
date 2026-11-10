@@ -24,3 +24,5 @@
 - Refreshed the preview cache key and documented the remaining visual validation gate.
 - Reconciled the public-site roadmap with the current state of Work, Services, case studies and Contact.
 - Configured the contact brief to prepare an email addressed to orbeonix@gmail.com; visitors review and send it from their own mail application.
+- Replaced the static Field notes on the Lab page with three interactive experiments: light intensity, typographic registers and motion control.
+- Added accessible labels, live readouts, touch-sized controls and reduced-motion handling for the new Lab experiments.
