@@ -1,0 +1,137 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 720" fill="none" role="img" aria-labelledby="title desc">
+  <title id="title">The Rift — Sculpture 004, ORBE &amp; ONIX</title>
+  <desc id="desc">Sculpture abstraite composée de deux coques pliées en verre lavande et argent, d'une nervure de chrome poli et d'un cristal facetté au centre.</desc>
+  <defs>
+    <radialGradient id="aura" cx="0" cy="0" r="1" gradientTransform="matrix(0 300 -360 0 452 360)" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#C9B9FF" stop-opacity=".25"/>
+      <stop offset=".56" stop-color="#8B79C5" stop-opacity=".09"/>
+      <stop offset="1" stop-color="#111116" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="glassA" x1="180" y1="132" x2="504" y2="630" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FBF9FF" stop-opacity=".88"/>
+      <stop offset=".15" stop-color="#D9D0F4" stop-opacity=".72"/>
+      <stop offset=".35" stop-color="#9582CC" stop-opacity=".9"/>
+      <stop offset=".57" stop-color="#4C426D" stop-opacity=".94"/>
+      <stop offset=".76" stop-color="#B5A5E5" stop-opacity=".88"/>
+      <stop offset="1" stop-color="#F5F1FF" stop-opacity=".72"/>
+    </linearGradient>
+    <linearGradient id="glassB" x1="455" y1="111" x2="735" y2="610" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FFF" stop-opacity=".9"/>
+      <stop offset=".22" stop-color="#E7E2F3" stop-opacity=".72"/>
+      <stop offset=".45" stop-color="#8C819F" stop-opacity=".88"/>
+      <stop offset=".64" stop-color="#494354" stop-opacity=".96"/>
+      <stop offset=".84" stop-color="#B6A9D2" stop-opacity=".88"/>
+      <stop offset="1" stop-color="#F3EFFB" stop-opacity=".74"/>
+    </linearGradient>
+    <linearGradient id="shellEdge" x1="150" y1="210" x2="690" y2="585" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FFF" stop-opacity=".92"/>
+      <stop offset=".35" stop-color="#BFB2E8" stop-opacity=".22"/>
+      <stop offset=".65" stop-color="#211C31" stop-opacity=".68"/>
+      <stop offset="1" stop-color="#FFF" stop-opacity=".78"/>
+    </linearGradient>
+    <linearGradient id="chrome" x1="150" y1="590" x2="700" y2="160" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#46414F"/>
+      <stop offset=".11" stop-color="#FDFBFF"/>
+      <stop offset=".23" stop-color="#8F899B"/>
+      <stop offset=".37" stop-color="#FFF"/>
+      <stop offset=".52" stop-color="#6D6878"/>
+      <stop offset=".69" stop-color="#F7F5FF"/>
+      <stop offset=".83" stop-color="#A6A0B2"/>
+      <stop offset="1" stop-color="#FFF"/>
+    </linearGradient>
+    <linearGradient id="chromeGlint" x1="178" y1="603" x2="671" y2="194" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FFF" stop-opacity=".2"/>
+      <stop offset=".32" stop-color="#FFF" stop-opacity=".94"/>
+      <stop offset=".56" stop-color="#DCD5F0" stop-opacity=".38"/>
+      <stop offset=".82" stop-color="#FFF" stop-opacity=".95"/>
+      <stop offset="1" stop-color="#FFF" stop-opacity=".18"/>
+    </linearGradient>
+    <linearGradient id="crystalA" x1="421" y1="288" x2="510" y2="437" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FFF"/>
+      <stop offset=".38" stop-color="#D9F4F6"/>
+      <stop offset=".72" stop-color="#9A8CCB"/>
+      <stop offset="1" stop-color="#39324F"/>
+    </linearGradient>
+    <linearGradient id="crystalB" x1="465" y1="285" x2="548" y2="424" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FDFEFF"/>
+      <stop offset=".48" stop-color="#B8DCE6"/>
+      <stop offset="1" stop-color="#655A8B"/>
+    </linearGradient>
+    <radialGradient id="crystalGlow" cx="0" cy="0" r="1" gradientTransform="matrix(0 86 -86 0 468 355)" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#D7F5F5" stop-opacity=".55"/>
+      <stop offset="1" stop-color="#B5A3EE" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="softShadow" x="65" y="40" width="780" height="650" color-interpolation-filters="sRGB" filterUnits="userSpaceOnUse">
+      <feGaussianBlur stdDeviation="18"/>
+    </filter>
+    <filter id="metalShadow" x="112" y="125" width="640" height="535" color-interpolation-filters="sRGB" filterUnits="userSpaceOnUse">
+      <feGaussianBlur stdDeviation="8"/>
+    </filter>
+    <filter id="crystalBloom" x="350" y="245" width="230" height="230" color-interpolation-filters="sRGB" filterUnits="userSpaceOnUse">
+      <feGaussianBlur stdDeviation="16"/>
+    </filter>
+  </defs>
+
+  <ellipse cx="450" cy="368" rx="350" ry="300" fill="url(#aura)"/>
+  <ellipse cx="454" cy="610" rx="248" ry="34" fill="#05040A" opacity=".42" filter="url(#softShadow)"/>
+
+  <!-- Rear shell: a folded silver-glass wall turning around the open centre. -->
+  <path d="M520 102C640 115 752 215 770 337C792 486 675 610 523 637C570 563 599 486 592 408C585 321 539 241 456 184C472 144 493 116 520 102Z"
+        fill="#090811" opacity=".76" filter="url(#metalShadow)"/>
+  <path d="M520 102C640 115 752 215 770 337C792 486 675 610 523 637C570 563 599 486 592 408C585 321 539 241 456 184C472 144 493 116 520 102Z"
+        fill="url(#glassB)" stroke="#F8F5FF" stroke-opacity=".5" stroke-width="2"/>
+  <path d="M520 102C640 115 752 215 770 337C792 486 675 610 523 637"
+        stroke="url(#shellEdge)" stroke-width="5" stroke-linecap="round" opacity=".74"/>
+  <path d="M548 135C650 166 722 257 729 356C738 465 656 552 565 592"
+        stroke="#FFF" stroke-opacity=".7" stroke-width="2.5" stroke-linecap="round"/>
+  <path d="M475 193C554 250 594 330 597 406C599 476 574 535 535 589"
+        stroke="#E9E2FF" stroke-opacity=".48" stroke-width="2" stroke-linecap="round"/>
+
+  <!-- Front shell: broad lavender glass, with a visible folded shoulder. -->
+  <path d="M186 555C99 452 131 293 263 190C341 129 427 96 510 105C442 174 413 243 418 313C423 391 476 474 562 538C490 598 391 638 293 626C244 621 207 590 186 555Z"
+        fill="#080711" opacity=".72" filter="url(#metalShadow)"/>
+  <path d="M186 555C99 452 131 293 263 190C341 129 427 96 510 105C442 174 413 243 418 313C423 391 476 474 562 538C490 598 391 638 293 626C244 621 207 590 186 555Z"
+        fill="url(#glassA)" stroke="#F7F3FF" stroke-opacity=".5" stroke-width="2"/>
+  <path d="M179 539C117 430 162 295 279 207C344 158 412 124 475 116"
+        stroke="#FFF" stroke-opacity=".84" stroke-width="4" stroke-linecap="round"/>
+  <path d="M202 567C258 604 326 601 383 572C445 540 480 495 508 457"
+        stroke="#E7DEFF" stroke-opacity=".6" stroke-width="2.5" stroke-linecap="round"/>
+  <path d="M415 314C420 391 475 474 562 538"
+        stroke="#312947" stroke-opacity=".54" stroke-width="10" stroke-linecap="round"/>
+  <path d="M412 309C420 390 475 469 553 530"
+        stroke="#F8F4FF" stroke-opacity=".65" stroke-width="2" stroke-linecap="round"/>
+
+  <!-- Internal folded facets create volume and keep the opening legible. -->
+  <path d="M248 494C286 403 353 320 431 272C456 255 480 237 505 214C477 286 469 355 492 415C447 386 395 384 350 413C308 440 276 475 248 494Z"
+        fill="#2D2545" fill-opacity=".43"/>
+  <path d="M248 494C302 409 369 342 438 304C458 294 477 276 495 249"
+        stroke="#F5F0FF" stroke-opacity=".45" stroke-width="2" stroke-linecap="round"/>
+  <path d="M505 214C489 287 489 345 514 399C529 431 552 462 583 488"
+        stroke="#FFF" stroke-opacity=".55" stroke-width="2.5" stroke-linecap="round"/>
+
+  <!-- One substantial chrome seam follows the front fold. -->
+  <path d="M143 600C232 544 298 456 371 371C441 289 525 222 670 168C688 161 703 176 685 190C571 274 492 349 421 435C344 528 260 599 173 641C150 652 125 619 143 600Z"
+        fill="#090810" opacity=".8" filter="url(#metalShadow)"/>
+  <path d="M143 600C232 544 298 456 371 371C441 289 525 222 670 168C688 161 703 176 685 190C571 274 492 349 421 435C344 528 260 599 173 641C150 652 125 619 143 600Z"
+        fill="url(#chrome)" stroke="#F9F7FF" stroke-opacity=".68" stroke-width="1.6"/>
+  <path d="M158 607C249 545 314 455 386 374C462 288 550 229 675 182"
+        stroke="url(#chromeGlint)" stroke-width="3.4" stroke-linecap="round"/>
+  <path d="M165 620C258 565 321 488 390 410"
+        stroke="#FFF" stroke-opacity=".55" stroke-width="1.5" stroke-linecap="round"/>
+
+  <!-- The crystal is seated in the negative space, not suspended outside the form. -->
+  <ellipse cx="468" cy="358" rx="89" ry="93" fill="url(#crystalGlow)"/>
+  <path d="M465 278L526 333L510 419L464 449L411 397L416 324Z"
+        fill="#A9E8EE" fill-opacity=".3" filter="url(#crystalBloom)"/>
+  <path d="M465 278L526 333L510 419L464 449L411 397L416 324Z"
+        fill="url(#crystalA)" stroke="#F7FFFF" stroke-opacity=".88" stroke-width="2"/>
+  <path d="M465 278L464 449L411 397L416 324Z" fill="#F5FEFF" fill-opacity=".38"/>
+  <path d="M465 278L526 333L464 449L464 358Z" fill="url(#crystalB)" fill-opacity=".78"/>
+  <path d="M416 324L465 278L464 358L411 397Z" fill="#FFF" fill-opacity=".5"/>
+  <path d="M526 333L510 419L464 449L464 358Z" fill="#302A48" fill-opacity=".25"/>
+  <path d="M432 314L465 291L500 333" stroke="#FFF" stroke-opacity=".92" stroke-width="2" stroke-linecap="round"/>
+
+  <!-- Fine specular points, kept close to the object's materials. -->
+  <path d="M704 221L713 235L728 244L713 253L704 268L695 253L680 244L695 235Z" fill="#FFF" fill-opacity=".74"/>
+  <circle cx="232" cy="252" r="3" fill="#E9E0FF"/>
+</svg>
