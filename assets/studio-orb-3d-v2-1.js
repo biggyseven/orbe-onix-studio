@@ -248,14 +248,23 @@ void main(){
   vec3 L = normalize(uSun);
   vec3 V = normalize(cameraPosition - vWorld);
   float ndl = max(dot(nWorld, L), 0.0);
-  float day = smoothstep(-0.035, 0.16, dot(geometricNormal, L));
 
-  // Matte lunar regolith: the NASA elevation-derived normal map shapes the terminator.
-  vec3 ambient = vec3(0.018, 0.020, 0.030);
-  vec3 direct = vec3(1.0, 0.985, 0.97) * (0.60 * ndl * day);
+  // Direct sunlight creates the lunar phase and the terminator across the surface.
+  vec3 ambient = vec3(0.010, 0.011, 0.018);
+  vec3 direct = vec3(1.0, 0.985, 0.97) * (0.68 * ndl);
+
+  // VESPERA softly illuminates the lunar night side, like Earthshine on our Moon.
+  // The phase factor follows the illuminated fraction of VESPERA as seen from the Moon.
+  vec3 toPlanet = normalize(-vWorld);
+  float planetFacing = max(dot(nWorld, toPlanet), 0.0);
+  float planetPhase = smoothstep(-0.18, 0.55, dot(normalize(vWorld), L));
+  float planetDistance = max(length(vWorld), 1.0);
+  vec3 reflectedPlanetLight = vec3(0.31, 0.27, 0.52)
+    * (0.10 * planetFacing * planetPhase / (planetDistance * planetDistance));
+
   float limb = pow(1.0 - clamp(dot(geometricNormal, V), 0.0, 1.0), 3.0);
-  vec3 color = albedo * (ambient + direct);
-  color += limb * vec3(0.035, 0.030, 0.055) * day * 0.18;
+  vec3 color = albedo * (ambient + direct + reflectedPlanetLight);
+  color += limb * vec3(0.035, 0.030, 0.055) * (ndl * 0.18 + planetFacing * planetPhase * 0.035);
   gl_FragColor = vec4(display(color), 1.0);
 }`;
 
