@@ -6898,27 +6898,27 @@ body.door-reveal-active .site-header,body.door-reveal-active main,body.door-reve
   .home-lab-art-object{transition:none!important}
 }
 
-
-/* HOME / OPEN EXPERIMENTS · SCULPTURE 004 AS VECTOR */
-.home-lab-sculpture-svg{
+/* HOME / OPEN EXPERIMENTS · SINGLE ROTATING SPHERE */
+.home-lab-art .home-lab-art-object{
   position:absolute;
   z-index:1;
-  inset:0;
-  display:block;
-  width:100%;
-  height:100%;
-  object-fit:contain;
-  padding:clamp(16px,2.5vw,38px) clamp(10px,1.8vw,26px) 42px;
-  pointer-events:none;
-  filter:drop-shadow(0 25px 34px rgba(0,0,0,.2));
+  left:50%;
+  top:50%;
+  width:clamp(150px,20vw,225px);
+  aspect-ratio:1;
+  border:0;
+  border-radius:50%;
+  clip-path:none;
+  transform:translate(-50%,-50%);
+  background:radial-gradient(circle at 31% 25%,#f7f4ff 0%,#d2c8f0 12%,#a99ade 34%,#665a8f 68%,#262231 100%);
+  box-shadow:inset -20px -22px 34px rgba(5,5,12,.5),inset 9px 8px 18px rgba(255,255,255,.36),0 25px 65px rgba(0,0,0,.38);
+  filter:drop-shadow(0 0 24px rgba(166,145,229,.16));
+  transition:opacity .55s ease;
 }
+.home-lab-art .home-lab-art-object:before,
+.home-lab-art .home-lab-art-object:after{display:none!important}
+.home-lab-art.is-ready .home-lab-art-object{opacity:0}
+.home-lab-art.is-fallback .home-lab-3d-canvas{display:none}
 @media(max-width:760px){
-  .home-lab-sculpture-svg{
-    padding:20px 13px 42px;
-  }
-}
-@media(max-width:420px){
-  .home-lab-sculpture-svg{
-    padding:15px 9px 38px;
-  }
+  .home-lab-art .home-lab-art-object{width:clamp(135px,40vw,190px)}
 }
