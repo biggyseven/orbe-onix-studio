@@ -1,3 +1,8 @@
+## 0.3.3 — Homepage hero / Faceted crystal
+- Gave the homepage hero a standalone faceted crystal with slow, restrained rotation.
+- Kept the full woven sculpture and interactive controls isolated on the Étude de forme page.
+- Added a matching CSS fallback and removed the homepage's orbital guide overlays.
+
 ## 0.3.2 — Lab material study / The Seed
 - Replaced the Lab Material Playground's repeated woven loops with one curved, three-finish seed form.
 - Kept the chrome, lavender glass and satin silver material selectors and the drag-to-inspect interaction.
