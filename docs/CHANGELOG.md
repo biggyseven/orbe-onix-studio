@@ -1,3 +1,8 @@
+## 0.3.2 — Lab material study / The Seed
+- Replaced the Lab Material Playground's repeated woven loops with one curved, three-finish seed form.
+- Kept the chrome, lavender glass and satin silver material selectors and the drag-to-inspect interaction.
+- Removed orbit guides from this focused study and added a matching CSS fallback.
+
 ## 0.3.0 — One rotating 3D sphere
 - Replaced the homepage Open Experiments sculpture with one simple, softly lit Three.js sphere.
 - Added slow self-rotation, responsive rendering, visibility-aware animation and a CSS fallback.
