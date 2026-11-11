@@ -6922,3 +6922,20 @@ body.door-reveal-active .site-header,body.door-reveal-active main,body.door-reve
 @media(max-width:760px){
   .home-lab-art .home-lab-art-object{width:clamp(135px,40vw,190px)}
 }
+
+
+/* LAB / SCULPTURE 002 — THE SEED */
+.lab-3d-stage>.hero-stage-orbit{display:none!important}
+.lab-3d-stage .material-object{
+  width:clamp(145px,18vw,190px);
+  height:clamp(225px,30vw,280px);
+  transform:rotate(-7deg);
+  border:1px solid rgba(247,243,255,.65);
+  border-radius:48% 52% 48% 52% / 13% 13% 87% 87%;
+  background:
+    linear-gradient(108deg,rgba(255,255,255,.78) 0%,rgba(222,215,245,.42) 18%,rgba(139,122,182,.44) 42%,rgba(77,67,103,.88) 72%,rgba(236,231,249,.72) 100%);
+  box-shadow:inset 9px 5px 19px rgba(255,255,255,.4),inset -15px -18px 25px rgba(8,7,14,.48),0 28px 62px rgba(0,0,0,.38);
+}
+.lab-3d-stage .material-object:before,
+.lab-3d-stage .material-object:after,
+.lab-3d-stage .material-object-core{display:none!important}
