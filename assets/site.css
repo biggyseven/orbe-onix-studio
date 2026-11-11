@@ -6939,3 +6939,23 @@ body.door-reveal-active .site-header,body.door-reveal-active main,body.door-reve
 .lab-3d-stage .material-object:before,
 .lab-3d-stage .material-object:after,
 .lab-3d-stage .material-object-core{display:none!important}
+
+
+/* HOMEPAGE / HERO 002 — SINGLE FACETED CRYSTAL */
+.home-hero-crystal-fallback{
+  position:absolute;
+  left:50%;
+  top:50%;
+  display:block;
+  width:clamp(170px,22vw,255px);
+  aspect-ratio:1;
+  transform:translate(-50%,-50%) rotate(-9deg);
+  clip-path:polygon(50% 0%,83% 13%,100% 48%,76% 88%,47% 100%,12% 76%,0% 39%,21% 9%);
+  background:
+    linear-gradient(32deg,transparent 0 48%,rgba(255,255,255,.68) 49% 50%,transparent 51%),
+    linear-gradient(148deg,#fff 0%,#d9d0f5 18%,#9383c4 43%,#4c4268 67%,#e7e0fa 83%,#332b46 100%);
+  filter:drop-shadow(0 30px 38px rgba(0,0,0,.4)) drop-shadow(0 0 25px rgba(178,159,235,.22));
+}
+@media(max-width:760px){
+  .home-hero-crystal-fallback{width:clamp(150px,40vw,205px)}
+}
