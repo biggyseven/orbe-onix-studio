@@ -44,3 +44,15 @@ http://localhost:8000/concepts/naya-house/
 - Les photographies Unsplash sont des images d'ambiance, pas des photos attestées de l'établissement.
 - Une connexion internet est nécessaire pour les polices et les photographies externes.
 - Ce dossier est isolé du site racine, de ses styles globaux et de ses scènes 3D.
+
+
+## Ergonomie V3
+- États de focus visibles sur les liens, boutons et champs.
+- Cibles tactiles agrandies sur la navigation, les chapitres et le module des heures.
+- Décalage de défilement mobile ajusté pour les deux barres sticky.
+- Navigation des chapitres annoncée avec aria-current.
+- Menu mobile refermable par Échap et clic extérieur, avec restitution du focus.
+- Module des heures utilisable avec les flèches du clavier, Début et Fin.
+- Visionneuse photo avec focus conservé, fermeture clavier et piège de focus.
+- Dates contrôlées avec message explicite sans effacer les champs déjà remplis.
+- Le style éditorial, les proportions, la palette, les polices et l'ordre des chapitres sont conservés.
