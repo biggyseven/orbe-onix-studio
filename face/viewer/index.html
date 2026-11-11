@@ -3,41 +3,73 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Face 3D — aperçu du projet</title>
-<script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
+<title>Orbe Onyx Studio · Visage 3D</title>
 <style>
-:root{color-scheme:dark}*{box-sizing:border-box}body{margin:0;background:#101318;color:#f3f4f6;font:16px/1.5 system-ui,sans-serif}
-main{max-width:1000px;margin:auto;padding:24px}h1{font-size:clamp(1.6rem,4vw,2.4rem);margin:.2em 0}p{color:#b8c0cc}
-.panel{background:#191f28;border:1px solid #303947;border-radius:18px;padding:18px;margin:18px 0}
-model-viewer{width:100%;height:min(68vh,620px);min-height:340px;background:radial-gradient(circle at 50% 35%,#303946,#151a22);border-radius:12px}
-.gallery{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}
-figure{margin:0;background:#11161d;border-radius:12px;overflow:hidden;border:1px solid #303947}
-figure img{width:100%;aspect-ratio:1/1;object-fit:cover;display:block}figcaption{padding:10px;color:#cbd5e1;font-size:.9rem}
-.badge{display:inline-block;border:1px solid #b58b45;color:#f2cf8d;padding:5px 10px;border-radius:99px;font-size:.8rem}
-.note{font-size:.9rem;color:#aeb8c6}
+:root{color-scheme:dark;--bg:#0d1118;--panel:#171e28;--line:#303b4b;--text:#f4f6fa;--muted:#a7b2c2;--gold:#c7a36a}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse at 50% 0%,#202b3a 0,#0d1118 60%);color:var(--text);font:15px/1.5 Inter,system-ui,Segoe UI,sans-serif}
+main{max-width:1180px;margin:auto;padding:26px 20px 36px}.top{display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap}.brand{font-size:.78rem;letter-spacing:.18em;text-transform:uppercase;color:var(--gold)}
+h1{font-size:clamp(1.7rem,4vw,2.65rem);letter-spacing:-.04em;margin:.25rem 0}.lead{color:var(--muted);max-width:720px;margin:.35rem 0 1.2rem}.tag{border:1px solid #8d7047;color:#e6c991;border-radius:99px;padding:6px 11px;font-size:.75rem;letter-spacing:.08em;text-transform:uppercase;white-space:nowrap}
+.viewer{border:1px solid var(--line);border-radius:20px;overflow:hidden;background:#111822;box-shadow:0 24px 80px #0007}.toolbar{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:13px 15px;border-bottom:1px solid var(--line);background:#151d28}.controls{display:flex;gap:8px;flex-wrap:wrap}button{background:#202b39;color:var(--text);border:1px solid #39485a;border-radius:10px;padding:8px 12px;font:inherit;font-size:.86rem;cursor:pointer}button:hover{border-color:var(--gold);color:#f1d7a9}button.active{background:#493b29;border-color:var(--gold)}.state{font-size:.8rem;color:var(--muted)}
+#stage{height:min(70vh,690px);min-height:430px;position:relative;background:radial-gradient(ellipse at 50% 38%,#34404f 0,#1a2430 48%,#111822 100%)}canvas{display:block;width:100%;height:100%;touch-action:none}.hint{position:absolute;left:16px;bottom:14px;color:#c5ced9;font-size:.77rem;opacity:.8;pointer-events:none}
+.info{display:grid;grid-template-columns:1.2fr .8fr;gap:15px;margin-top:16px}.card{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:16px}.card h2{font-size:1rem;margin:0 0 7px}.card p{margin:0;color:var(--muted);font-size:.9rem}.facts{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}.facts span{border:1px solid #344253;border-radius:99px;padding:5px 9px;color:#d5dce6;font-size:.76rem}
+@media(max-width:720px){main{padding:18px 12px 24px}.info{grid-template-columns:1fr}#stage{height:62vh;min-height:380px}.toolbar{align-items:flex-start;flex-direction:column}}
 </style>
 </head>
 <body><main>
-<span class="badge">PROJET EN CONSTRUCTION</span>
-<h1>Ton visage 3D · Football Life 27</h1>
-<p>Cette page est le lien de visualisation du projet. Les photos servent de références de sculpture. Le modèle 3D final sera affiché ici dès que le maillage aura été créé et contrôlé.</p>
-<section class="panel">
-<h2>Visualiseur 3D</h2>
-<model-viewer id="viewer" src="../model/face.glb" camera-controls auto-rotate rotation-per-second="15deg" shadow-intensity="1" exposure="1" environment-image="neutral" alt="Modèle 3D du visage en cours de création"></model-viewer>
-<p id="status" class="note" aria-live="polite">Le fichier 3D face.glb n'est pas encore disponible. Pour l'instant, consulte les références ci-dessous. Aucun visage générique n'est présenté comme étant le tien.</p>
+<div class="top"><div><div class="brand">ORBE ONYX STUDIO · FACE LAB</div><h1>Visage 3D · Football Life 27</h1></div><span class="tag">Blocout v01 · en cours</span></div>
+<p class="lead">Première construction 3D basée sur les références photographiques du projet. Le modèle est manipulable : fais glisser pour tourner, utilise la molette pour zoomer et les vues rapides pour contrôler les proportions.</p>
+<section class="viewer">
+ <div class="toolbar"><div class="controls"><button data-view="front" class="active">Face</button><button data-view="three">3/4</button><button data-view="profile">Profil</button><button id="reset">Réinitialiser</button></div><div class="state" id="state">Construction du modèle…</div></div>
+ <div id="stage"><div class="hint">Glisser : rotation · Molette/pincement : zoom · Clic droit : déplacement</div></div>
 </section>
-<section class="panel">
-<h2>Photos de référence</h2>
-<div class="gallery">
-<figure><img src="../../20261110_221139.jpg" alt="Photo de référence de face"><figcaption>Vue de face</figcaption></figure>
-<figure><img src="../../20261110_221314.jpg" alt="Photo de référence trois-quarts"><figcaption>Vue trois-quarts</figcaption></figure>
-<figure><img src="../../20261110_221347.jpg" alt="Photo de référence de profil"><figcaption>Vue de profil</figcaption></figure>
-</div>
+<section class="info">
+ <div class="card"><h2>État du modèle</h2><p>Le volume du crâne, la mâchoire, le menton, le nez, les yeux, les lèvres, les oreilles, la coupe courte et la barbe sont présents. Cette version sert à valider la silhouette et les proportions avant le travail fin de ressemblance.</p><div class="facts"><span>Maillage 3D réel</span><span>Vue orbitale</span><span>Référence face + 3/4</span></div></div>
+ <div class="card"><h2>Prochaine passe</h2><p>Affiner la forme du nez et des paupières, ajuster le profil et la ligne de mâchoire, puis préparer les matériaux et l'export Blender. L'intégration dans Football Life 27 sera testée séparément.</p></div>
 </section>
-<p class="note">Cible de livraison : maillage 3D réel, UV et textures. L'intégration Football Life 27 sera validée séparément dans le jeu.</p>
 </main>
-<script>
-const mv=document.querySelector('model-viewer'),st=document.getElementById('status');
-mv.addEventListener('load',()=>{st.textContent='Modèle 3D chargé. Fais glisser pour tourner, pince pour zoomer.'});
-mv.addEventListener('error',()=>{st.textContent='Modèle 3D non encore publié : le fichier face.glb sera ajouté après la sculpture et la validation.'});
+<script type="module">
+import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
+import { OrbitControls } from 'https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/controls/OrbitControls.js';
+const stage=document.getElementById('stage'),state=document.getElementById('state');
+const scene=new THREE.Scene();
+const camera=new THREE.PerspectiveCamera(34,1,.1,100);camera.position.set(0,.05,4.8);
+const renderer=new THREE.WebGLRenderer({antialias:true,alpha:true});renderer.setPixelRatio(Math.min(devicePixelRatio,1.8));renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.08;stage.prepend(renderer.domElement);
+const controls=new OrbitControls(camera,renderer.domElement);controls.target.set(0,-.22,0);controls.enableDamping=true;controls.dampingFactor=.06;controls.minDistance=2.7;controls.maxDistance=7;controls.maxPolarAngle=Math.PI*.88;
+scene.add(new THREE.HemisphereLight(0xdce8ff,0x49372e,2.0));
+const key=new THREE.DirectionalLight(0xffe2c6,3.0);key.position.set(-3,4,5);scene.add(key);
+const fill=new THREE.DirectionalLight(0xb9d2ff,1.25);fill.position.set(4,1,3);scene.add(fill);
+const rim=new THREE.DirectionalLight(0xd49d6f,2.0);rim.position.set(0,3,-4);scene.add(rim);
+const mat=(color,rough=.72,metal=0)=>new THREE.MeshStandardMaterial({color,roughness:rough,metalness:metal});
+const skin=mat('#784a36',.78),skinLight=mat('#916044',.76),innerEar=mat('#5b3429'),lipMat=mat('#713a34',.67),lowerLip=mat('#81463d',.68),hairMat=mat('#171311',.94),beardMat=mat('#2b211c',.95),whiteMat=mat('#e3decf',.32),irisMat=mat('#392719',.32),pupilMat=mat('#0c0a09',.2),glintMat=new THREE.MeshBasicMaterial({color:'#fff4df'}),nostrilMat=mat('#321f1b');
+const group=new THREE.Group();scene.add(group);
+const ys=[-1.12,-1.04,-.92,-.78,-.62,-.42,-.18,.08,.32,.55,.76,.94,1.07,1.13];
+const rxs=[0,.15,.29,.40,.49,.56,.61,.64,.65,.64,.59,.48,.28,0];
+const rzs=[0,.22,.33,.41,.46,.49,.51,.53,.53,.51,.46,.37,.20,0];
+function interp(y,a){let q=Math.max(ys[0],Math.min(ys[ys.length-1],y));for(let i=0;i<ys.length-1;i++){if(q<=ys[i+1]){let t=(q-ys[i])/(ys[i+1]-ys[i]);return a[i]*(1-t)+a[i+1]*t}}return a[a.length-1]}
+function g(x,y,cx,cy,sx,sy,a){return a*Math.exp(-.5*(((x-cx)/sx)**2+((y-cy)/sy)**2))}
+function deform(x,y){let d=g(x,y,0,.61,.42,.20,.018);for(const s of [-1,1]){d+=g(x,y,s*.245,.345,.19,.065,.035);d+=g(x,y,s*.25,.205,.17,.105,-.04);d+=g(x,y,s*.36,-.105,.20,.17,.055);d+=g(x,y,s*.115,-.235,.095,.10,.072)}d+=g(x,y,0,.015,.085,.29,.145)+g(x,y,0,-.205,.145,.12,.215)+g(x,y,0,-.315,.065,.07,.075)+g(x,y,0,-.405,.23,.105,.05)+g(x,y,0,-.845,.24,.15,.085);return d}
+function frontZ(x,y){let rx=Math.max(.001,interp(y,rxs)),rz=interp(y,rzs);return rz*Math.sqrt(Math.max(.015,1-(x/rx)**2))+deform(x,y)}
+function meshFromGrid(name,verts,faces,material){const geo=new THREE.BufferGeometry();geo.setAttribute('position',new THREE.Float32BufferAttribute(verts.flat(),3));geo.setIndex(faces.flat());geo.computeVertexNormals();const mesh=new THREE.Mesh(geo,material);mesh.name=name;group.add(mesh);return mesh}
+function sphere(name,pos,scale,material,segments=32){const m=new THREE.Mesh(new THREE.SphereGeometry(1,segments,Math.max(16,Math.floor(segments*.6))),material);m.name=name;m.position.set(...pos);m.scale.set(...scale);group.add(m);return m}
+function tube(name,points,radius,material){const curve=new THREE.CatmullRomCurve3(points.map(p=>new THREE.Vector3(...p)));const m=new THREE.Mesh(new THREE.TubeGeometry(curve,Math.max(24,points.length*2),radius,8,false),material);m.name=name;group.add(m);return m}
+const nv=112,np=144,V=[],F=[];for(let j=0;j<nv;j++){const y=-1.13+j*(2.26/(nv-1)),rx=interp(y,rxs),rz=interp(y,rzs);for(let i=0;i<np;i++){const ph=-Math.PI+i*2*Math.PI/np,x=rx*Math.sin(ph);let z=rz*Math.cos(ph);const fw=Math.exp(-.5*(ph/.90)**4);z+=deform(x,y)*fw;V.push([x,y,z])}}
+for(let j=0;j<nv-1;j++)for(let i=0;i<np;i++){let a=j*np+i,b=j*np+(i+1)%np,c=(j+1)*np+(i+1)%np,d=(j+1)*np+i;F.push([a,b,d,b,c,d])}meshFromGrid('Head',V,F,skin);
+sphere('Neck',[0,-1.22,-.045],[.335,.43,.30],skin,36);
+for(const s of [-1,1]){sphere('Ear',[s*.655,-.005,-.005],[.145,.245,.115],skinLight);sphere('Ear concha',[s*.705,-.01,.078],[.061,.137,.025],innerEar,24);sphere('Earlobe',[s*.675,-.17,.018],[.091,.105,.085],skin,24)}
+for(const s of [-1,1]){const x=s*.247,y=.205,z=frontZ(x,y)+.052;sphere('Eyeball',[x,y,z],[.132,.073,.066],whiteMat,36);sphere('Iris',[x+s*.004,y-.002,z+.060],[.048,.049,.014],irisMat,30);sphere('Pupil',[x+s*.004,y-.002,z+.073],[.024,.029,.009],pupilMat,24);sphere('Catchlight',[x-.012,y+.019,z+.082],[.009,.009,.004],glintMat,16);
+ const brow=[],upper=[],lower=[];for(let i=0;i<19;i++){let t=-1+2*i/18,xx=s*(.245+t*.155),yy=.355+.035*(1-t*t)-.015*t;brow.push([xx,yy,frontZ(xx,yy)+.025]);let xe=s*(.247+t*.126),yu=.205+.055*Math.sqrt(Math.max(0,1-t*t)),yl=.205-.058*Math.sqrt(Math.max(0,1-t*t));upper.push([xe,yu,frontZ(xe,yu)+.045]);lower.push([xe,yl,frontZ(xe,yl)+.035])}tube('Eyebrow',brow,.021,hairMat);tube('Upper lid',upper,.011,skinLight);tube('Lower lid',lower,.010,skinLight)}
+for(const s of [-1,1]){const x=s*.093,y=-.292;sphere('Nostril',[x,y,frontZ(x,y)+.030],[.043,.018,.012],nostrilMat,20)}
+function lip(name,top,bottom,width,bulge,material){const vv=[],ff=[],nx=48,ny=14;for(let j=0;j<ny;j++){let v=j/(ny-1);for(let i=0;i<nx;i++){let u=-1+2*i/(nx-1),x=u*width,taper=Math.pow(Math.max(0,1-u*u),.62),y=top+(bottom-top)*v+.012*Math.abs(u),z=frontZ(x,y)+.035+bulge*Math.sin(Math.PI*v)*taper;vv.push([x,y,z])}}for(let j=0;j<ny-1;j++)for(let i=0;i<nx-1;i++){let a=j*nx+i,b=a+1,c=b+nx,d=a+nx;ff.push([a,b,d,b,c,d])}meshFromGrid(name,vv,ff,material)}
+lip('Upper lip',-.465,-.525,.205,.055,lipMat);lip('Lower lip',-.535,-.605,.195,.068,lowerLip);
+const mouth=[];for(let x of Array.from({length:27},(_,i)=>-.185+i*.37/26)){let y=-.531+.012*Math.pow(Math.abs(x)/.185,1.7);mouth.push([x,y,frontZ(x,y)+.046])}tube('Mouth crease',mouth,.0045,nostrilMat);
+function bw(y){const ay=[-1.035,-.96,-.84,-.70,-.60],av=[.17,.31,.43,.46,.30];let k=0;while(k<ay.length-2&&y>ay[k+1])k++;let t=(y-ay[k])/(ay[k+1]-ay[k]);return av[k]*(1-t)+av[k+1]*t}
+{const vv=[],ff=[],ny=34,nx=60;for(let j=0;j<ny;j++){let y=-1.035+j*.435/(ny-1),w=bw(y);for(let i=0;i<nx;i++){let x=-w+2*w*i/(nx-1);vv.push([x,y,frontZ(x,y)+.018])}}for(let j=0;j<ny-1;j++)for(let i=0;i<nx-1;i++){let a=j*nx+i,b=a+1,c=b+nx,d=a+nx;ff.push([a,b,d,b,c,d])}meshFromGrid('Jaw beard',vv,ff,new THREE.MeshBasicMaterial({color:'#30241f',side:THREE.DoubleSide}))}
+for(const s of [-1,1]){const p=[];for(let i=0;i<15;i++){let t=i/14,x=s*(.045+.135*t),y=-.452+.018*t;p.push([x,y,frontZ(x,y)+.025])}tube('Moustache',p,.012,beardMat)}
+{const vv=[],ff=[],nt=40,np2=120;for(let j=0;j<nt;j++){let th=j*2.10/(nt-1),sn=Math.sin(th),cs=Math.cos(th);for(let i=0;i<np2;i++){let ph=-Math.PI+i*2*Math.PI/np2,noise=(Math.sin(ph*37+th*55)+.45*Math.sin(ph*73-th*41)+.25*Math.cos(ph*113+th*89))*.0028;let x=.645*sn*Math.sin(ph)*(1+noise),y=.855+.305*cs,z=.535*sn*Math.cos(ph)*(1+noise);vv.push([x,y,z])}}for(let j=0;j<nt-1;j++)for(let i=0;i<np2;i++){let a=j*np2+i,b=j*np2+(i+1)%np2,c=(j+1)*np2+(i+1)%np2,d=(j+1)*np2+i;ff.push([a,b,d,b,c,d])}meshFromGrid('Tight curl hair cap',vv,ff,new THREE.MeshStandardMaterial({color:'#191513',roughness:.98,side:THREE.DoubleSide}))}
+const shadow=new THREE.Mesh(new THREE.CircleGeometry(.9,64),new THREE.MeshBasicMaterial({color:'#070b10',transparent:true,opacity:.32}));shadow.rotation.x=-Math.PI/2;shadow.scale.set(1,.35,1);shadow.position.set(0,-1.66,0);scene.add(shadow);
+function resize(){const w=stage.clientWidth,h=stage.clientHeight;renderer.setSize(w,h,false);camera.aspect=w/h;camera.updateProjectionMatrix()}new ResizeObserver(resize).observe(stage);resize();
+const views={front:new THREE.Vector3(0,.02,4.8),three:new THREE.Vector3(3.2,.05,3.9),profile:new THREE.Vector3(4.8,.02,0)};
+function setView(v){camera.position.copy(views[v]);controls.target.set(0,-.22,0);controls.update();document.querySelectorAll('[data-view]').forEach(b=>b.classList.toggle('active',b.dataset.view===v))}
+document.querySelectorAll('[data-view]').forEach(b=>b.addEventListener('click',()=>setView(b.dataset.view)));document.getElementById('reset').addEventListener('click',()=>setView('front'));
+function animate(){requestAnimationFrame(animate);controls.update();renderer.render(scene,camera)}animate();state.textContent='Modèle 3D chargé · v01';
 </script></body></html>
