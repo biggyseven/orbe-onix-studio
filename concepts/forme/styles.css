@@ -32,3 +32,41 @@
 .cart-heading{align-items:start;flex-direction:column;gap:22px}.cart-layout{grid-template-columns:1fr;gap:25px;padding-top:20px}.cart-item{grid-template-columns:95px 1fr auto;gap:12px;padding:15px 0}.cart-thumb{height:100px}.cart-item-copy h3{font-size:14px}.cart-item-price{font-size:7px}.cart-summary{position:static;padding:20px}.cart-empty{min-height:250px}.checkout-header{grid-template-columns:1fr auto}.checkout-lock{display:none}.checkout-heading{padding:30px 0}.checkout-heading h1{font-size:75px}.checkout-layout{grid-template-columns:1fr;gap:35px;padding-top:22px}.order-summary{position:static;grid-row:1}.form-grid{gap:12px}.form-grid input{height:42px}.confirmation{padding:30px 22px}.footer{padding-top:37px}.footer-top{grid-template-columns:1fr 1fr;gap:23px}.footer-top>p{font-size:14px}.footer-links{gap:13px;grid-column:1/-1}.footer-edition{grid-column:1/-1}.footer-bottom{flex-direction:column;gap:8px;font-size:6px}}
 @media(max-width:390px){:root{--gutter:16px}.hero-copy h1{font-size:73px}.feature-grid{grid-template-rows:315px 220px}.product-grid{gap:24px 9px}.product-actions{flex-direction:column}.product-actions button{min-height:33px}.date-row{grid-template-columns:1fr}.checkout-page{padding-inline:16px}}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
+
+/* Product visibility pass: keep the graphic direction, make the objects the focus. */
+.stage-art{background:var(--blue)}
+.stage-art img{width:min(94%,520px);height:min(94%,520px);object-fit:contain;mix-blend-mode:normal;filter:none;background:var(--paper);padding:10px}
+.feature-image img,.mini-product .mini-image img,.product-image img{width:100%;height:100%;object-fit:contain;mix-blend-mode:normal;filter:none;padding:0}
+.feature-image,.mini-product .mini-image,.product-image{overflow:hidden}
+.feature-image img{transition:transform .65s cubic-bezier(.2,.7,.2,1)}
+.feature-card:hover .feature-image img,.mini-product:hover img,.product-card:hover .product-image img{transform:scale(1.045)}
+.feature-card-large .feature-image{min-height:450px}
+.feature-card-tall .feature-image{min-height:260px}
+.mini-product .mini-image{height:clamp(230px,25vw,340px)}
+.product-image{background:#deded8}
+.product-image img{padding:8px}
+.product-gallery{display:grid;grid-template-columns:1fr;gap:10px}
+.product-gallery figure{position:relative;margin:0;overflow:hidden}
+.product-gallery .product-main-visual{display:grid;place-items:center;min-height:clamp(480px,54vw,700px);background:#d8d8d2}
+.product-gallery .product-main-visual img{width:100%;height:100%;max-height:700px;object-fit:contain;mix-blend-mode:normal;padding:12px}
+.product-detail-plates{display:grid;grid-template-columns:1fr 1fr;gap:10px;min-height:230px}
+.product-detail-crop{display:grid;place-items:center;min-height:230px}
+.product-detail-crop img{width:100%;height:100%;object-fit:cover;mix-blend-mode:normal;transform:scale(1.28);transition:transform .7s}
+.product-detail-crop:hover img{transform:scale(1.42)}
+.product-technical-plate{display:flex;flex-direction:column;justify-content:space-between;min-height:230px;padding:20px;background:var(--ink);color:var(--paper)}
+.product-technical-plate>span,.product-technical-plate>small{font:7px var(--mono);letter-spacing:.13em;color:#c1c5c1}
+.product-technical-plate>b{font:700 clamp(24px,3vw,40px)/.95 var(--serif);letter-spacing:-.07em}
+.product-technical-plate>b em{color:var(--blue);font-style:normal}
+.product-technical-plate>i{width:32px;height:2px;background:var(--coral)}
+@media(max-width:760px){
+ .stage-art{min-height:clamp(300px,88vw,450px)}
+ .stage-art img{width:100%;height:100%;padding:6px}
+ .feature-card-large .feature-image{min-height:350px}
+ .feature-card-tall .feature-image{min-height:240px}
+ .mini-product .mini-image{height:clamp(205px,58vw,280px)}
+ .product-gallery .product-main-visual{min-height:clamp(360px,95vw,520px)}
+ .product-detail-plates{min-height:180px}
+ .product-detail-crop,.product-technical-plate{min-height:180px}
+ .product-technical-plate{padding:14px}
+ .product-technical-plate>b{font-size:25px}
+}
