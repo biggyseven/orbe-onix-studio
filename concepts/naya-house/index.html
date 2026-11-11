@@ -25,7 +25,7 @@
 
 <aside class="chapter-rail" aria-label="Index des chapitres">
   <span class="rail-label">INDEX DU CARNET</span>
-  <a href="#depart" data-chapter="depart" class="active"><b>01</b><span>Départ</span></a>
+  <a href="#depart" data-chapter="depart" class="active" aria-current="location"><b>01</b><span>Départ</span></a>
   <a href="#maison" data-chapter="maison"><b>02</b><span>La maison</span></a>
   <a href="#chambres" data-chapter="chambres"><b>03</b><span>Les chambres</span></a>
   <a href="#heures" data-chapter="heures"><b>04</b><span>Les heures</span></a>
@@ -93,11 +93,11 @@
 <section class="daybook" id="heures">
   <div class="chapter-number"><span>CHAPITRE</span><b>04</b><i></i><small>LES HEURES</small></div>
   <div class="daybook-heading"><p class="overline">TROIS INSTANTS / 04.01</p><h2>Une journée<br><em>à votre rythme.</em></h2><p>Choisissez une heure. Le paysage change, l’envie aussi.</p></div>
-  <div class="daybook-spread">
+  <div class="daybook-spread" id="daybook-content">
     <div class="daybook-controls" role="group" aria-label="Choisir un moment de la journée">
-      <button type="button" class="time-tab active" data-time="morning" aria-pressed="true"><span>01</span><b>Le matin</b><small>07:15 — L’AIR FRAIS</small></button>
-      <button type="button" class="time-tab" data-time="afternoon" aria-pressed="false"><span>02</span><b>L’après-midi</b><small>14:30 — LE TEMPS LONG</small></button>
-      <button type="button" class="time-tab" data-time="evening" aria-pressed="false"><span>03</span><b>Le soir</b><small>18:42 — LA LUMIÈRE BASSE</small></button>
+      <button type="button" class="time-tab active" data-time="morning" aria-pressed="true" aria-controls="daybook-content"><span>01</span><b>Le matin</b><small>07:15 — L’AIR FRAIS</small></button>
+      <button type="button" class="time-tab" data-time="afternoon" aria-pressed="false" aria-controls="daybook-content"><span>02</span><b>L’après-midi</b><small>14:30 — LE TEMPS LONG</small></button>
+      <button type="button" class="time-tab" data-time="evening" aria-pressed="false" aria-controls="daybook-content"><span>03</span><b>Le soir</b><small>18:42 — LA LUMIÈRE BASSE</small></button>
       <div class="time-description" aria-live="polite"><p data-time-title>Le jour s’installe.</p><span data-time-copy>La maison s’éveille doucement. Le café refroidit un peu, personne ne regarde l’heure.</span></div>
     </div>
     <figure class="time-image"><img data-time-image src="https://images.unsplash.com/photo-1470252649378-9c29740c9fa8?auto=format&fit=crop&w=1500&q=85" alt="Lumière douce du matin sur un paysage côtier" loading="lazy"><figcaption><span data-time-caption>04.02 / LE MATIN</span><span>LA LUMIÈRE FAIT LE RESTE.</span></figcaption></figure>
@@ -140,7 +140,7 @@
   <div class="colophon-bottom"><span>© <span data-year></span> NAYA HOUSE / CONCEPT INDÉPENDANT</span><span>UN CARNET IMAGINÉ PAR ORBE & ONIX</span><span>CAMEROUN · DESTINATION À CONFIRMER</span></div>
 </footer>
 
-<div class="lightbox" data-lightbox aria-hidden="true" role="dialog" aria-modal="true" aria-label="Photographie agrandie"><button type="button" data-lightbox-close aria-label="Fermer">×</button><figure><img src="" alt="" data-lightbox-image><figcaption data-lightbox-caption></figcaption></figure></div>
+<div class="lightbox" id="naya-lightbox" data-lightbox aria-hidden="true" role="dialog" aria-modal="true" aria-label="Photographie agrandie" aria-describedby="lightbox-caption" tabindex="-1"><button type="button" data-lightbox-close aria-label="Fermer">×</button><figure><img src="" alt="" data-lightbox-image><figcaption id="lightbox-caption" data-lightbox-caption></figcaption></figure></div>
 <script src="script.js"></script>
 </body>
 </html>
