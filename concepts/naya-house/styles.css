@@ -39,3 +39,29 @@
 }
 @media(max-width:390px){:root{--gutter:18px}.opening h1{font-size:73px}.opening-index{font-size:5px}.opening-index b{font-size:36px}.date-row{grid-template-columns:1fr}.time-tab>b{font-size:17px}.time-tab>small{font-size:5px}}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}.reveal{opacity:1;transform:none}}
+
+
+/* Ergonomie V3 — améliore l’usage sans modifier la direction artistique. */
+:focus-visible{outline:2px solid var(--clay);outline-offset:4px}
+.chapter-rail a{min-width:40px;min-height:40px;padding:4px}
+.hand-link{min-height:44px}
+.main-nav a{min-height:40px;display:inline-flex;align-items:center}
+.menu-button,.menu-button span{touch-action:manipulation}
+.time-tab{min-height:72px}
+.send-letter{min-height:50px}
+.letter-form input:focus-visible,.letter-form select:focus-visible,.letter-form textarea:focus-visible{outline:2px solid var(--clay);outline-offset:3px}
+.letter-form input[aria-invalid="true"]{border-color:#a04e3e}
+[data-lightbox][role="button"]{cursor:zoom-in}
+[data-lightbox][role="button"]:focus-visible{outline:3px solid var(--clay);outline-offset:5px}
+.lightbox>button:focus-visible{outline:3px solid var(--clay);outline-offset:4px}
+@media(max-width:780px){
+ html{scroll-padding-top:138px}
+ .chapter-rail{min-height:62px}
+ .chapter-rail a{min-width:40px;min-height:40px;justify-content:center}
+ .main-nav a{min-height:46px}
+ .time-tab{min-height:84px}
+ .send-letter{min-height:54px}
+}
+@media(prefers-reduced-motion:reduce){
+ .opening-image img{animation:none}
+}
