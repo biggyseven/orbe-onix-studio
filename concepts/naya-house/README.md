@@ -1,28 +1,46 @@
-# NAYA HOUSE — Maquette V1
+# NAYA HOUSE — Carnet de marée
 
-Prototype statique indépendant créé pour la galerie de concepts ORBE & ONIX.
+Version de conception : **V2 / Le carnet de marée**  
+Projet conceptuel indépendant de la galerie ORBE & ONIX.
 
-## Direction visuelle
-- Palette coquillage, sable, vert mangrove et bleu océan.
-- Typographies Fraunces et DM Sans.
-- Photographies immersives et composition éditoriale asymétrique.
-- Mise en page responsive desktop, tablette et mobile.
+## Intention
+
+Un site d'hospitalité construit comme un carnet de voyage éditorial, plutôt qu'un modèle hôtelier classique. La navigation par chapitres, les annotations, les légendes photographiques et la composition asymétrique donnent au site son langage propre.
+
+## Identité visuelle
+
+- Papier coquillage, vert forêt, argile et bleu-vert.
+- Instrument Serif pour la narration, DM Sans pour les textes et DM Mono pour les notes et index.
+- Index latéral numéroté sur grand écran, index horizontal sur mobile.
+- Photographies traitées comme des planches de carnet, pas comme des cartes standard.
+- Chapitres narratifs : Départ, La maison, Les chambres, Les heures, Le littoral, Correspondance.
 
 ## Interactions
-- Navigation mobile avec ouverture/fermeture accessible.
-- En-tête qui s'adapte au défilement.
-- Révélation douce des sections.
-- Galerie avec affichage plein écran.
-- Formulaire de séjour avec contrôles de dates, en mode démonstration.
 
-## Lancer
-Ouvrir `index.html` dans un navigateur. Aucun outil de compilation ni dépendance JavaScript n'est nécessaire.
+- Navigation mobile compacte.
+- Index des chapitres avec état actif et progression.
+- Module « Les heures » : le choix du moment change texte et photographie.
+- Agrandissement des photographies.
+- Formulaire de demande de séjour avec contrôles de dates, en démonstration uniquement.
 
-## Périmètre
-- Maquette V1 en une page avec navigation par sections.
-- Aucun backend, aucune réservation réelle, aucun envoi de formulaire.
-- Noms d'hébergements, prestations, coordonnées et visuels provisoires.
-- Photographies chargées depuis Unsplash ; une connexion internet est nécessaire.
-- Le dossier est isolé du site principal : aucun fichier global ORBE & ONIX n'est modifié.
+## Lancer localement
 
-Les images sont des visuels d'ambiance et ne doivent pas être présentées comme des photographies authentiques du lieu.
+Depuis la racine du dépôt :
+
+```powershell
+python -m http.server 8000
+```
+
+Ouvrir ensuite :
+
+```text
+http://localhost:8000/concepts/naya-house/
+```
+
+## Limites et données provisoires
+
+- Aucun backend et aucune réservation réelle.
+- Les coordonnées, l'emplacement exact, les prestations, tarifs et capacités restent à confirmer.
+- Les photographies Unsplash sont des images d'ambiance, pas des photos attestées de l'établissement.
+- Une connexion internet est nécessaire pour les polices et les photographies externes.
+- Ce dossier est isolé du site racine, de ses styles globaux et de ses scènes 3D.
