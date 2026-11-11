@@ -1,87 +1,146 @@
 <!doctype html>
 <html lang="fr">
 <head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#263d36">
-<meta name="description" content="NAYA HOUSE — une parenthèse côtière, un lieu pour ralentir et se retrouver.">
-<title>NAYA HOUSE — Habiter le calme</title>
-<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Fraunces:opsz,wght@9..144,400;9..144,500&display=swap" rel="stylesheet">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#eee9dc">
+<meta name="description" content="NAYA HOUSE — carnet de marée. Une maison, des heures lentes et le littoral comme horizon.">
+<title>NAYA HOUSE — Carnet de marée</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;600;700&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-<a class="skip" href="#main">Aller au contenu</a>
-<header class="header" data-header>
-<a class="brand" href="#home"><b>NAYA HOUSE</b><small>COASTAL RETREAT</small></a>
-<button class="menu-toggle" type="button" aria-label="Ouvrir le menu" aria-expanded="false" aria-controls="nav" data-toggle><i></i><i></i></button>
-<nav id="nav" data-nav aria-label="Navigation principale"><a href="#maison">La maison</a><a href="#sejours">Hébergements</a><a href="#experiences">Expériences</a><a href="#destination">Destination</a><a href="#galerie">Galerie</a></nav>
-<a class="header-cta" href="#contact">Demander un séjour <span>↗</span></a>
+<a class="skip-link" href="#main">Aller au contenu</a>
+<header class="masthead">
+  <a class="wordmark" href="#depart" aria-label="Naya House, accueil"><span>NAYA</span><i>HOUSE</i><small>COASTAL FIELD JOURNAL</small></a>
+  <div class="masthead-note"><span>ÉDITION Nº 01</span><span>UN CARNET DU LITTORAL</span></div>
+  <button class="menu-button" type="button" data-menu aria-expanded="false" aria-controls="main-nav" aria-label="Ouvrir la navigation"><span></span><span></span></button>
+  <nav id="main-nav" class="main-nav" aria-label="Navigation principale">
+    <a href="#maison">La maison</a><a href="#chambres">Les chambres</a><a href="#heures">Les heures</a><a href="#carnet">Le carnet</a>
+    <a class="nav-cta" href="#correspondance">Écrire à Naya <span>↗</span></a>
+  </nav>
 </header>
 
+<aside class="chapter-rail" aria-label="Index des chapitres">
+  <span class="rail-label">INDEX DU CARNET</span>
+  <a href="#depart" data-chapter="depart" class="active"><b>01</b><span>Départ</span></a>
+  <a href="#maison" data-chapter="maison"><b>02</b><span>La maison</span></a>
+  <a href="#chambres" data-chapter="chambres"><b>03</b><span>Les chambres</span></a>
+  <a href="#heures" data-chapter="heures"><b>04</b><span>Les heures</span></a>
+  <a href="#carnet" data-chapter="carnet"><b>05</b><span>Le littoral</span></a>
+  <a href="#correspondance" data-chapter="correspondance"><b>06</b><span>Correspondance</span></a>
+  <div class="rail-progress"><i data-progress></i></div>
+</aside>
+
 <main id="main">
-<section class="hero" id="home">
-<div class="hero-photo"></div><div class="hero-overlay"></div>
-<div class="hero-copy">
-<p class="eyebrow"><i></i> A COASTAL RETREAT · CAMEROUN</p>
-<h1>Habiter<br><em>le calme.</em></h1>
-<p>Une parenthèse au bord de l’océan.<br>Un lieu pour ralentir, respirer et se retrouver.</p>
-<a class="button light" href="#maison">Explorer la maison <span>↗</span></a>
-</div>
-<div class="hero-side">LA BEAUTÉ DES CHOSES SIMPLES <i></i> 01 — 06</div>
-<div class="hero-bottom"><span>UN REFUGE CÔTIER · UNE AUTRE CADENCE</span><a href="#maison">DÉFILER POUR EXPLORER ↓</a></div>
+<section class="opening" id="depart">
+  <div class="opening-meta"><span><i class="live-dot"></i> NOTES DE VOYAGE / CAMEROUN</span><span>COORDONNÉES À VENIR · Nº 001</span></div>
+  <div class="opening-grid">
+    <div class="opening-index"><span>UNE MAISON</span><b>06</b><span>CHAPITRES</span><i></i><small>LE TEMPS<br>DE RESPIRER</small></div>
+    <div class="opening-copy">
+      <p class="overline">CARNET DE MARÉE <span>—</span> ÉDITION 01</p>
+      <h1>À marée<br><em>douce.</em></h1>
+      <p class="opening-deck">Il y a des lieux qui ne demandent rien d’autre que votre présence. NAYA HOUSE est une invitation à retrouver le goût des heures qui s’étirent.</p>
+      <a class="hand-link" href="#maison"><span>Entrer dans le carnet</span><b>↓</b></a>
+      <div class="opening-foot"><span>UN REFUGE CÔTIER, UNE AUTRE CADENCE.</span><span>01 / 06</span></div>
+    </div>
+    <figure class="opening-image">
+      <img src="https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1800&q=88" alt="Maison contemporaine ouverte sur son jardin, baignée de lumière" fetchpriority="high">
+      <figcaption><span>FIG. 01</span><span>UNE FAÇON D’HABITER LE CALME</span></figcaption>
+      <span class="image-stamp">NAYA<br>HOUSE<br><i>°</i></span>
+    </figure>
+  </div>
+  <div class="opening-bottom"><span>FAITES DÉFILER POUR LIRE LE PAYSAGE</span><span>↓</span><span>UN PROJET D’HOSPITALITÉ / CONCEPT INDÉPENDANT</span></div>
 </section>
 
-<div class="ribbon"><span>LE TEMPS DE RESPIRER</span><i></i><span>LA NATURE TOUT AUTOUR</span><i></i><span>L’ART DE SE RETROUVER</span></div>
-
-<section class="story wrap" id="maison">
-<div class="story-copy reveal"><p class="eyebrow dark">01 / L’ESPRIT NAYA</p><h2>Un lieu pour<br><em>se retrouver.</em></h2>
-<p class="body">Il existe des endroits où l’on n’a rien à prouver, rien à presser. NAYA HOUSE imagine cette parenthèse : une maison ouverte sur son environnement, où la lumière, les matières naturelles et l’hospitalité composent un quotidien plus doux.</p>
-<a class="text-link" href="#experiences">Découvrir notre philosophie ↗</a><small class="index">N° 001 — THE HOUSE</small></div>
-<button class="photo story-photo reveal" type="button" data-lightbox data-src="https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?auto=format&fit=crop&w=1800&q=85" data-caption="La maison, entre matières naturelles et lumière douce" aria-label="Agrandir la photographie de la maison">
-<img src="https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?auto=format&fit=crop&w=1200&q=82" alt="Intérieur lumineux, matières naturelles et grandes ouvertures" loading="lazy"><span class="photo-tag">LA MAISON, TOUT SIMPLEMENT</span><i class="expand">↗</i></button>
+<section class="chapter-intro" id="maison">
+  <div class="chapter-number"><span>CHAPITRE</span><b>02</b><i></i><small>LA MAISON</small></div>
+  <div class="intro-main">
+    <p class="overline">L’ESPRIT DU LIEU / 02.01</p>
+    <h2>Le luxe de<br>n’avoir <em>rien à presser.</em></h2>
+    <div class="intro-lower">
+      <p class="intro-lead">Une porte ouverte. De l’air qui circule. La lumière qui change de place. Et soudain, la journée n’a plus besoin d’être remplie.</p>
+      <p class="intro-body">NAYA HOUSE imagine une hospitalité attentive et sans bruit. Une maison pensée dans le dialogue avec son environnement, où l’architecture, les matières naturelles et les gestes simples dessinent une expérience à taille humaine.</p>
+    </div>
+  </div>
+  <figure class="house-image">
+    <img src="https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?auto=format&fit=crop&w=1700&q=85" alt="Espace intérieur ouvert, matières naturelles et lumière diffuse" loading="lazy">
+    <figcaption>02.02 <span>OUVRIR LES FENÊTRES, LAISSER ENTRER LE JOUR.</span></figcaption>
+  </figure>
+  <div class="margin-note">HOSPITALITÉ<br>À HAUTEUR<br>D’HUMAIN</div>
 </section>
 
-<section class="stays" id="sejours"><div class="wrap">
-<div class="section-head reveal"><div><p class="eyebrow pale">02 / LES HÉBERGEMENTS</p><h2>Des espaces<br><em>pour ralentir.</em></h2></div><p>Chaque espace est pensé comme un refuge à part entière. Des matières simples, de la lumière et juste ce qu’il faut pour se sentir bien.</p></div>
-<div class="stay-grid">
-<article class="stay reveal"><button class="photo stay-photo" data-lightbox data-src="https://images.unsplash.com/photo-1611892440504-42a792e24d32?auto=format&fit=crop&w=1800&q=85" data-caption="Chambre Naya — un espace calme et lumineux" aria-label="Agrandir la photographie de la Chambre Naya"><img src="https://images.unsplash.com/photo-1611892440504-42a792e24d32?auto=format&fit=crop&w=1300&q=82" alt="Chambre accueillante, linge clair et ambiance naturelle" loading="lazy"><i class="expand">↗</i></button><div class="stay-meta"><div><small>01 / INTIMITÉ</small><h3>Chambre Naya</h3><p>Un cocon apaisant pour retrouver son propre rythme.</p></div><b>↗</b></div></article>
-<article class="stay stay-offset reveal"><button class="photo stay-photo" data-lightbox data-src="https://images.unsplash.com/photo-1616486338812-3dadae4b4ace?auto=format&fit=crop&w=1800&q=85" data-caption="Suite Horizon — espace, lumière et respiration" aria-label="Agrandir la photographie de la Suite Horizon"><img src="https://images.unsplash.com/photo-1616486338812-3dadae4b4ace?auto=format&fit=crop&w=1100&q=82" alt="Suite élégante aux tons naturels" loading="lazy"><i class="expand">↗</i></button><div class="stay-meta"><div><small>02 / ESPACE</small><h3>Suite Horizon</h3><p>Un peu plus d’espace pour prolonger la parenthèse.</p></div><b>↗</b></div></article>
-</div><p class="note">Noms et visuels présentés à titre conceptuel. Capacités, équipements et disponibilités restent à confirmer.</p>
-</div></section>
-
-<section class="experiences wrap" id="experiences">
-<div class="experience-head reveal"><p class="eyebrow dark">03 / LES EXPÉRIENCES</p><h2>L’art de ne rien<br><em>précipiter.</em></h2><p>Le séjour se compose de petits moments. Un repas qui s’étire, un instant dehors, une découverte au fil de la journée.</p></div>
-<div class="mosaic">
-<button class="photo dining reveal" data-lightbox data-src="https://images.unsplash.com/photo-1414235077428-338989a2e8c0?auto=format&fit=crop&w=1800&q=85" data-caption="À table — le goût des moments partagés" aria-label="Agrandir la photographie de la table"><img src="https://images.unsplash.com/photo-1414235077428-338989a2e8c0?auto=format&fit=crop&w=1400&q=82" alt="Table dressée dans une ambiance chaleureuse" loading="lazy"><span class="photo-caption"><b>01</b><strong>À table</strong><small>LE GOÛT DU PARTAGE</small></span><i class="expand">↗</i></button>
-<button class="photo nature reveal" data-lightbox data-src="https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1600&q=85" data-caption="Explorer — retrouver le rythme du littoral" aria-label="Agrandir la photographie du littoral"><img src="https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1000&q=82" alt="Plage tropicale et mer calme" loading="lazy"><span class="photo-caption"><b>02</b><strong>Explorer</strong><small>LA NATURE TOUT AUTOUR</small></span><i class="expand">↗</i></button>
-<div class="quote reveal"><span>“</span><p>Le luxe, parfois, c’est simplement d’avoir le temps.</p><i></i><small>LA PHILOSOPHIE NAYA</small></div>
-</div>
-<div class="experience-foot"><span>DES INSTANTS À VIVRE, PAS À COCHER.</span><a class="text-link" href="#contact">Imaginer mon séjour ↗</a></div>
+<section class="stay-chapter" id="chambres">
+  <div class="chapter-number light-number"><span>CHAPITRE</span><b>03</b><i></i><small>LES CHAMBRES</small></div>
+  <div class="stay-heading">
+    <p class="overline">TROUVER SA PLACE / 03.01</p>
+    <h2>Deux façons<br><em>de se poser.</em></h2>
+    <p>Pas de catalogue à parcourir. Deux espaces à découvrir, chacun avec son propre rythme.</p>
+  </div>
+  <article class="room room-one">
+    <div class="room-photo"><img src="https://images.unsplash.com/photo-1611892440504-42a792e24d32?auto=format&fit=crop&w=1500&q=85" alt="Chambre lumineuse aux textures naturelles" loading="lazy"><span class="photo-number">FIG. 03 / A</span></div>
+    <div class="room-copy"><span class="room-index">01 — LE REFUGE</span><h3>Chambre<br><em>Naya.</em></h3><p>Un espace essentiel, doux et enveloppant. Le lieu idéal pour laisser le bruit du dehors à la porte.</p><a href="#correspondance" class="hand-link"><span>Demander cette chambre</span><b>↗</b></a><small>CAPACITÉ / ÉQUIPEMENTS À CONFIRMER</small></div>
+  </article>
+  <article class="room room-two">
+    <div class="room-copy"><span class="room-index">02 — L’HORIZON</span><h3>Suite<br><em>Horizon.</em></h3><p>Plus d’espace, plus de lumière. Une invitation à prolonger le matin et à ne pas regarder l’heure.</p><a href="#correspondance" class="hand-link"><span>Demander cette suite</span><b>↗</b></a><small>CAPACITÉ / ÉQUIPEMENTS À CONFIRMER</small></div>
+    <div class="room-photo"><img src="https://images.unsplash.com/photo-1616486338812-3dadae4b4ace?auto=format&fit=crop&w=1500&q=85" alt="Suite calme dans une palette de tons naturels" loading="lazy"><span class="photo-number">FIG. 03 / B</span></div>
+  </article>
+  <p class="concept-note">Les noms, photographies et descriptions sont des éléments de direction artistique. Ils seront remplacés ou confirmés avec les informations réelles de l’établissement.</p>
 </section>
 
-<section class="destination" id="destination"><div class="destination-photo"></div><div class="destination-copy reveal"><p class="eyebrow dark">04 / LA DESTINATION</p><h2>La côte,<br><em>autrement.</em></h2><p class="body">Au-delà de la maison, il y a un territoire à rencontrer. Les paysages, les rencontres et les chemins du littoral donnent une autre dimension au séjour.</p><small>La localisation précise et les expériences à proximité seront renseignées après validation du lieu.</small><a class="text-link" href="#contact">Préparer ma venue ↗</a></div><span class="coordinates">CAMEROUN · LITTORAL</span></section>
-
-<section class="gallery wrap" id="galerie"><div class="gallery-head reveal"><div><p class="eyebrow dark">05 / REGARDER DE PLUS PRÈS</p><h2>La maison<br><em>en images.</em></h2></div><p>Des lieux, des matières et des instants. Une première collection d’images d’ambiance pour donner forme à l’univers NAYA.</p></div>
-<div class="gallery-grid">
-<button class="photo gallery-tall reveal" data-lightbox data-src="https://images.unsplash.com/photo-1511818966892-d7d671e672a2?auto=format&fit=crop&w=1800&q=85" data-caption="Architecture — lignes ouvertes sur la nature" aria-label="Agrandir la photo d'architecture"><img src="https://images.unsplash.com/photo-1511818966892-d7d671e672a2?auto=format&fit=crop&w=1100&q=82" alt="Architecture contemporaine aux lignes épurées" loading="lazy"><span class="photo-tag">ARCHITECTURE / 01</span><i class="expand">↗</i></button>
-<button class="photo gallery-short reveal" data-lightbox data-src="https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&w=1600&q=85" data-caption="Matières — le confort des choses simples" aria-label="Agrandir la photo des matières"><img src="https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&w=1000&q=82" alt="Intérieur aux textures naturelles" loading="lazy"><span class="photo-tag">MATIÈRES / 02</span><i class="expand">↗</i></button>
-<button class="photo gallery-wide reveal" data-lightbox data-src="https://images.unsplash.com/photo-1518837695005-2083093ee35b?auto=format&fit=crop&w=1800&q=85" data-caption="Océan — un horizon pour respirer" aria-label="Agrandir la photo de l'océan"><img src="https://images.unsplash.com/photo-1518837695005-2083093ee35b?auto=format&fit=crop&w=1400&q=82" alt="Vagues et horizon marin" loading="lazy"><span class="photo-tag">OCÉAN / 03</span><i class="expand">↗</i></button>
-</div><p class="gallery-note">Photographies d’ambiance utilisées pour cette maquette. Elles ne représentent pas nécessairement un établissement existant.</p>
+<section class="daybook" id="heures">
+  <div class="chapter-number"><span>CHAPITRE</span><b>04</b><i></i><small>LES HEURES</small></div>
+  <div class="daybook-heading"><p class="overline">TROIS INSTANTS / 04.01</p><h2>Une journée<br><em>à votre rythme.</em></h2><p>Choisissez une heure. Le paysage change, l’envie aussi.</p></div>
+  <div class="daybook-spread">
+    <div class="daybook-controls" role="group" aria-label="Choisir un moment de la journée">
+      <button type="button" class="time-tab active" data-time="morning" aria-pressed="true"><span>01</span><b>Le matin</b><small>07:15 — L’AIR FRAIS</small></button>
+      <button type="button" class="time-tab" data-time="afternoon" aria-pressed="false"><span>02</span><b>L’après-midi</b><small>14:30 — LE TEMPS LONG</small></button>
+      <button type="button" class="time-tab" data-time="evening" aria-pressed="false"><span>03</span><b>Le soir</b><small>18:42 — LA LUMIÈRE BASSE</small></button>
+      <div class="time-description" aria-live="polite"><p data-time-title>Le jour s’installe.</p><span data-time-copy>La maison s’éveille doucement. Le café refroidit un peu, personne ne regarde l’heure.</span></div>
+    </div>
+    <figure class="time-image"><img data-time-image src="https://images.unsplash.com/photo-1470252649378-9c29740c9fa8?auto=format&fit=crop&w=1500&q=85" alt="Lumière douce du matin sur un paysage côtier" loading="lazy"><figcaption><span data-time-caption>04.02 / LE MATIN</span><span>LA LUMIÈRE FAIT LE RESTE.</span></figcaption></figure>
+  </div>
 </section>
 
-<section class="closing"><div class="closing-photo"></div><div class="closing-copy wrap reveal"><p class="eyebrow pale">06 / VOTRE PARENTHÈSE</p><h2>Et si vous<br><em>preniez le temps ?</em></h2><p>Quelques dates, quelques envies. Le reste commence par une conversation.</p><a class="button light" href="#contact">Préparer mon séjour <span>↗</span></a></div></section>
+<section class="coast-chapter" id="carnet">
+  <div class="coast-top"><div class="chapter-number"><span>CHAPITRE</span><b>05</b><i></i><small>LE LITTORAL</small></div><p class="overline">NOTES PRISES AU BORD DE L’EAU / 05.01</p></div>
+  <div class="coast-title"><h2>Le paysage<br>comme <em>compagnon.</em></h2><p>Il y a ce qui se visite, et ce qui se ressent. Le littoral se découvre par petites touches, sans itinéraire imposé.</p></div>
+  <figure class="coast-panorama"><img src="https://images.unsplash.com/photo-1500375592092-40eb2168fd21?auto=format&fit=crop&w=2200&q=88" alt="Ligne de côte et mer calme sous la lumière du jour" loading="lazy"><figcaption><span>FIG. 05 / LE RIVAGE</span><span>UN HORIZON QUI LAISSE DE LA PLACE.</span></figcaption></figure>
+  <div class="coast-notes">
+    <div><span>NOTE 01</span><b>Observer.</b><p>Les couleurs changent avec les heures. Le paysage n’est jamais tout à fait le même.</p></div>
+    <div><span>NOTE 02</span><b>Rencontrer.</b><p>Un séjour prend aussi sa couleur dans les histoires et les personnes qui habitent le lieu.</p></div>
+    <div><span>NOTE 03</span><b>Prendre son temps.</b><p>Ne rien ajouter à la journée peut parfois être le plus beau programme.</p></div>
+  </div>
+  <p class="concept-note">Destination précise, accès et activités à proximité à renseigner après confirmation de l’emplacement de NAYA HOUSE.</p>
+</section>
 
-<section class="contact wrap" id="contact"><div class="contact-copy reveal"><p class="eyebrow dark">07 / PRENDRE CONTACT</p><h2>Votre séjour<br><em>commence ici.</em></h2><p class="body">Dites-nous ce que vous imaginez. Cette maquette présente le parcours de demande ; aucune réservation réelle n’est effectuée depuis cette version.</p><div class="contact-detail"><small>UNE QUESTION ?</small><b>Parlons de votre séjour.</b><span>Coordonnées à renseigner lors de la validation.</span></div></div>
-<form class="stay-form reveal" data-form><div class="form-head"><b>DEMANDE DE SÉJOUR</b><span>01 — 04</span></div>
-<label>Nom complet<input name="name" autocomplete="name" placeholder="Votre nom" required></label>
-<label>Adresse e-mail<input name="email" type="email" autocomplete="email" placeholder="vous@exemple.com" required></label>
-<div class="form-row"><label>Arrivée<input name="arrival" type="date" required></label><label>Départ<input name="departure" type="date" required></label></div>
-<div class="form-row"><label>Voyageurs<select name="guests"><option>1 personne</option><option selected>2 personnes</option><option>3 personnes</option><option>4 personnes</option><option>5 personnes ou plus</option></select></label><label>Hébergement<select name="room"><option>À définir ensemble</option><option>Chambre Naya</option><option>Suite Horizon</option></select></label></div>
-<label>Un mot sur votre séjour <small>FACULTATIF</small><textarea name="message" rows="3" placeholder="Une occasion, une envie particulière…"></textarea></label>
-<button class="button dark-button" type="submit">Envoyer ma demande <span>↗</span></button><p class="feedback" role="status" aria-live="polite" data-feedback></p><small class="privacy">Prototype : les données saisies ne sont ni enregistrées ni transmises.</small></form></section>
+<section class="correspondence" id="correspondance">
+  <div class="chapter-number light-number"><span>CHAPITRE</span><b>06</b><i></i><small>CORRESPONDANCE</small></div>
+  <div class="letter-layout">
+    <div class="letter-intro"><p class="overline">UNE PETITE LETTRE / 06.01</p><h2>Et si on<br><em>prenait le temps ?</em></h2><p>Quelques mots, des dates, une envie de partir. Laissez-nous une note, nous reprendrons le fil avec vous.</p><div class="postmark">NAYA<br>HOUSE<br><span>COASTAL NOTES · 01</span></div></div>
+    <form class="letter-form" data-stay-form>
+      <div class="letter-top"><span>DEMANDE DE SÉJOUR</span><span>DOUZAINE DE LIGNES / 01</span></div>
+      <label>VOTRE NOM<input name="name" autocomplete="name" placeholder="Nom et prénom" required></label>
+      <label>VOTRE ADRESSE E-MAIL<input name="email" type="email" autocomplete="email" placeholder="vous@exemple.com" required></label>
+      <div class="date-row"><label>ARRIVÉE<input name="arrival" type="date" required></label><label>DÉPART<input name="departure" type="date" required></label></div>
+      <div class="date-row"><label>VOYAGEURS<select name="guests"><option>1 personne</option><option selected>2 personnes</option><option>3 personnes</option><option>4 personnes</option><option>5 personnes ou plus</option></select></label><label>ESPACE SOUHAITÉ<select name="room"><option>À définir ensemble</option><option>Chambre Naya</option><option>Suite Horizon</option></select></label></div>
+      <label>VOTRE PETIT MOT<textarea name="message" rows="3" placeholder="Une envie, une occasion, une question…"></textarea></label>
+      <button class="send-letter" type="submit"><span>Envoyer la correspondance</span><b>↗</b></button>
+      <p class="form-feedback" role="status" aria-live="polite" data-feedback></p>
+      <small class="form-disclaimer">MAQUETTE DE DÉMONSTRATION — AUCUNE DONNÉE N’EST ENREGISTRÉE NI TRANSMISE.</small>
+    </form>
+  </div>
+</section>
 </main>
 
-<footer class="footer"><div class="footer-main wrap"><div><a class="brand footer-brand" href="#home"><b>NAYA HOUSE</b><small>COASTAL RETREAT</small></a><p>Habiter le calme.</p></div><div class="footer-links"><b>EXPLORER</b><a href="#maison">La maison</a><a href="#sejours">Hébergements</a><a href="#experiences">Expériences</a></div><div class="footer-links"><b>EN SAVOIR PLUS</b><a href="#destination">Destination</a><a href="#galerie">Galerie</a><a href="#contact">Contact</a></div><a class="back-top" href="#home">RETOUR EN HAUT ↑</a></div><div class="footer-bottom wrap"><span>© <span data-year></span> NAYA HOUSE · CONCEPT INDÉPENDANT</span><span>DESIGNED AS A QUIETER KIND OF ESCAPE</span></div></footer>
+<footer class="colophon">
+  <div class="colophon-top"><a class="footer-mark" href="#depart">NAYA <i>HOUSE</i></a><p>Le temps de respirer.<br>La liberté de rester.</p><a href="#depart" class="back-to-top">REMONTER AU DÉBUT ↑</a></div>
+  <div class="colophon-bottom"><span>© <span data-year></span> NAYA HOUSE / CONCEPT INDÉPENDANT</span><span>UN CARNET IMAGINÉ PAR ORBE & ONIX</span><span>CAMEROUN · DESTINATION À CONFIRMER</span></div>
+</footer>
 
-<div class="lightbox" data-modal aria-hidden="true" role="dialog" aria-modal="true" aria-label="Photographie agrandie"><button type="button" data-close aria-label="Fermer">×</button><figure><img src="" alt="" data-modal-image><figcaption data-modal-caption></figcaption></figure></div>
+<div class="lightbox" data-lightbox aria-hidden="true" role="dialog" aria-modal="true" aria-label="Photographie agrandie"><button type="button" data-lightbox-close aria-label="Fermer">×</button><figure><img src="" alt="" data-lightbox-image><figcaption data-lightbox-caption></figcaption></figure></div>
 <script src="script.js"></script>
-</body></html>
+</body>
+</html>
