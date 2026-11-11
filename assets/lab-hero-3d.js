@@ -1,6 +1,5 @@
 // ORBE & ONIX — dedicated 3D engine for the Lab material playground.
-// Isolated from the homepage hero: physical materials, drifting studio light,
-// inertial interaction, depth-aware orbits and a controlled PNG export.
+// The Lab uses a layered seed form; the full Study page keeps its woven sculpture.
 (() => {
   const host = document.querySelector("[data-hero-3d]");
   if (!host) return;
@@ -64,9 +63,6 @@
   let scene;
   let camera;
   let sculpture;
-  let chromeRing;
-  let glassRing;
-  let pearl;
   let orbit;
   let envTexture;
   const pointer = { x: 0, y: 0, targetX: 0, targetY: 0 };
@@ -127,9 +123,10 @@
   let introStarted = reducedMotion;
   let introElapsed = reducedMotion ? INTRO_DURATION : 0;
   let orbitsBuilt = false;
+  const hasOrbitGuides = !stage.hasAttribute("data-minimal-scene");
   const cssOrbits = [...stage.querySelectorAll(".hero-stage-orbit")];
   const setCssOrbits = shown => cssOrbits.forEach(element => {
-    element.style.visibility = shown ? "" : "hidden";
+    element.style.visibility = hasOrbitGuides && shown ? "" : "hidden";
   });
 
   const fallback = error => {
@@ -218,93 +215,47 @@
     return texture;
   };
 
-  // Custom swept sections make the interlocking forms feel sculpted,
-  // not like three generic torus primitives.
-  const makeWovenLoopPath = (THREE, radius, depth, phase, irregularity) => {
-    const points = [];
-    const samples = 96;
-    for (let i = 0; i < samples; i += 1) {
-      const angle = (i / samples) * Math.PI * 2;
-      const radial = 1
-        + irregularity * Math.sin(angle * 3 + phase)
-        + irregularity * .34 * Math.cos(angle * 5 - phase);
-      const z = depth * Math.sin(angle * 2 + phase)
-        + depth * .24 * Math.sin(angle * 3 - phase * .7);
-      points.push(new THREE.Vector3(
-        Math.cos(angle) * radius * radial,
-        Math.sin(angle) * radius * radial,
-        z
-      ));
-    }
-    return new THREE.CatmullRomCurve3(points, true, "centripetal", .36);
-  };
-
-  const transformedLoopSamples = (THREE, curve, rotation, zOffset, scale = [1, 1, 1], count = 192) => {
-    const euler = new THREE.Euler(rotation[0], rotation[1], rotation[2], "XYZ");
-    const scaleVector = new THREE.Vector3(scale[0], scale[1], scale[2]);
-    return curve.getSpacedPoints(count).slice(0, -1).map(point => {
-      point.multiply(scaleVector).applyEuler(euler);
-      point.z += zOffset;
-      return point;
-    });
-  };
-
-  const measureLoopClearance = (pointsA, pointsB) => {
-    let minimum = Infinity;
-    for (const pointA of pointsA) {
-      for (const pointB of pointsB) {
-        minimum = Math.min(minimum, pointA.distanceTo(pointB));
-      }
-    }
-    return minimum;
-  };
-
-  const makeSculpturalTubeGeometry = (THREE, curve, options = {}) => {
-    const tubularSegments = options.tubularSegments || 512;
-    const radialSegments = options.radialSegments || 64;
-    const radius = options.radius || .16;
-    const depthRatio = options.depthRatio || .7;
-    const phase = options.phase || 0;
-    const swell = options.swell ?? .07;
-    const sectionExponent = options.sectionExponent ?? .82;
-    const frames = curve.computeFrenetFrames(tubularSegments, true);
+  // One gently curved silhouette, divided into three continuous material zones.
+  const makeLayeredSeedGeometry = THREE => {
+    const control = [
+      new THREE.Vector3(.006, -1.13, 0.00),
+      new THREE.Vector3(.22, -1.08, .015),
+      new THREE.Vector3(.43, -.87, .045),
+      new THREE.Vector3(.57, -.56, .10),
+      new THREE.Vector3(.62, -.16, .13),
+      new THREE.Vector3(.56, .24, .105),
+      new THREE.Vector3(.42, .61, .045),
+      new THREE.Vector3(.23, .90, -.035),
+      new THREE.Vector3(.075, 1.075, -.085),
+      new THREE.Vector3(.006, 1.13, -.095)
+    ];
+    const profile = new THREE.CatmullRomCurve3(control, false, "centripetal", .42).getPoints(72);
+    const radialSegments = 112;
+    const columns = radialSegments + 1;
     const positions = [];
     const uvs = [];
     const indices = [];
-    const tau = Math.PI * 2;
+    const materialAt = t => t < .24 ? 0 : t < .76 ? 1 : 2;
 
-    for (let i = 0; i <= tubularSegments; i += 1) {
-      const u = i / tubularSegments;
-      const point = curve.getPointAt(u);
-      const normal = frames.normals[i];
-      const binormal = frames.binormals[i];
-      const widthProfile = 1
-        + swell * Math.sin(tau * 2 * u + phase)
-        + swell * .28 * Math.cos(tau * 5 * u - phase);
-      const depthProfile = 1 + swell * .42 * Math.cos(tau * 3 * u + phase);
-      const halfWidth = radius * widthProfile;
-      const halfDepth = radius * depthRatio * depthProfile;
-
+    profile.forEach((point, i) => {
+      const t = i / (profile.length - 1);
+      const radius = Math.max(.006, point.x);
+      const twist = .12 * (t - .5);
       for (let j = 0; j <= radialSegments; j += 1) {
-        const v = j / radialSegments;
-        const angle = tau * v;
-        const cosine = Math.cos(angle);
-        const sine = Math.sin(angle);
-        // Softly squared bevel: broad reflective face, rounded edge transitions.
-        const sectionX = Math.sign(cosine) * Math.pow(Math.abs(cosine), sectionExponent) * halfWidth;
-        const sectionY = Math.sign(sine) * Math.pow(Math.abs(sine), sectionExponent) * halfDepth;
-        const vertex = point.clone()
-          .addScaledVector(normal, sectionX)
-          .addScaledVector(binormal, sectionY);
-        positions.push(vertex.x, vertex.y, vertex.z);
-        uvs.push(u, v);
+        const angle = (j / radialSegments) * Math.PI * 2 + twist;
+        positions.push(
+          point.z + Math.cos(angle) * radius,
+          point.y,
+          Math.sin(angle) * radius * .78
+        );
+        uvs.push(j / radialSegments, t);
       }
-    }
+    });
 
-    for (let i = 0; i < tubularSegments; i += 1) {
+    for (let i = 0; i < profile.length - 1; i += 1) {
       for (let j = 0; j < radialSegments; j += 1) {
-        const a = (radialSegments + 1) * i + j;
-        const b = (radialSegments + 1) * (i + 1) + j;
+        const a = i * columns + j;
+        const b = (i + 1) * columns + j;
         const c = b + 1;
         const d = a + 1;
         indices.push(a, b, d, b, c, d);
@@ -315,6 +266,19 @@
     geometry.setAttribute("position", new THREE.Float32BufferAttribute(positions, 3));
     geometry.setAttribute("uv", new THREE.Float32BufferAttribute(uvs, 2));
     geometry.setIndex(indices);
+
+    let groupMaterial = materialAt(.5 / (profile.length - 1));
+    let groupStart = 0;
+    for (let i = 1; i < profile.length - 1; i += 1) {
+      const materialIndex = materialAt((i + .5) / (profile.length - 1));
+      if (materialIndex !== groupMaterial) {
+        const boundary = i * radialSegments * 6;
+        geometry.addGroup(groupStart, boundary - groupStart, groupMaterial);
+        groupStart = boundary;
+        groupMaterial = materialIndex;
+      }
+    }
+    geometry.addGroup(groupStart, indices.length - groupStart, groupMaterial);
     geometry.computeVertexNormals();
     geometry.computeBoundingSphere();
     return geometry;
@@ -572,108 +536,31 @@
       });
       resources.push(glassMaterial);
 
-      const pearlMaterial = new THREE.MeshPhysicalMaterial({
-        color: 0xe4dcff,
-        metalness: .22,
-        roughness: .15,
+      const silverMaterial = new THREE.MeshPhysicalMaterial({
+        color: 0xe8e5ef,
+        metalness: .86,
+        roughness: .19,
         clearcoat: 1,
-        clearcoatRoughness: .06,
-        iridescence: .11,
+        clearcoatRoughness: .055,
+        iridescence: .055,
         iridescenceIOR: 1.3,
-        iridescenceThicknessMinimum: 210,
-        iridescenceThicknessMaximum: 440,
-        sheen: .065,
-        sheenColor: new THREE.Color(0xcfc5ff),
-        sheenRoughness: .42,
-        emissive: 0x39245e,
-        emissiveIntensity: .2,
+        iridescenceThicknessMinimum: 230,
+        iridescenceThicknessMaximum: 420,
         envMapIntensity: 1.7
       });
-      resources.push(pearlMaterial);
+      resources.push(silverMaterial);
 
-      const tubeSegments = 768;
-
-      // The paths deliberately weave in depth. They cross in the camera view,
-      // but their high/low passes are shaped into each loop rather than cut apart.
-      const outerPath = makeWovenLoopPath(THREE, 1.32, .24, -.3, .028);
-      const outerGeometry = makeSculpturalTubeGeometry(THREE, outerPath, {
-        tubularSegments: tubeSegments,
-        radialSegments: 88,
-        radius: .16,
-        depthRatio: .72,
-        phase: .4,
-        swell: .04,
-        sectionExponent: 1.12
-      });
-      chromeRing = new THREE.Mesh(outerGeometry, chromeMaterial);
-      chromeRing.rotation.set(1.02, .26, -.24);
-      chromeRing.position.z = .3;
-      sculpture.add(chromeRing);
-      resources.push(outerGeometry);
-
-      const glassPath = makeWovenLoopPath(THREE, 1.14, .31, 1.35, .042);
-      const glassGeometry = makeSculpturalTubeGeometry(THREE, glassPath, {
-        tubularSegments: tubeSegments,
-        radialSegments: 96,
-        radius: .22,
-        depthRatio: .38,
-        phase: 1.1,
-        swell: .055,
-        sectionExponent: 1.18
-      });
-      glassRing = new THREE.Mesh(glassGeometry, glassMaterial);
-      glassRing.rotation.set(-.68, .7, .48);
-      glassRing.position.z = -.6;
-      glassRing.scale.setScalar(1.04);
-      sculpture.add(glassRing);
-      resources.push(glassGeometry);
-
-      const bridgePath = makeWovenLoopPath(THREE, .86, .19, .75, .03);
-
-      const chromeSamples = transformedLoopSamples(THREE, outerPath, [1.02, .26, -.24], .3);
-      const glassSamples = transformedLoopSamples(THREE, glassPath, [-.68, .7, .48], -.6, [1.04, 1.04, 1.04]);
-      const bridgeSamples = transformedLoopSamples(THREE, bridgePath, [.38, -.88, .22], 0, [1.12, .78, 1]);
-      const clearances = [
-        measureLoopClearance(chromeSamples, glassSamples) - (.16 + .22 * 1.04),
-        measureLoopClearance(chromeSamples, bridgeSamples) - (.16 + .075 * 1.12),
-        measureLoopClearance(glassSamples, bridgeSamples) - (.22 * 1.04 + .075 * 1.12)
-      ];
-      if (clearances.some(gap => gap < .035)) {
-        throw new Error("Hero sculpture links are too close: " + clearances.map(value => value.toFixed(3)).join(", "));
-      }
-      debug3D("sculpture-built", {
-        children: sculpture.children.length,
-        clearances: clearances.map(value => Number(value.toFixed(3))),
-        tubeSegments
-      });
-      const bridgeGeometry = makeSculpturalTubeGeometry(THREE, bridgePath, {
-        tubularSegments: tubeSegments,
-        radialSegments: 80,
-        radius: .075,
-        depthRatio: .78,
-        phase: .7,
-        swell: .035,
-        sectionExponent: 1.12
-      });
-      const bridgeMaterial = new THREE.MeshPhysicalMaterial({
-        color: 0xf0edf6,
-        metalness: .98,
-        roughness: .085,
-        clearcoat: 1,
-        clearcoatRoughness: .025,
-        envMapIntensity: 2.3
-      });
-      resources.push(bridgeGeometry, bridgeMaterial);
-      const bridge = new THREE.Mesh(bridgeGeometry, bridgeMaterial);
-      bridge.rotation.set(.38, -.88, .22);
-      bridge.scale.set(1.12, .78, 1);
-      bridge.position.z = 0;
-      sculpture.add(bridge);
+      // LAB SCULPTURE 002 — THE SEED
+      // One continuous form with a chrome base, translucent glass body and silver tip.
+      const seedGeometry = track(makeLayeredSeedGeometry(THREE));
+      const seed = new THREE.Mesh(seedGeometry, [chromeMaterial, glassMaterial, silverMaterial]);
+      seed.rotation.set(.02, 0, .035);
+      sculpture.add(seed);
 
       const materialFocusMaterials = {
         chrome: chromeMaterial,
         glass: glassMaterial,
-        silver: bridgeMaterial
+        silver: silverMaterial
       };
       const materialFocusTargets = {
         chrome: {
@@ -727,19 +614,6 @@
         }
       };
 
-      const pearlGeometry = new THREE.SphereGeometry(.205, 112, 80);
-      pearl = new THREE.Mesh(pearlGeometry, pearlMaterial);
-      pearl.position.set(-.08, .08, .08);
-      sculpture.add(pearl);
-      resources.push(pearlGeometry);
-
-      const markerGeometry = new THREE.SphereGeometry(.04, 40, 32);
-      const markerMaterial = new THREE.MeshBasicMaterial({ color: 0xd9e9a0 });
-      resources.push(markerGeometry, markerMaterial);
-      const marker = new THREE.Mesh(markerGeometry, markerMaterial);
-      marker.position.set(1.53, -.62, .14);
-      sculpture.add(marker);
-
       // [MOTION] ------------------------------------------------------------
       // True 3D orbits (study scene only). The CSS rings were flat overlays: they
       // could never pass behind the sculpture. These are thin tubes in the scene, so
@@ -751,7 +625,7 @@
         { color: 0xcfc8ea, dot: 0xffffff, a: 1.36, e: 0, radius: .0085, dotSize: .036, period: 41, phase: 2.2, tilt: [.22, -.18, .1], trail: 0 },
         { color: 0x58c4cf, dot: 0xa6f3f8, a: 1.3, e: .17, radius: .0075, dotSize: .032, period: 27, phase: .4, tilt: [.62, -.55, -.5], trail: 26 }
       ];
-      if (isStudyScene) {
+      if (isStudyScene && hasOrbitGuides) {
         const glowCanvas = document.createElement("canvas");
         glowCanvas.width = 64;
         glowCanvas.height = 64;
@@ -1086,25 +960,25 @@
         chrome: {
           index: "01 / MATIÈRE SÉLECTIONNÉE",
           title: "Chrome poli",
-          copy: "La boucle extérieure porte la structure. Sa surface miroir capte les grandes sources de lumière et fait lire le volume par contraste.",
+          copy: "La base métallique ancre la forme. Son reflet net donne du poids à la silhouette sans ajouter de décor.",
           finish: "Mirror polish",
-          role: "Structure extérieure",
+          role: "Base · ancrage",
           reading: "Reflet & contraste"
         },
         glass: {
           index: "02 / MATIÈRE SÉLECTIONNÉE",
           title: "Verre lavande",
-          copy: "Le ruban central apporte la couleur et la profondeur. Ses bords adoucis révèlent la transparence sans perdre la présence de la matière.",
+          copy: "Le corps translucide porte le volume principal. La lumière traverse sa teinte et révèle la courbe de la forme.",
           finish: "Optical glass · lavender",
-          role: "Volume central",
+          role: "Corps · transparence",
           reading: "Transmission & teinte"
         },
         silver: {
           index: "03 / MATIÈRE SÉLECTIONNÉE",
           title: "Argent satiné",
-          copy: "La petite boucle intérieure précise la composition. Son reflet plus doux conduit le regard vers la perle centrale.",
+          copy: "La pointe argentée termine la silhouette avec une finition plus douce et une lumière diffuse.",
           finish: "Soft silver",
-          role: "Liaison intérieure",
+          role: "Pointe · finition",
           reading: "Ligne & précision"
         }
       };
