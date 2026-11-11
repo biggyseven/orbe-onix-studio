@@ -45,7 +45,9 @@ function initFilters(){
  const reset=()=>{selectedCategory='all';selectedPrice='all';$$('[data-category]').forEach(i=>i.checked=i.value==='all');$$('[data-price]').forEach(i=>i.checked=i.value==='all');$$('[data-material]').forEach(i=>i.checked=false);const search=$('[data-search]');if(search)search.value='';const sort=$('[data-sort]');if(sort)sort.value='featured';renderCatalogue()};
  $('[data-clear]')?.addEventListener('click',reset);$('[data-clear-empty]')?.addEventListener('click',reset);
  $('[data-filter-toggle]')?.addEventListener('click',()=>{$('[data-filter-panel]')?.classList.add('open');document.body.classList.add('drawer-open')});
- const closePanel=()=>{$('[data-filter-panel]')?.classList.remove('open');document.body.classList.remove('drawer-open')};\n $('[data-filter-close]')?.addEventListener('click',closePanel);\n document.addEventListener('keydown',event=>{if(event.key==='Escape')closePanel()});
+ const closePanel=()=>{$('[data-filter-panel]')?.classList.remove('open');document.body.classList.remove('drawer-open')};
+ $('[data-filter-close]')?.addEventListener('click',closePanel);
+ document.addEventListener('keydown',event=>{if(event.key==='Escape')closePanel()});
 }
 let currentProduct=null,selectedFinish='';
 function renderProduct(){
