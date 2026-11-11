@@ -1,3 +1,8 @@
+## 0.3.0 — One rotating 3D sphere
+- Replaced the homepage Open Experiments sculpture with one simple, softly lit Three.js sphere.
+- Added slow self-rotation, responsive rendering, visibility-aware animation and a CSS fallback.
+- Removed the SVG sculpture and its surrounding readout labels.
+
 ## 0.2.9 — Sculpture 004 delivered as SVG
 - Replaced the homepage Lab WebGL canvas with a hand-authored vector illustration of The Rift.
 - Preserved the folded glass shells, integrated chrome seam and central faceted crystal in scalable SVG gradients and paths.
